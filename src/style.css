@@ -31,3 +31,70 @@ body {
   background-clip: padding-box;
   box-shadow: 0 0 0 2px white; /* black outline */
 }
+
+.ais-vessel-marker {
+  background: transparent;
+  border: 0;
+}
+
+.ais-vessel {
+  align-items: center;
+  display: flex;
+  height: 30px;
+  justify-content: center;
+  transition: transform 300ms ease;
+  width: 30px;
+}
+
+.ais-vessel span {
+  background: #0f172a;
+  border: 2px solid white;
+  box-shadow: 0 2px 9px rgb(15 23 42 / 0.45);
+  clip-path: polygon(50% 0, 88% 88%, 50% 70%, 12% 88%);
+  display: block;
+  height: 25px;
+  width: 19px;
+}
+
+.ais-vessel--company span {
+  background: #f97316;
+  border-color: #fff7ed;
+  box-shadow:
+    0 0 0 3px rgb(249 115 22 / 0.25),
+    0 2px 10px rgb(124 45 18 / 0.55);
+}
+
+.ais-vessel--nt span {
+  background: #a855f7;
+  border-color: #faf5ff;
+  box-shadow: 0 0 0 4px rgb(168 85 247 / 0.3), 0 2px 12px rgb(88 28 135 / 0.65);
+}
+
+.ais-vessel--police span {
+  background: #2563eb;
+  border-color: #eff6ff;
+  box-shadow: 0 0 0 4px rgb(37 99 235 / 0.32), 0 2px 12px rgb(30 58 138 / 0.7);
+}
+
+.ais-vessel--stale {
+  opacity: 0.45;
+}
+
+.ais-popup dl {
+  margin: 8px 0 0;
+}
+
+.ais-popup dl div {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.ais-popup dt {
+  color: #64748b;
+}
+
+.ais-popup dd {
+  margin: 0;
+  text-align: right;
+}

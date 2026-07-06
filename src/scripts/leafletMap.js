@@ -89,7 +89,9 @@ export async function loadCanals() {
 }
 
 export function createMap(el) {
+  const savedView = loadSavedMapView();
   const map = L.map(el, {
+    preferCanvas: true,
     minZoom: 11,
     maxZoom: 19,
     scrollWheelZoom: true,
@@ -97,21 +99,30 @@ export function createMap(el) {
     boxZoom: true,
     keyboard: true,
     doubleClickZoom: false,
-  }).setView([52.3695, 4.899], 14.5);
+  }).setView(savedView?.center || [52.3695, 4.899], savedView?.zoom || 14.5);
+  map.hasSavedView = Boolean(savedView);
+
+  const canalPane = map.createPane("canal-pane");
+  canalPane.style.zIndex = "450";
 
   const canalHighlightPane = map.createPane("canal-highlight-pane");
   canalHighlightPane.style.zIndex = "650";
   canalHighlightPane.style.pointerEvents = "none";
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  const navigationPane = map.createPane("navigation-pane");
+  navigationPane.style.zIndex = "620";
+
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors",
     className: "base-map-layer",
+    referrerPolicy: "strict-origin-when-cross-origin",
     maxZoom: 19,
   }).addTo(map);
 
   addCombinedScaleControl(map);
   closePopupOnZoom(map);
   invalidateMapSizeOnViewportResize(map);
+  persistMapView(map);
 
   return map;
 }
@@ -268,6 +279,7 @@ export function showUserLocation(map, options = {}) {
 
 export async function addCanals(map, canalsData) {
   const layer = L.geoJSON(canalsData, {
+    pane: "canal-pane",
     style: (feature) => {
       return getCanalStyle(feature);
     },
@@ -305,10 +317,43 @@ export async function addCanals(map, canalsData) {
 
   layer.featureLayerByKey = buildCanalFeatureLayerLookup(layer);
   layer.highlightOverlayByKey = new Map();
-  map.fitBounds(layer.getBounds());
+  if (!map.hasSavedView) {
+    map.fitBounds(layer.getBounds());
+  }
   addOnewayDirectionArrows(map, layer);
 
   return layer;
+}
+
+function loadSavedMapView() {
+  try {
+    const value = JSON.parse(sessionStorage.getItem("grachtenkaart-map-view") || "null");
+    if (
+      Array.isArray(value?.center) &&
+      value.center.length === 2 &&
+      value.center.every(Number.isFinite) &&
+      Number.isFinite(value.zoom)
+    ) {
+      return value;
+    }
+  } catch {
+    // Use the default Amsterdam view.
+  }
+
+  return null;
+}
+
+function persistMapView(map) {
+  map.on("moveend", () => {
+    const center = map.getCenter();
+    sessionStorage.setItem(
+      "grachtenkaart-map-view",
+      JSON.stringify({
+        center: [center.lat, center.lng],
+        zoom: map.getZoom(),
+      }),
+    );
+  });
 }
 
 export function buildCanalSearchIndex(canalsGeoJson) {
@@ -407,26 +452,6 @@ export function listCanals(searchIndex) {
 
     return firstRecord.groupKey.localeCompare(secondRecord.groupKey);
     });
-}
-
-export function listRandomCanals(searchIndex) {
-  if (!searchIndex?.records) {
-    return [];
-  }
-
-  const canalsByName = new Map();
-
-  for (const record of searchIndex.records) {
-    const normalizedName = normalizeWaterwayName(record.name);
-
-    if (!normalizedName || canalsByName.has(normalizedName)) {
-      continue;
-    }
-
-    canalsByName.set(normalizedName, record);
-  }
-
-  return Array.from(canalsByName.values());
 }
 
 export function findCanalResultByFeature(searchIndex, feature) {
@@ -673,6 +698,7 @@ function getCanalStyle(feature) {
 
   return {
     color: baseColor,
+    pane: "canal-pane",
     weight: 5,
     opacity: WATERWAY_OPACITY,
   };

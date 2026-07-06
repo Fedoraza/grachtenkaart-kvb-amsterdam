@@ -9,6 +9,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   base: process.env.BASE_PATH || '/',
   plugins: [vue(), tailwindcss()],
+  server: {
+    watch: {
+      ignored: ['**/data/**', '**/*.sqlite', '**/*.sqlite-*'],
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
