@@ -248,11 +248,11 @@ export function createWhatsAppConnector({ isChatEnabled, onChats, onGroupMessage
       fromMe: Boolean(message.key.fromMe),
     });
     const mediaMessage = content.imageMessage || imageDocument;
-    if (plainText.trim()) {
+    if (plainText.trim() && looksLikeCrewContext(plainText)) {
       recentPlanningText.set(chatId, { text: plainText.trim(), receivedAt });
       const pending = pendingPlanningImages.get(chatId) || [];
-      const candidate = pending.filter((item) => item.receivedAt >= receivedAt && item.receivedAt - receivedAt <= 15 * 60 * 1000)
-        .sort((left, right) => left.receivedAt - right.receivedAt)[0];
+      const candidate = pending.filter((item) => Math.abs(item.receivedAt - receivedAt) <= 3 * 60 * 1000)
+        .sort((left, right) => Math.abs(left.receivedAt - receivedAt) - Math.abs(right.receivedAt - receivedAt))[0];
       if (candidate) {
         pendingPlanningImages.set(chatId, pending.filter((item) => item !== candidate));
         await onPlanningMessage?.({ ...candidate, contextText: plainText.trim() });
@@ -269,8 +269,13 @@ export function createWhatsAppConnector({ isChatEnabled, onChats, onGroupMessage
     if (!mediaMessage) return;
     console.log(`WhatsApp planning image read from ${metadata.title} at ${new Date(receivedAt).toISOString()}`);
     const recent = recentPlanningText.get(chatId);
-    const contextText = plainText.trim() || (recent && receivedAt >= recent.receivedAt
-      && receivedAt - recent.receivedAt <= 15 * 60 * 1000 ? recent.text : "");
+    const compactCrewCard = isLikelyCrewCard(mediaMessage);
+    const matchedRecent = compactCrewCard && recent && receivedAt >= recent.receivedAt
+      && receivedAt - recent.receivedAt <= 3 * 60 * 1000 ? recent : null;
+    const contextText = plainText.trim() || matchedRecent?.text || "";
+    // A caption describes one crew card. Reusing it was the main cause of one
+    // boat's crew being attached to several subsequent images in history sync.
+    if (matchedRecent) recentPlanningText.delete(chatId);
     const image = await downloadMediaMessage(message, "buffer", {}, {
       logger,
       reuploadRequest: activeSocket.updateMediaMessage,
@@ -285,12 +290,21 @@ export function createWhatsAppConnector({ isChatEnabled, onChats, onGroupMessage
       image,
       mimeType: mediaMessage.mimetype || "image/jpeg",
     };
-    await onPlanningMessage?.(planningMessage);
-    if (!contextText) {
+    if (!contextText && compactCrewCard) {
       const pending = (pendingPlanningImages.get(chatId) || [])
-        .filter((item) => receivedAt - item.receivedAt <= 15 * 60 * 1000);
+        .filter((item) => receivedAt - item.receivedAt <= 3 * 60 * 1000);
       pending.push(planningMessage);
       pendingPlanningImages.set(chatId, pending.slice(-8));
+      setTimeout(async () => {
+        const queued = pendingPlanningImages.get(chatId) || [];
+        if (!queued.includes(planningMessage)) return;
+        pendingPlanningImages.set(chatId, queued.filter((item) => item !== planningMessage));
+        try { await onPlanningMessage?.(planningMessage); } catch (error) {
+          console.error("Delayed WhatsApp crew-card processing failed", error.message);
+        }
+      }, 5_000);
+    } else {
+      await onPlanningMessage?.(planningMessage);
     }
     state = { ...state, message: "Connected. Planning history is read-only; no WhatsApp messages are sent.", lastMessageAt: Date.now() };
   }
@@ -321,6 +335,16 @@ export function createWhatsAppConnector({ isChatEnabled, onChats, onGroupMessage
     }),
     getState: () => ({ ...state }),
   };
+}
+
+function looksLikeCrewContext(value) {
+  const lines = String(value || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  return lines.length >= 2 && lines.some((line) => /^[@＠]/.test(line));
+}
+
+function isLikelyCrewCard(mediaMessage) {
+  const width = Number(mediaMessage?.width || 0), height = Number(mediaMessage?.height || 0);
+  return width > 0 && height > 0 && width > height && height <= 700;
 }
 
 function normalizeChatMetadata(group) {

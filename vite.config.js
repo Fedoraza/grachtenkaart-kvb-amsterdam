@@ -10,6 +10,17 @@ export default defineConfig({
   base: process.env.BASE_PATH || '/',
   plugins: [vue(), tailwindcss()],
   server: {
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:5173',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:5173',
+        ws: true,
+        changeOrigin: true,
+      },
+    },
     watch: {
       ignored: ['**/data/**', '**/*.sqlite', '**/*.sqlite-*'],
     },

@@ -1,22 +1,65 @@
 const BOAT_ALIASES = new Map([
+  ["AGATH", "AGATHA"],
   ["AZ", "AMELIE ZAHRA"],
+  ["AMELIE", "AMELIE ZAHRA"],
+  ["AMELIE Z", "AMELIE ZAHRA"],
+  ["APS", "APSARA"],
+  ["ATL", "ATLANTIS"],
+  ["ATLA", "ATLANTIS"],
   ["FS", "FLAGSHIP"],
+  ["FLAG", "FLAGSHIP"],
   ["LS", "LUCKY STRIPPER"],
+  ["LUCKY S", "LUCKY STRIPPER"],
   ["PC", "PIERRE CUYPERS"],
   ["JVDH", "JAN VAN DER HEIJDEN"],
   ["VDH", "JAN VAN DER HEIJDEN"],
+  ["JAN VDH", "JAN VAN DER HEIJDEN"],
   ["FW", "FREEWILLY"],
+  ["FREE W", "FREEWILLY"],
+  ["FREE WILLY", "FREEWILLY"],
   ["DVO", "DIRCK VAN OS"],
+  ["DIRCK", "DIRCK VAN OS"],
+  ["DM", "DUTCHMAN"],
   ["BARRA", "BARRACUDA"],
   ["BARA", "BARRACUDA"],
+  ["C1", "CREUSEN-1"],
+  ["CREUSEN", "CREUSEN-1"],
+  ["FAY", "FAYEN"],
+  ["GM", "GREEN MARINE"],
+  ["GREEN M", "GREEN MARINE"],
+  ["GRIFF", "GRIFFIOEN"],
+  ["HS", "HARRY SLINGER"],
+  ["HARRY S", "HARRY SLINGER"],
+  ["HB", "HERMAN BROOD"],
+  ["HERMAN B", "HERMAN BROOD"],
+  ["COOKIE", "HERMAN BROOD"],
+  ["COOKIE TOUR", "HERMAN BROOD"],
+  ["COOKIE TOURS", "HERMAN BROOD"],
+  ["MAJ", "MAJESTIC"],
+  ["MANHATT", "MANHATTAN"],
+  ["MDM", "MONNE DE MIRANDA"],
+  ["MONNE", "MONNE DE MIRANDA"],
+  ["OQ", "OLD QUEEN"],
+  ["OLD Q", "OLD QUEEN"],
   ["RS", "RUSSIAN STAR"],
   ["RUSSIAN S", "RUSSIAN STAR"],
+  ["ROYAL", "ROYALTY"],
+  ["BARTO", "BARTOLOTTI"],
+  ["SALOON", "SALOONSLOEP"],
+  ["SV", "SLOEPVRIENDEN"],
+  ["SLOEPV", "SLOEPVRIENDEN"],
+  ["SM", "STELLA MARIS"],
+  ["STELLA M", "STELLA MARIS"],
+  ["TK", "THEO KOK"],
+  ["THEO K", "THEO KOK"],
+  ["TZHL", "TIJD ZAL HET LEREN"],
+  ["ZB", "ZONNE BOOT"],
+  ["ZONNE B", "ZONNE BOOT"],
 ]);
 
 const NON_BOAT_LABELS = new Set([
   "BREAK",
   "COMING FROM",
-  "DM",
   "OUT TO",
   "PRIVATE",
   "UNLIMITED",
@@ -105,7 +148,11 @@ export function parseLanePlanningItems(tsv, knownBoats) {
     return boat ? [{ ...word, boat }] : [];
   });
   const lanes = buildBoatLanes(occurrences);
-  if (lanes.length < 2) return [];
+  // Some location schedules (notably Homomonument/IRIS) contain a single
+  // company-boat column next to an unrelated operator. A single recognized
+  // fleet lane is still enough: all time and text matching remains bounded to
+  // that lane.
+  if (!lanes.length) return [];
 
   const times = repairLaneTimes(words.flatMap(extractWordTimes).map((time) => ({ ...time, lane: nearestLane(time.x, lanes) })), lanes);
   const explicit = [];
@@ -126,6 +173,7 @@ export function parseLanePlanningItems(tsv, knownBoats) {
       eventType: isPreparation ? "preparation" : "break",
       startTime: breakBounds.startTime,
       endTime: breakBounds.endTime,
+      _anchorY: occurrence.centerY,
       ...(isBreak && breakBounds.explicitDuration ? { notes: `${breakBounds.explicitDuration} min break` } : {}),
       ...(isPreparation ? { from: "E-Harbour", notes: "Prepare boat at E-Harbour" } : {}),
     });
@@ -167,6 +215,7 @@ export function parseLanePlanningItems(tsv, knownBoats) {
       eventType: "break",
       startTime: breakBounds.startTime,
       endTime: breakBounds.endTime,
+      _anchorY: word.centerY,
       ...(breakBounds.explicitDuration ? { notes: `${breakBounds.explicitDuration} min break` } : {}),
     });
   }
@@ -198,7 +247,46 @@ export function parseLanePlanningItems(tsv, knownBoats) {
     });
   }
 
-  return inferLaneTours(normalizeLaneBreakCadence(deduplicateItems(explicit)));
+  recoverOccurrenceBreaks(explicit, occurrences, words, lanes);
+  return inferLaneTours(normalizeLaneBreakCadence(deduplicateItems(explicit)))
+    .map(({ _anchorY, ...item }) => item);
+}
+
+function recoverOccurrenceBreaks(explicit, occurrences, words, lanes) {
+  const breakOccurrences = [];
+  for (const occurrence of occurrences) {
+    const lane = lanes.find((candidate) => candidate.boat === occurrence.boat);
+    const nearbyText = words.filter((word) => nearestLane(word.x, lanes) === lane
+      && Math.abs(word.centerY - occurrence.centerY) <= 34).map((word) => word.text).join(" ");
+    if (!/\bBREAK\b/i.test(nearbyText)) continue;
+    breakOccurrences.push(occurrence);
+  }
+  breakOccurrences.sort((left, right) => left.centerY - right.centerY);
+  const boatCount = new Set(breakOccurrences.map((item) => item.boat)).size;
+  if (breakOccurrences.length < 6 || boatCount < 2) return;
+  const gaps = breakOccurrences.slice(1).map((item, index) => item.centerY - breakOccurrences[index].centerY)
+    .filter((gap) => gap >= 18 && gap <= 100);
+  if (!gaps.length) return;
+  const gridGap = median(gaps);
+  const anchor = explicit.filter((item) => item.eventType === "break" && Number.isFinite(item._anchorY)
+    && timeToMinutes(item.startTime) >= 8 * 60)
+    .sort((left, right) => left._anchorY - right._anchorY)[0];
+  if (!anchor) return;
+  const recoverableBoats = new Set([...new Set(breakOccurrences.map((item) => item.boat))]
+    .filter((boat) => breakOccurrences.filter((item) => item.boat === boat).length >= 2));
+  for (let index = explicit.length - 1; index >= 0; index -= 1) {
+    if (explicit[index].eventType === "break" && recoverableBoats.has(explicit[index].boat)) explicit.splice(index, 1);
+  }
+  // Once a lane contains a repeated break cadence, every repeated boat label
+  // on the same 20-minute grid is a break block. Tesseract regularly keeps the
+  // boat name while dropping the word BREAK in the lower half of tall images.
+  const cadenceOccurrences = occurrences.filter((item) => recoverableBoats.has(item.boat)
+    && Math.abs((item.centerY - anchor._anchorY) / gridGap - Math.round((item.centerY - anchor._anchorY) / gridGap)) <= 0.28);
+  for (const occurrence of cadenceOccurrences) {
+    const gridSteps = Math.round((occurrence.centerY - anchor._anchorY) / gridGap);
+    const startTime = addPlanningMinutes(anchor.startTime, gridSteps * 20);
+    explicit.push({ boat: occurrence.boat, eventType: "break", startTime, endTime: addPlanningMinutes(startTime, 20), _anchorY: occurrence.centerY });
+  }
 }
 
 function buildBoatLanes(occurrences) {
@@ -261,7 +349,7 @@ function repairLaneTimes(times, lanes) {
     const laneTimes = times.filter((time) => time.lane === lane).sort((left, right) => left.centerY - right.centerY);
     for (let index = 0; index < laneTimes.length; index += 1) {
       const current = laneTimes[index];
-      if (timeToMinutes(current.time) >= 7 * 60) continue;
+      if (timeToMinutes(current.time) >= 8 * 60) continue;
       const minute = Number(current.time.slice(3));
       const previous = [...laneTimes.slice(0, index)].reverse().find((time) => timeToMinutes(time.time) >= 7 * 60);
       const next = laneTimes.slice(index + 1).find((time) => timeToMinutes(time.time) >= 7 * 60);
@@ -357,7 +445,7 @@ function normalizeBreakBounds(bounds, nearbyText) {
   const explicitDuration = explicit ? Number(explicit[1]) : null;
   const detectedDuration = timeToMinutes(bounds.endTime) - timeToMinutes(bounds.startTime);
   if (explicitDuration) return { ...bounds, endTime: addPlanningMinutes(bounds.startTime, explicitDuration), explicitDuration };
-  if ([20, 30].includes(detectedDuration)) return bounds;
+  if ([15, 20, 25, 30, 40, 45].includes(detectedDuration)) return bounds;
   return { ...bounds, endTime: addPlanningMinutes(bounds.startTime, 20) };
 }
 
@@ -430,6 +518,14 @@ export function resolveOcrBoatName(text, knownBoats) {
   });
   const aliasTarget = alias?.[1];
   if (aliasTarget && boatsByKey.has(aliasTarget)) return boatsByKey.get(aliasTarget);
+
+  // Fleet screenshots often shorten a long unique name (BARTO for
+  // BARTOLOTTI). Accept only a unique substantial prefix, never an ambiguous
+  // abbreviation shared by multiple active boats.
+  if (compactKey.length >= 4) {
+    const prefixMatches = [...boatsByKey].filter(([boatKey]) => boatKey.replaceAll(" ", "").startsWith(compactKey));
+    if (prefixMatches.length === 1 && prefixMatches[0][0].replaceAll(" ", "").length - compactKey.length <= 8) return prefixMatches[0][1];
+  }
 
   for (const [boatKey, name] of boatsByKey) {
     const compactBoat = boatKey.replaceAll(" ", "");

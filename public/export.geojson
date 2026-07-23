@@ -22881,6 +22881,151 @@
         ]
       },
       "id": "way/1335712366"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/26315489",
+        "name": "Blauwburgwal",
+        "source": "local-osm-route-patch",
+        "waterway": "canal",
+        "wikidata": "Q2488713"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.8901732,
+            52.3767902
+          ],
+          [
+            4.8909934,
+            52.3764554
+          ]
+        ]
+      },
+      "id": "way/26315489"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1308407255",
+        "name": "Blauwburgwal",
+        "seamark:bridge:category": "yes",
+        "source": "local-osm-route-patch",
+        "waterway": "canal",
+        "wikidata": "Q2488713"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.8900437,
+            52.3768408
+          ],
+          [
+            4.8901732,
+            52.3767902
+          ]
+        ]
+      },
+      "id": "way/1308407255"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1308407256",
+        "name": "Blauwburgwal",
+        "source": "local-osm-route-patch",
+        "waterway": "canal",
+        "wikidata": "Q2488713"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.8898875,
+            52.3769011
+          ],
+          [
+            4.8900437,
+            52.3768408
+          ]
+        ]
+      },
+      "id": "way/1308407256"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1308407257",
+        "name": "Blauwburgwal",
+        "seamark:bridge:category": "yes",
+        "source": "local-osm-route-patch",
+        "waterway": "canal",
+        "wikidata": "Q2488713"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.8909934,
+            52.3764554
+          ],
+          [
+            4.8911269,
+            52.3764037
+          ]
+        ]
+      },
+      "id": "way/1308407257"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1308407258",
+        "name": "Blauwburgwal",
+        "source": "local-osm-route-patch",
+        "waterway": "canal",
+        "wikidata": "Q2488713"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.8911269,
+            52.3764037
+          ],
+          [
+            4.8913117,
+            52.3763449
+          ]
+        ]
+      },
+      "id": "way/1308407258"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/28346224",
+        "name": "Muntbrug routeverbinding",
+        "source": "local-osm-route-patch",
+        "waterway": "canal"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.8939945,
+            52.3673606
+          ],
+          [
+            4.8938637,
+            52.3673029
+          ]
+        ]
+      },
+      "id": "way/28346224"
     }
   ]
 }

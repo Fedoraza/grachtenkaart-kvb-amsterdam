@@ -22,7 +22,7 @@
         <p v-if="rescanMessage" class="mx-auto mb-0 mt-2 max-w-2xl text-right text-[10px]" :class="rescanError ? 'text-red-300' : 'text-sky-300'">{{ rescanMessage }}</p>
       </div>
 
-      <div class="flex-1 overflow-auto p-4 sm:p-6">
+      <div class="schedule-scroll flex-1 overflow-y-auto overscroll-contain p-3 sm:p-5">
         <section v-if="isAdmin" class="mx-auto mb-5 max-w-5xl overflow-hidden rounded-3xl border border-sky-300/15 bg-sky-400/[0.04]">
           <button type="button" class="flex w-full items-center gap-3 p-4 text-left" @click="uploadOpen = !uploadOpen">
             <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-400/15"><ImageUp class="h-5 w-5 text-sky-200" /></span>
@@ -64,7 +64,7 @@
                   <div v-for="(item, index) in editableItems" :key="item.key" class="grid gap-2 rounded-xl border border-white/10 bg-black/15 p-2 sm:grid-cols-[1.2fr_.8fr_.8fr_.65fr_.65fr_1fr_auto]">
                     <input v-model.trim="item.boat" class="planning-input" placeholder="Boat" aria-label="Boat" />
                     <select v-model="item.eventType" class="planning-input" aria-label="Type"><option value="preparation">Preparation</option><option value="movement">Movement</option><option value="tour">Tour</option><option value="private">Private</option><option value="break">Break</option><option value="shift">Shift</option><option value="other">Other</option></select>
-                    <select v-model="item.role" class="planning-input" aria-label="Crew role"><option value="">No crew role</option><option value="skipper">Driver</option><option value="host">Host</option><option value="solo">Solo driver</option></select>
+                    <select v-model="item.role" class="planning-input" aria-label="Crew role"><option value="">No crew role</option><option value="skipper">Driver</option><option value="host">Host</option></select>
                     <input v-model="item.startTime" type="time" class="planning-input" aria-label="Start time" />
                     <input v-model="item.endTime" type="time" class="planning-input" aria-label="End time" />
                     <input v-model.trim="item.person" class="planning-input" placeholder="Crew name" aria-label="Person" />
@@ -90,15 +90,30 @@
         <div v-if="loading" class="flex h-40 items-center justify-center text-sm text-slate-400">Loading schedule…</div>
         <div v-else-if="error" class="mx-auto max-w-xl rounded-2xl bg-red-500/15 p-4 text-sm text-red-200">{{ error }}</div>
         <div v-else-if="!locationSchedules.length" class="mx-auto max-w-xl rounded-3xl border border-dashed border-white/15 p-10 text-center"><CalendarDays class="mx-auto h-8 w-8 text-slate-600" /><h2 class="mb-1 mt-3 text-base font-bold">No schedule for this day</h2><p class="m-0 text-xs text-slate-400">Upload an image above and assign it to a location.</p></div>
-        <div v-else class="space-y-4">
+        <div v-else class="mx-auto max-w-5xl space-y-2 pb-8">
+          <section class="rounded-3xl border border-violet-300/15 bg-violet-400/[0.06] p-4">
+            <div class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-400/15 text-violet-200">OPS</span><div><span class="block text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300">Day operations</span><strong class="text-sm">OPS for {{ dateHeading }}</strong></div></div>
+            <div v-if="globalOps.length" class="mt-3 flex flex-wrap gap-2"><span v-for="member in globalOps" :key="`ops-${member.id}`" class="rounded-lg bg-black/20 px-2.5 py-1.5 text-xs"><strong>{{ member.person_name }}</strong><span v-if="member.start_time" class="ml-1 text-slate-400">{{ staffTime(member) }}</span></span></div>
+            <p v-else class="mb-0 mt-2 text-[10px] text-slate-400">No OPS recognized for this day.</p>
+          </section>
           <section v-for="location in locationSchedules" :key="location.name" class="mx-auto max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025]">
-            <header class="flex items-center justify-between border-b border-white/10 bg-white/5 px-4 py-3"><div><p class="m-0 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300">Location</p><h2 class="m-0 text-base font-black">{{ location.name }}</h2></div><span class="text-[11px] text-slate-400">{{ location.boats.length }} boat{{ location.boats.length === 1 ? '' : 's' }}</span></header>
-            <div class="grid gap-3 p-3 lg:grid-cols-2 2xl:grid-cols-3">
-              <div v-if="location.staff.length" class="rounded-2xl border border-emerald-300/15 bg-emerald-400/5 p-3 lg:col-span-2 2xl:col-span-3"><h3 class="m-0 text-xs font-black uppercase tracking-wider text-emerald-200">Location team</h3><div class="mt-2 flex flex-wrap gap-2"><span v-for="member in location.staff" :key="member.id" class="rounded-lg bg-black/20 px-2.5 py-1.5 text-xs"><strong class="capitalize">{{ member.role }}</strong> · {{ member.person_name }}</span></div></div>
+            <button type="button" class="flex w-full items-center gap-3 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10" :aria-expanded="isLocationExpanded(location.name)" @click="toggleLocation(location.name)"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-400/10 text-emerald-200">⌖</span><span class="min-w-0 flex-1"><span class="block text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300">Location</span><strong class="block truncate text-base">{{ location.name }}</strong></span><span class="shrink-0 text-right text-[11px] text-slate-400"><strong class="block text-slate-200">{{ location.boats.length }}</strong> boats</span><ChevronDown class="h-4 w-4 shrink-0 text-slate-400 transition-transform" :class="isLocationExpanded(location.name) && 'rotate-180'" /></button>
+            <div v-if="isLocationExpanded(location.name)" class="grid gap-2 border-t border-white/10 p-2 sm:p-3 lg:grid-cols-2">
+              <div class="rounded-2xl border border-sky-300/15 bg-sky-400/5 p-3 lg:col-span-2 2xl:col-span-3"><h3 class="m-0 text-xs font-black uppercase tracking-wider text-sky-200">Kade · {{ location.name }}</h3><div v-if="location.kade.length" class="mt-2 flex flex-wrap gap-2"><span v-for="member in location.kade" :key="`kade-${member.id}`" class="rounded-lg bg-black/20 px-2.5 py-1.5 text-xs"><strong>{{ member.person_name }}</strong><span v-if="member.start_time" class="ml-1 text-slate-400">{{ staffTime(member) }}</span></span></div><p v-else class="mb-0 mt-2 text-[10px] text-slate-400">No Kade recognized for this location.</p></div>
+              <div v-if="location.otherStaff.length" class="rounded-2xl border border-emerald-300/15 bg-emerald-400/5 p-3 lg:col-span-2 2xl:col-span-3"><h3 class="m-0 text-xs font-black uppercase tracking-wider text-emerald-200">Other location team</h3><div class="mt-2 flex flex-wrap gap-2"><span v-for="member in location.otherStaff" :key="member.id" class="rounded-lg bg-black/20 px-2.5 py-1.5 text-xs"><strong class="capitalize">{{ member.role }}</strong> · {{ member.person_name }}</span></div></div>
               <p v-if="!location.boats.length && !location.staff.length" class="m-0 rounded-2xl border border-dashed border-amber-300/20 p-5 text-center text-xs text-amber-100 lg:col-span-2 2xl:col-span-3">No valid planning image was found for this location and date.</p>
               <article v-for="schedule in location.boats" :key="schedule.boatName" class="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
-                <header class="flex items-center gap-3 border-b border-white/10 p-3"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-400/15 text-lg text-orange-200">⌁</span><div class="min-w-0 flex-1"><h3 class="m-0 truncate text-sm font-black">{{ schedule.boatName }}</h3><p class="m-0 mt-0.5 truncate text-[11px] text-slate-400">{{ driverSummary(schedule) }}</p></div><button v-if="schedule.mmsi" type="button" class="rounded-lg bg-orange-400/10 px-2.5 py-1.5 text-[11px] font-bold text-orange-200" @click="showOnMap(schedule)">Map</button></header>
-                <div class="space-y-2 p-3"><div v-for="item in schedule.items" :key="item.id" class="grid grid-cols-[4rem_1fr] gap-2 rounded-xl border border-white/5 bg-black/15 p-2.5"><div class="text-xs font-bold tabular-nums text-slate-300">{{ item.start_time || '—' }}<span v-if="item.end_time" class="block text-[10px] font-normal text-slate-500">{{ durationLabel(item) }}</span></div><div><div class="flex flex-wrap items-center gap-1.5"><strong class="text-xs">{{ itemTitle(item) }}</strong><span class="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase" :class="eventStyle(item.event_type)">{{ item.event_type }}</span></div><p v-if="itemLocation(item)" class="m-0 mt-1 text-[10px] text-slate-400">{{ itemLocation(item) }}</p><p v-if="item.notes" class="m-0 mt-1 text-[10px] text-slate-500">{{ item.notes }}</p></div></div></div>
+                <button type="button" class="flex w-full items-center gap-3 p-3 text-left transition hover:bg-white/5" :aria-expanded="isBoatExpanded(location.name, schedule.boatName)" @click="toggleBoat(location.name, schedule.boatName)"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-400/15 text-lg text-orange-200">⌁</span><span class="min-w-0 flex-1"><strong class="block truncate text-sm">{{ schedule.boatName }}</strong><span class="mt-0.5 block truncate text-[11px] text-slate-400">{{ driverSummary(schedule) }}</span></span><span class="shrink-0 text-[10px] text-slate-500">{{ schedule.items.length }} rows</span><span v-if="schedule.mmsi" role="button" tabindex="0" class="rounded-lg bg-orange-400/10 px-2.5 py-1.5 text-[11px] font-bold text-orange-200 hover:bg-orange-400/20" @click.stop="showOnMap(schedule)" @keydown.enter.stop="showOnMap(schedule)">Map</span><ChevronDown class="h-4 w-4 shrink-0 text-slate-400 transition-transform" :class="isBoatExpanded(location.name, schedule.boatName) && 'rotate-180'" /></button>
+                <div v-if="isBoatExpanded(location.name, schedule.boatName)" class="max-h-[30rem] space-y-2 overflow-y-auto overscroll-contain border-t border-white/10 p-3">
+                  <div class="rounded-xl border border-orange-300/15 bg-orange-400/[0.06] p-3">
+                    <div class="flex items-center justify-between gap-3"><strong class="text-xs text-orange-100">Crew & boat day</strong><span class="text-[10px] font-bold text-orange-200">{{ boatDaySummary(schedule) }}</span></div>
+                    <div v-if="crewShifts(schedule).length" class="mt-2 grid gap-1.5 sm:grid-cols-2">
+                      <div v-for="crew in crewShifts(schedule)" :key="`crew-${crew.id}`" class="flex items-center justify-between gap-2 rounded-lg bg-black/20 px-2.5 py-2 text-[11px]"><span><strong>{{ crew.person_name }}</strong><span class="ml-1 capitalize text-slate-400">{{ crewRole(crew.role) }}</span></span><span class="shrink-0 tabular-nums text-slate-300">{{ shiftSpan(crew) }}</span></div>
+                    </div>
+                    <p v-else class="mb-0 mt-2 text-[10px] text-amber-200">No crew shift recognized for this boat.</p>
+                  </div>
+                  <div v-for="item in schedule.items.filter((row) => row.event_type !== 'shift')" :key="item.id" class="grid grid-cols-[4rem_1fr] gap-2 rounded-xl border border-white/5 bg-black/15 p-2.5"><div class="text-xs font-bold tabular-nums text-slate-300">{{ item.start_time || '—' }}<span v-if="item.end_time" class="block text-[10px] font-normal text-slate-500">{{ durationLabel(item) }}</span></div><div><div class="flex flex-wrap items-center gap-1.5"><strong class="text-xs">{{ itemTitle(item) }}</strong><span class="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase" :class="eventStyle(item.event_type)">{{ item.event_type }}</span><span v-if="item.event_type === 'tour'" class="rounded px-1.5 py-0.5 text-[9px] font-bold" :class="tourStatusStyle(item)">{{ tourStatusLabel(item) }}</span><button v-if="canShowTourRoute(item)" type="button" class="rounded bg-cyan-400/15 px-2 py-0.5 text-[9px] font-bold text-cyan-200 hover:bg-cyan-400/25" @click="showTourRoute(schedule, item)">AIS route</button></div><p v-if="itemLocation(item)" class="m-0 mt-1 text-[10px] text-slate-400">{{ itemLocation(item) }}</p><p v-if="item.notes" class="m-0 mt-1 text-[10px] text-slate-500">{{ item.notes }}</p></div></div>
+                </div>
               </article>
             </div>
           </section>
@@ -109,10 +124,10 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from 'vue'
+import { computed, inject, onUnmounted, ref } from 'vue'
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ImageUp, LoaderCircle, RotateCw, ScanText, Trash2, X } from '@lucide/vue'
 
-const emit = defineEmits(['show-boat', 'schedule-updated'])
+const emit = defineEmits(['show-boat', 'show-tour-route', 'schedule-updated'])
 const auth = inject('auth')
 const isAdmin = computed(() => auth.user?.role === 'admin')
 const open = ref(false)
@@ -141,6 +156,11 @@ const replaceExisting = ref(false)
 const rescanning = ref(false)
 const rescanMessage = ref('')
 const rescanError = ref(false)
+const expandedLocations = ref(new Set())
+const expandedBoats = ref(new Set())
+let scheduleRequestId = 0
+const scheduleRefreshTimer = window.setInterval(() => { if (open.value && !loading.value) loadSchedule({ silent: true }) }, 30_000)
+onUnmounted(() => window.clearInterval(scheduleRefreshTimer))
 
 const dateHeading = computed(() => new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: selectedDate.value.slice(0, 4) !== today.slice(0, 4) ? 'numeric' : undefined }).format(new Date(`${selectedDate.value}T12:00:00`)))
 const importBlocker = computed(() => {
@@ -150,6 +170,7 @@ const importBlocker = computed(() => {
   return ''
 })
 const canImport = computed(() => !importBlocker.value)
+const globalOps = computed(() => staff.value.filter((member) => member.role === 'ops'))
 const locationSchedules = computed(() => {
   const grouped = new Map()
   function ensureLocation(name) { if (!grouped.has(name)) grouped.set(name, { boats: new Map(), staff: [] }); return grouped.get(name) }
@@ -162,17 +183,67 @@ const locationSchedules = computed(() => {
     boats.get(key).items.push(item)
   }
   for (const member of staff.value) ensureLocation(member.location || 'Location unknown').staff.push(member)
-  return [...grouped].map(([name, location]) => ({ name, boats: [...location.boats.values()], staff: location.staff })).sort((a, b) => a.name.localeCompare(b.name))
+  return [...grouped].map(([name, location]) => ({ name, boats: [...location.boats.values()], staff: location.staff,
+    kade: location.staff.filter((member) => member.role === 'kade'),
+    otherStaff: location.staff.filter((member) => !['kade', 'ops'].includes(member.role)) }))
+    .sort((a, b) => a.name.localeCompare(b.name))
 })
 
 function localDateString(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` }
 async function request(url, options) { const response = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...options }); const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Request failed'); return data }
-async function loadSchedule() { loading.value = true; error.value = ''; try { const day = await request(`/api/planning/day?date=${selectedDate.value}`); items.value = day.items; staff.value = day.staff || []; availableLocations.value = day.locations || []; if (selectedDate.value === today) todayCount.value = day.items.length + staff.value.length } catch (caught) { error.value = caught.message } finally { loading.value = false } }
+async function loadSchedule({ silent = false } = {}) {
+  const requestedDate = selectedDate.value
+  const requestId = ++scheduleRequestId
+  if (!silent) { loading.value = true; error.value = '' }
+  try {
+    const day = await request(`/api/planning/day?date=${requestedDate}`)
+    // A slower response for a previously selected day must never replace the
+    // schedule the user is currently viewing.
+    if (requestId !== scheduleRequestId || requestedDate !== selectedDate.value) return
+    items.value = day.items
+    staff.value = day.staff || []
+    availableLocations.value = day.locations || []
+    if (requestedDate === today) todayCount.value = day.items.length + staff.value.length
+  } catch (caught) {
+    if (!silent && requestId === scheduleRequestId) error.value = caught.message
+  } finally {
+    if (!silent && requestId === scheduleRequestId) loading.value = false
+  }
+}
 async function openPanel() { open.value = true; const tasks = [loadSchedule()]; if (isAdmin.value && !locations.value.length) tasks.push(request('/api/planning/options').then((data) => { locations.value = data.locations })); await Promise.all(tasks) }
-function setToday() { selectedDate.value = today; loadSchedule() }
-function changeDate(amount) { const date = new Date(`${selectedDate.value}T12:00:00`); date.setDate(date.getDate() + amount); selectedDate.value = localDateString(date); loadSchedule() }
+function setToday() { selectedDate.value = today; collapseSchedule(); loadSchedule() }
+function changeDate(amount) { const date = new Date(`${selectedDate.value}T12:00:00`); date.setDate(date.getDate() + amount); selectedDate.value = localDateString(date); collapseSchedule(); loadSchedule() }
 function showOnMap(schedule) { open.value = false; emit('show-boat', schedule) }
-function driverSummary(schedule) { const people = schedule.items.filter((item) => ['skipper', 'solo'].includes(item.role)).map((item) => item.person_name).filter(Boolean); return people.length ? `Driver: ${[...new Set(people)].join(', ')}` : 'No driver recognized' }
+function showTourRoute(schedule, item) { open.value = false; emit('show-tour-route', { mmsi: schedule.mmsi, boatName: schedule.boatName, from: item.route_from, to: item.route_to, startTime: item.start_time, endTime: item.end_time }) }
+function canShowTourRoute(item) { return item.mmsi && item.route_from && item.route_to && item.ais_point_count > 1 }
+function tourStatusLabel(item) {
+  const departureDelay = Math.abs(item.delay_minutes || 0)
+  const returnDelay = Math.abs(item.return_delay_minutes || 0)
+  const duration = item.round_duration_minutes ? ` · ${item.round_duration_minutes}m` : ''
+  return ({
+    'scheduled': 'Scheduled', 'waiting-ais': 'Waiting for AIS', 'no-ais': 'No AIS confirmation',
+    'no-mmsi': 'No MMSI', 'invalid-time': 'Invalid time', 'active-on-time': 'Sailing · on time',
+    'active-late': `Sailing · ${departureDelay}m late`, 'completed-on-time': `Returned · on time${duration}`,
+    'completed-late': `Returned · ${returnDelay}m late${duration}`, 'completed-early': `Returned · ${returnDelay}m early${duration}`,
+  })[item.tour_status] || 'AIS unknown'
+}
+function tourStatusStyle(item) { return ['active-on-time', 'completed-on-time'].includes(item.tour_status) ? 'bg-emerald-400/15 text-emerald-200' : ['active-late', 'completed-late', 'no-ais'].includes(item.tour_status) ? 'bg-red-400/15 text-red-200' : 'bg-slate-400/15 text-slate-300' }
+function boatExpansionKey(location, boat) { return `${location}\u0000${boat}` }
+function isLocationExpanded(location) { return expandedLocations.value.has(location) }
+function isBoatExpanded(location, boat) { return expandedBoats.value.has(boatExpansionKey(location, boat)) }
+function toggleLocation(location) { const next = new Set(expandedLocations.value); next.has(location) ? next.delete(location) : next.add(location); expandedLocations.value = next }
+function toggleBoat(location, boat) { const key = boatExpansionKey(location, boat); const next = new Set(expandedBoats.value); next.has(key) ? next.delete(key) : next.add(key); expandedBoats.value = next }
+function collapseSchedule() { expandedLocations.value = new Set(); expandedBoats.value = new Set() }
+function driverSummary(schedule) { const people = schedule.items.filter((item) => item.role === 'skipper').map((item) => item.person_name).filter(Boolean); return people.length ? `Driver: ${[...new Set(people)].join(', ')}` : 'No driver recognized' }
+function crewShifts(schedule) { return schedule.items.filter((item) => item.event_type === 'shift' && item.person_name).sort((a, b) => timeMinutes(a.start_time) - timeMinutes(b.start_time)) }
+function crewRole(role) { return ({ skipper: 'driver', solo: 'host', host: 'host' })[role] || role }
+function shiftSpan(item) { return item.start_time && item.end_time ? `${item.start_time}–${item.end_time} · ${formatMinutes(spanMinutes(item.start_time, item.end_time))}` : 'whole day' }
+function staffTime(item) { return item.start_time && item.end_time ? `${item.start_time}–${item.end_time}` : '' }
+function boatDaySummary(schedule) { const timed = schedule.items.filter((item) => item.event_type !== 'shift' && item.start_time && item.end_time); if (!timed.length) return 'Times unknown'; const start = timed.reduce((best, item) => timeMinutes(item.start_time) < timeMinutes(best.start_time) ? item : best).start_time; const ends = timed.map((item) => ({ value: item.end_time, minutes: adjustedEnd(item.start_time, item.end_time) })); const end = ends.sort((a, b) => b.minutes - a.minutes)[0].value; return `${start}–${end} · out ${formatMinutes(spanMinutes(start, end))}` }
+function timeMinutes(value) { if (!value) return 9999; const [hour, minute] = value.split(':').map(Number); return hour * 60 + minute }
+function adjustedEnd(start, end) { let value = timeMinutes(end); if (value <= timeMinutes(start)) value += 24 * 60; return value }
+function spanMinutes(start, end) { return adjustedEnd(start, end) - timeMinutes(start) }
+function formatMinutes(value) { const hours = Math.floor(value / 60); const minutes = value % 60; return `${hours ? `${hours}h` : ''}${minutes ? ` ${minutes}m` : ''}`.trim() }
 function itemTitle(item) { const label = ({ preparation: 'Prepare boat', movement: 'Sail to location', tour: 'Canal tour', private: 'Private tour', break: 'Break', shift: 'Crew shift' })[item.event_type] || item.event_type; return item.person_name ? `${label} · ${item.person_name}` : label }
 function itemLocation(item) { if (item.from_location && item.to_location) return `${item.from_location} → ${item.to_location}`; return item.from_location || item.to_location || '' }
 function durationLabel(item) { if (!item.end_time) return ''; const [sh, sm] = item.start_time.split(':').map(Number); const [eh, em] = item.end_time.split(':').map(Number); const minutes = (eh * 60 + em) - (sh * 60 + sm); return minutes > 0 ? `${item.end_time} · ${minutes} min` : `to ${item.end_time}` }
@@ -229,4 +300,7 @@ async function importAnalysis() {
 .schedule-nav:hover { background: rgb(255 255 255 / 0.13); }
 .planning-input { width: 100%; min-width: 0; border-radius: .65rem; border: 1px solid rgb(255 255 255 / .13); background: rgb(255 255 255 / .06); padding: .55rem .65rem; color: white; font-size: .75rem; outline: none; }
 .planning-input:focus { border-color: rgb(125 211 252 / .7); }
+.schedule-scroll { scrollbar-gutter: stable; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+.schedule-scroll::-webkit-scrollbar { width: .65rem; }
+.schedule-scroll::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 999px; background: rgb(148 163 184 / .35); background-clip: padding-box; }
 </style>

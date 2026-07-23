@@ -1,8 +1,10 @@
 import L from "leaflet";
 import { buildCanalRoutingNetwork, reconstructCanalRoute } from "./canalRouting";
+import { interpolateCoordinate, reconnectDelay } from "./aisMotion";
 
-const VESSEL_STALE_AFTER_MS = 15 * 60 * 1000;
-const VESSEL_REMOVE_AFTER_MS = 24 * 60 * 60 * 1000;
+let configuredRemoveAfterMs = 30 * 24 * 60 * 60 * 1000;
+let configuredMovingStaleMs = 15 * 60_000;
+let configuredStationaryStaleMs = 15 * 60_000;
 
 export function showLiveAisVessels(map, options = {}) {
   const historyPane = map.getPane("ais-history-pane") || map.createPane("ais-history-pane");
@@ -16,14 +18,35 @@ export function showLiveAisVessels(map, options = {}) {
   let companyMmsis = new Set();
   let specialMmsis = { nt: new Set(), police: new Set() };
   let historyRequestController = null;
+  let socket = null;
+  let reconnectTimer = null;
+  let reconnectAttempt = 0;
+  let stopped = false;
   const socketProtocol = location.protocol === "https:" ? "wss:" : "ws:";
-  const socket = new WebSocket(`${socketProtocol}//${location.host}/ais`);
 
-  socket.addEventListener("open", () => {
-    options.onStatus?.({ status: "connecting", message: "Connected to local AIS gateway" });
-  });
+  function connectSocket() {
+    if (stopped) return;
+    clearTimeout(reconnectTimer);
+    options.onStatus?.({ status: "reconnecting", message: reconnectAttempt ? `Reconnecting to local AIS gateway (attempt ${reconnectAttempt + 1})…` : "Connecting to local AIS gateway…" });
+    socket = new WebSocket(`${socketProtocol}//${location.host}/ais`);
+    socket.addEventListener("open", () => {
+      reconnectAttempt = 0;
+      options.onStatus?.({ status: "reconnecting", message: "Connected; loading current AIS snapshot…" });
+    });
+    socket.addEventListener("message", handleSocketMessage);
+    socket.addEventListener("close", () => {
+      if (stopped) return;
+      options.onStatus?.({ status: "reconnecting", message: "Local AIS gateway disconnected; reconnecting automatically…" });
+      const delay = reconnectDelay(reconnectAttempt);
+      reconnectAttempt += 1;
+      reconnectTimer = setTimeout(connectSocket, delay);
+    });
+    socket.addEventListener("error", () => {
+      options.onStatus?.({ status: "degraded", message: "Local AIS gateway connection error" });
+    });
+  }
 
-  socket.addEventListener("message", ({ data }) => {
+  function handleSocketMessage({ data }) {
     let message;
     try {
       message = JSON.parse(data);
@@ -32,11 +55,21 @@ export function showLiveAisVessels(map, options = {}) {
     }
 
     if (message.type === "status") {
+      if (message.config) {
+        configuredMovingStaleMs = Number(message.config.movingStaleMs) || configuredMovingStaleMs;
+        configuredStationaryStaleMs = Number(message.config.stationaryStaleMs) || configuredStationaryStaleMs;
+        configuredRemoveAfterMs = Number(message.config.removeAfterMs) || configuredRemoveAfterMs;
+      }
       options.onStatus?.(message);
       return;
     }
 
     if (message.type === "snapshot") {
+      if (message.config) {
+        configuredMovingStaleMs = Number(message.config.movingStaleMs) || configuredMovingStaleMs;
+        configuredStationaryStaleMs = Number(message.config.stationaryStaleMs) || configuredStationaryStaleMs;
+        configuredRemoveAfterMs = Number(message.config.removeAfterMs) || configuredRemoveAfterMs;
+      }
       for (const vessel of message.vessels || []) processVesselMessage(vessel);
       emitVesselState();
       options.onSnapshot?.(message.vessels?.length || 0);
@@ -45,7 +78,9 @@ export function showLiveAisVessels(map, options = {}) {
 
     processVesselMessage(message);
     emitVesselState();
-  });
+  }
+
+  connectSocket();
 
   function processVesselMessage(message) {
     const vessel = vessels.get(message.mmsi) || {
@@ -73,23 +108,18 @@ export function showLiveAisVessels(map, options = {}) {
     if (vessel.mmsi === selectedMmsi) options.onSelect?.(publicVessel(vessel));
   }
 
-  socket.addEventListener("close", () => {
-    options.onStatus?.({ status: "disconnected", message: "Local AIS gateway disconnected" });
-  });
-
-  socket.addEventListener("error", () => {
-    options.onStatus?.({ status: "error", message: "Could not connect to the local AIS gateway" });
-  });
-
   const cleanupTimer = setInterval(() => {
     const now = Date.now();
     for (const [mmsi, vessel] of vessels) {
       if (!vessel.marker) continue;
 
       const age = now - vessel.lastPositionAt;
-      vessel.marker.getElement()?.classList.toggle("ais-vessel--stale", age > VESSEL_STALE_AFTER_MS);
+      vessel.marker.getElement()?.classList.toggle("ais-vessel--stale", age > staleThreshold(vessel));
+      vessel.marker.getElement()?.classList.toggle("ais-vessel--offline", age > 24 * 60 * 60 * 1000);
+      updateVesselPopup(vessel);
 
-      if (age > VESSEL_REMOVE_AFTER_MS) {
+      if (age > configuredRemoveAfterMs) {
+        if (vessel.animationFrame) cancelAnimationFrame(vessel.animationFrame);
         vessel.marker.remove();
         vessels.delete(mmsi);
       }
@@ -136,12 +166,13 @@ export function showLiveAisVessels(map, options = {}) {
       historyLayer.clearLayers();
       options.onHistory?.({ hours: null, pointCount: 0 });
     },
-    async showHistory(mmsi, hours = 1) {
+    async showHistory(mmsi, hours = 1, range = null) {
       historyRequestController?.abort();
       historyRequestController = new AbortController();
 
       try {
-        const response = await fetch(`/api/ais/vessels/${encodeURIComponent(mmsi)}/history?hours=${hours}`, {
+        const query = range ? `from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}` : `hours=${hours}`;
+        const response = await fetch(`/api/ais/vessels/${encodeURIComponent(mmsi)}/history?${query}`, {
           signal: historyRequestController.signal,
         });
         if (!response.ok) throw new Error(`History request failed (${response.status})`);
@@ -189,7 +220,8 @@ export function showLiveAisVessels(map, options = {}) {
         }
 
         options.onHistory?.({
-          hours,
+          hours: range ? null : hours,
+          range: Boolean(range),
           pointCount: reconstructed.reports.length,
           pathCount: reconstructed.paths.length,
           fallbackCount: reconstructed.fallbackSegments.length,
@@ -230,11 +262,14 @@ export function showLiveAisVessels(map, options = {}) {
       }
     },
     stop() {
+      stopped = true;
       clearInterval(cleanupTimer);
-      socket.close();
+      clearTimeout(reconnectTimer);
+      socket?.close();
       historyRequestController?.abort();
       historyLayer.remove();
       layer.remove();
+      for (const vessel of vessels.values()) if (vessel.animationFrame) cancelAnimationFrame(vessel.animationFrame);
       vessels.clear();
     },
   };
@@ -251,8 +286,14 @@ function syncMarkerVisibility(layer, vessel, visibleMmsis) {
 }
 
 function updateStaleAppearance(vessel) {
-  const isStale = Date.now() - vessel.lastPositionAt > VESSEL_STALE_AFTER_MS;
+  const age = Date.now() - vessel.lastPositionAt;
+  const isStale = age > staleThreshold(vessel);
   vessel.marker?.getElement()?.classList.toggle("ais-vessel--stale", isStale);
+  vessel.marker?.getElement()?.classList.toggle("ais-vessel--offline", age > 24 * 60 * 60 * 1000);
+}
+
+function staleThreshold(vessel) {
+  return Number(vessel.speed) > 0.5 ? configuredMovingStaleMs : configuredStationaryStaleMs;
 }
 
 function getMessageTimestamp(value) {
@@ -277,11 +318,36 @@ function updateVesselMarker(layer, vessel, companyMmsis, specialMmsis) {
       vessel.onSelect?.();
     });
   } else {
-    vessel.marker.setLatLng(latLng);
+    animateMarkerTo(vessel, latLng);
     vessel.marker.setIcon(createVesselIcon(rotation, category));
   }
 
   updateVesselPopup(vessel);
+}
+
+function animateMarkerTo(vessel, target) {
+  if (!vessel.marker) return;
+  if (vessel.animationFrame) cancelAnimationFrame(vessel.animationFrame);
+  const start = vessel.marker.getLatLng();
+  const targetLat = Number(target[0]), targetLng = Number(target[1]);
+  const distance = Math.hypot(start.lat - targetLat, start.lng - targetLng);
+  if (!Number.isFinite(distance) || distance > 0.02) {
+    vessel.marker.setLatLng(target);
+    return;
+  }
+  const startedAt = performance.now();
+  const duration = 650;
+  const step = (now) => {
+    const progress = Math.min(1, (now - startedAt) / duration);
+    const eased = 1 - (1 - progress) ** 3;
+    vessel.marker.setLatLng(interpolateCoordinate([start.lat, start.lng], [targetLat, targetLng], eased));
+    if (progress < 1) vessel.animationFrame = requestAnimationFrame(step);
+    else {
+      vessel.marker.setLatLng(target);
+      vessel.animationFrame = null;
+    }
+  };
+  vessel.animationFrame = requestAnimationFrame(step);
 }
 
 function createVesselIcon(rotation, category) {
@@ -306,7 +372,10 @@ function getVesselCategory(vessel, companyMmsis, specialMmsis) {
 function updateVesselPopup(vessel) {
   const speed = vessel.speed === null || vessel.speed === undefined ? "Unknown" : `${vessel.speed.toFixed(1)} kn`;
   const course = vessel.course === null || vessel.course === undefined ? "Unknown" : `${Math.round(vessel.course)}°`;
-  const received = formatMinutesAgo(vessel.receivedAt);
+  const received = formatSignalAge(vessel.sourceReceivedAt || vessel.receivedAt);
+  const latency = Number.isFinite(Number(vessel.latencyMs)) ? `${(Number(vessel.latencyMs) / 1000).toFixed(1)} s` : "Unknown";
+  const ageMs = Date.now() - getMessageTimestamp(vessel.sourceReceivedAt || vessel.receivedAt);
+  const signalState = ageMs > 24 * 60 * 60 * 1000 ? "Last known only" : ageMs > staleThreshold(vessel) ? "Delayed" : "Live";
 
   vessel.marker.setPopupContent(`
     <div class="ais-popup">
@@ -316,9 +385,21 @@ function updateVesselPopup(vessel) {
         <div><dt>Speed</dt><dd>${speed}</dd></div>
         <div><dt>Course</dt><dd>${course}</dd></div>
         <div><dt>Last signal</dt><dd>${received}</dd></div>
+        <div><dt>Position status</dt><dd>${signalState}</dd></div>
+        <div><dt>Source latency</dt><dd>${latency}</dd></div>
+        <div><dt>AIS message</dt><dd>${escapeHtml(vessel.messageType || "Unknown")}</dd></div>
       </dl>
     </div>
   `);
+}
+
+function formatSignalAge(value) {
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) return "Unknown";
+  const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+  if (seconds < 60) return `${seconds} second${seconds === 1 ? "" : "s"} ago`;
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
 }
 
 function formatMinutesAgo(value) {
@@ -356,7 +437,7 @@ function countVisibleVessels(layer, vessels) {
 }
 
 function publicVessel(vessel) {
-  const { marker, onSelect, ...data } = vessel;
+  const { marker, onSelect, animationFrame, ...data } = vessel;
   return data;
 }
 

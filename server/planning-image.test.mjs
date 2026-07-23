@@ -17,6 +17,24 @@ test("resolves schedule abbreviations and truncated OCR boat names", () => {
   assert.equal(resolveOcrBoatName("Bara", [...laneBoats, "BARRACUDA"]), "BARRACUDA");
   assert.equal(resolveOcrBoatName("DvO20mir", laneBoats), "DIRCK VAN OS");
   assert.equal(resolveOcrBoatName("Meike10min", laneBoats), "MEIKE");
+  assert.equal(resolveOcrBoatName("Royal", [...laneBoats, "ROYALTY"]), "ROYALTY");
+  assert.equal(resolveOcrBoatName("Barto", [...laneBoats, "BARTOLOTTI"]), "BARTOLOTTI");
+  assert.equal(resolveOcrBoatName("Atlan", [...laneBoats, "ATLANTIS"]), "ATLANTIS");
+  assert.equal(resolveOcrBoatName("Man", [...laneBoats, "MANHATTAN", "MANON"]), null);
+});
+
+test("resolves operational aliases across the active fleet", () => {
+  const fleet = ["AGATHA", "AMELIE ZAHRA", "APSARA", "ATLANTIS", "BARRACUDA", "BARTOLOTTI", "CREUSEN-1",
+    "DIRCK VAN OS", "DUTCHMAN", "FAYEN", "FLAGSHIP", "FREEWILLY", "GREEN MARINE", "GRIFFIOEN", "HARRY SLINGER",
+    "HERMAN BROOD", "JAN VAN DER HEIJDEN", "LUCKY STRIPPER", "MAJESTIC", "MANHATTAN", "MONNE DE MIRANDA",
+    "OLD QUEEN", "PIERRE CUYPERS", "ROYALTY", "RUSSIAN STAR", "SALOONSLOEP", "SLOEPVRIENDEN", "STELLA MARIS",
+    "THEO KOK", "TIJD ZAL HET LEREN", "ZONNE BOOT"];
+  for (const [alias, boat] of [["Lucky S", "LUCKY STRIPPER"], ["free w", "FREEWILLY"], ["herman b", "HERMAN BROOD"],
+    ["DM", "DUTCHMAN"], ["OQ", "OLD QUEEN"], ["MDM", "MONNE DE MIRANDA"], ["Stella M", "STELLA MARIS"],
+    ["TZHL", "TIJD ZAL HET LEREN"], ["Zonne B", "ZONNE BOOT"]]) {
+    assert.equal(resolveOcrBoatName(alias, fleet), boat, alias);
+  }
+  assert.equal(resolveOcrBoatName("Cookie Tours", fleet), "HERMAN BROOD");
 });
 
 test("recognizes multiple boats and keeps unlimited drinks as a cruise attribute", () => {
@@ -122,6 +140,17 @@ test("recovers a standard break when OCR reads only its start time", () => {
   ]);
   const items = parseLanePlanningItems(tsv, ["BARRACUDA", "NOMAG"]);
   assert.ok(items.some((item) => item.eventType === "break" && item.startTime === "16:00" && item.endTime === "16:20"));
+});
+
+test("parses a schedule containing only one recognized fleet boat lane", () => {
+  const tsv = makePositionedTsv([
+    [35, 5, 33, "09:00"], [3, 24, 24, "Iris"], [3, 43, 55, "E-Harbor"], [35, 63, 33, "09:15"],
+    [3, 82, 34, "Go to"], [3, 101, 35, "HOMO"], [35, 140, 33, "10:15"],
+    [3, 160, 24, "Iris"], [3, 179, 34, "Break"], [35, 218, 33, "10:40"],
+  ]);
+  const items = parseLanePlanningItems(tsv, ["IRIS"]);
+  assert.ok(items.some((item) => item.eventType === "preparation" && item.startTime === "09:00"));
+  assert.ok(items.some((item) => item.eventType === "break" && item.startTime === "10:15" && item.endTime === "10:40"));
 });
 
 function makeTsv(lines) {

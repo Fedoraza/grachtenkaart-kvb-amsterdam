@@ -7,7 +7,12 @@ import { WebSocket, WebSocketServer } from "ws";
 import { gunzipSync } from "node:zlib";
 import { createWhatsAppConnector } from "./server/whatsapp.mjs";
 import { analyzePlanningImage } from "./server/planning-upload.mjs";
-import { parseStaffingPlanning } from "./server/planning-staff.mjs";
+import { matchCrewFingerprint, parseStaffingPlanning } from "./server/planning-staff.mjs";
+import { consolidateDayPlanning } from "./server/planning-consolidation.mjs";
+import { deriveTourPerformance } from "./server/tour-performance.mjs";
+import { findPlanningLocationPin } from "./shared/planning-locations.mjs";
+import { reportingPointsGeoJson } from "./server/reporting-points.mjs";
+import { POSITION_MESSAGE_TYPES, feedState, mergeAisState, shouldAcceptPosition, sourceLatencyMs, validAisCoordinates } from "./server/ais-live.mjs";
 
 loadLocalEnv();
 
@@ -15,12 +20,18 @@ const isProduction = process.env.NODE_ENV === "production";
 const port = Number(process.env.PORT || 5173);
 const apiKey = process.env.AISSTREAM_API_KEY?.trim();
 const historyDays = Math.max(1, Number(process.env.AIS_HISTORY_DAYS || 30));
+const aisHistorySampleMs = Math.max(1_000, Number(process.env.AIS_HISTORY_SAMPLE_MS || 5_000));
+const aisWatchdogMs = Math.max(30_000, Number(process.env.AIS_WATCHDOG_MS || 120_000));
+const aisMovingStaleMs = Math.max(10_000, Number(process.env.AIS_MOVING_STALE_MS || 15 * 60_000));
+const aisStationaryStaleMs = Math.max(30_000, Number(process.env.AIS_STATIONARY_STALE_MS || 15 * 60_000));
+const aisRemoveAfterMs = Math.max(24 * 60 * 60 * 1000, Number(process.env.AIS_REMOVE_AFTER_MS || historyDays * 24 * 60 * 60 * 1000));
 const clients = new Set();
 const latestVessels = new Map();
 const lastStoredPositionAt = new Map();
 const pendingPlanningAnalyses = new Map();
 let bridgeDataCache = null;
 const navigationLayerCache = new Map();
+const geocodeCache = new Map();
 let whatsappRescanStarted = false;
 const whatsappChatRescanAt = new Map();
 let upstream = null;
@@ -29,6 +40,10 @@ let reconnectAttempt = 0;
 let upstreamConnectedAt = 0;
 let lastUpstreamMessageAt = 0;
 let lastUpstreamPongAt = 0;
+let lastPositionMessageAt = 0;
+let upstreamReconnectCount = 0;
+let upstreamOpenCount = 0;
+const recentAisLatencies = [];
 
 const databasePath = process.env.DATABASE_PATH || join(process.cwd(), "data", "ais.sqlite");
 mkdirSync(dirname(databasePath), { recursive: true });
@@ -98,6 +113,7 @@ database.exec(`
     chat_title TEXT,
     location TEXT,
     source_text TEXT,
+    source_context_text TEXT,
     source_ocr_tsv TEXT,
     source_image_hash TEXT,
     source_image_path TEXT,
@@ -133,6 +149,8 @@ database.exec(`
     person_name TEXT NOT NULL,
     role TEXT NOT NULL,
     location TEXT,
+    start_time TEXT,
+    end_time TEXT,
     notes TEXT,
     created_at INTEGER NOT NULL,
     FOREIGN KEY (import_id) REFERENCES planning_imports(id) ON DELETE CASCADE
@@ -155,6 +173,14 @@ database.exec(`
     history_requested_at INTEGER,
     updated_at INTEGER NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS planning_message_contexts (
+    external_message_id TEXT PRIMARY KEY,
+    chat_id TEXT NOT NULL,
+    received_at INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS planning_message_contexts_chat_time ON planning_message_contexts (chat_id, received_at);
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -194,6 +220,7 @@ database.exec(`
 ensureFleetBoatColumns();
 ensureWhatsAppChatColumns();
 ensurePlanningImportColumns();
+ensurePlanningStaffColumns();
 ensureUserColumns();
 cleanupInvalidWhatsAppPlanningImports();
 const upsertVesselStatement = database.prepare(`
@@ -238,8 +265,13 @@ const vite = isProduction
 const server = createServer(async (req, res) => {
   applySecurityHeaders(req, res);
   const requestUrl = new URL(req.url || "/", "http://localhost");
+  const apiPath = decodeURIComponent(requestUrl.pathname).replace(/\/+$/, "") || "/";
   if (isMutationMethod(req.method) && !isTrustedOrigin(req)) {
     sendJson(res, 403, { error: "Untrusted request origin" });
+    return;
+  }
+  if (apiPath === "/api/geocode" || apiPath.startsWith("/api/geocode/") || apiPath.includes("/geocode/")) {
+    await handleGeocodeApi(requestUrl, res);
     return;
   }
   if (requestUrl.pathname.startsWith("/api/auth/")) {
@@ -363,7 +395,10 @@ async function handleNavigationLayerApi(requestUrl, res) {
   try {
     let data;
     let maxAge = 6 * 60 * 60 * 1000;
-    if (layer === "locks") {
+    if (layer === "reporting-points") {
+      data = reportingPointsGeoJson();
+      maxAge = 24 * 60 * 60 * 1000;
+    } else if (layer === "locks") {
       const response = await fetch("https://api.data.amsterdam.nl/v1/civieleconstructies/v1/sluizen?_format=geojson&page_size=5000");
       if (!response.ok) throw new Error(`Amsterdam locks API returned ${response.status}`);
       const source = await response.json();
@@ -392,6 +427,35 @@ async function handleNavigationLayerApi(requestUrl, res) {
       const xml = gunzipSync(Buffer.from(await response.arrayBuffer())).toString("utf8");
       data = parseNdwBridgeOpenings(xml);
       maxAge = 5 * 60 * 1000;
+    } else if (layer === "closures") {
+      const query = new URL("https://geo.rijkswaterstaat.nl/arcgis/rest/services/GDR/staatvandeinfrastructuur_rws/FeatureServer/0/query");
+      query.searchParams.set("where", "sub1_legenda IN ('Beperking voor het scheepvaartverkeer','Beperking voor zowel weg- als scheepvaartverkeer')");
+      query.searchParams.set("geometry", "4.65,52.20,5.15,52.55");
+      query.searchParams.set("geometryType", "esriGeometryEnvelope");
+      query.searchParams.set("inSR", "4326");
+      query.searchParams.set("spatialRel", "esriSpatialRelIntersects");
+      query.searchParams.set("outFields", "*");
+      query.searchParams.set("outSR", "4326");
+      query.searchParams.set("f", "geojson");
+      const response = await fetch(query);
+      if (!response.ok) throw new Error(`RWS restrictions API returned ${response.status}`);
+      const source = await response.json();
+      data = {
+        type: "FeatureCollection",
+        features: (source.features || []).map((feature) => ({
+          type: "Feature",
+          id: feature.id,
+          geometry: feature.geometry,
+          properties: {
+            name: feature.properties?.kunstwerk || feature.properties?.complex || feature.properties?.nws_naam || "Scheepvaartbeperking",
+            type: feature.properties?.sub1_hvwn || feature.properties?.sub1_legenda || "Beperking scheepvaart",
+            network: feature.properties?.netwerk || feature.properties?.nws_naam || null,
+            description: feature.properties?.kw_omschr || feature.properties?.legenda || null,
+            source: "Rijkswaterstaat Staat van de Infrastructuur",
+          },
+        })),
+      };
+      maxAge = 30 * 60 * 1000;
     } else if (layer === "moorings") {
       const response = await fetch("https://api.data.amsterdam.nl/v1/varen/v1/opafstapplaats?_format=geojson&page_size=5000");
       if (!response.ok) throw new Error(`Amsterdam public docks API returned ${response.status}`);
@@ -438,6 +502,66 @@ async function handleNavigationLayerApi(requestUrl, res) {
     console.error(`Navigation layer ${layer} failed`, error.message);
     sendJson(res, 502, { error: `Could not load ${layer}` });
   }
+}
+
+async function handleGeocodeApi(requestUrl, res) {
+  const query = cleanOptional(requestUrl.searchParams.get("q"));
+  const limit = Math.min(8, Math.max(1, Number(requestUrl.searchParams.get("limit") || 5)));
+  if (!query || query.length < 2) return sendJson(res, 200, { query: query || "", results: [] });
+
+  const cacheKey = `${query.toLowerCase()}|${limit}`;
+  const cached = geocodeCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return sendJson(res, 200, cached.data);
+
+  try {
+    const url = new URL("https://nominatim.openstreetmap.org/search");
+    url.searchParams.set("format", "jsonv2");
+    url.searchParams.set("addressdetails", "1");
+    url.searchParams.set("namedetails", "1");
+    url.searchParams.set("limit", String(limit));
+    url.searchParams.set("countrycodes", "nl");
+    url.searchParams.set("viewbox", "4.72,52.45,5.05,52.25");
+    url.searchParams.set("bounded", "0");
+    url.searchParams.set("q", /amsterdam/i.test(query) ? query : `${query}, Amsterdam`);
+    const response = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "grachtenkaart-kvb-amsterdam/1.0 route-planner",
+      },
+    });
+    if (!response.ok) throw new Error(`Nominatim returned ${response.status}`);
+    const raw = await response.json();
+    const results = (Array.isArray(raw) ? raw : [])
+      .map(normalizeGeocodeResult)
+      .filter(Boolean)
+      .filter((item) => item.latitude >= 52.25 && item.latitude <= 52.45 && item.longitude >= 4.72 && item.longitude <= 5.05);
+    const data = { query, results };
+    geocodeCache.set(cacheKey, { expiresAt: Date.now() + 10 * 60_000, data });
+    if (geocodeCache.size > 200) geocodeCache.delete(geocodeCache.keys().next().value);
+    sendJson(res, 200, data);
+  } catch (error) {
+    console.error("Geocode API error", error.message);
+    sendJson(res, 502, { error: "Adres zoeken is tijdelijk niet bereikbaar" });
+  }
+}
+
+function normalizeGeocodeResult(item) {
+  const latitude = Number(item?.lat);
+  const longitude = Number(item?.lon);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  const address = item.address || {};
+  const primary = item.namedetails?.name || item.name || address.amenity || address.tourism || address.shop || address.office || address.road || address.pedestrian;
+  const street = address.house_number && (address.road || address.pedestrian) ? `${address.road || address.pedestrian} ${address.house_number}` : null;
+  const secondary = [street, address.suburb || address.neighbourhood, address.city || address.town || "Amsterdam"].filter(Boolean);
+  const label = [primary, ...secondary].filter(Boolean).join(", ") || String(item.display_name || "").split(",").slice(0, 3).join(",");
+  return {
+    id: String(item.place_id || `${latitude},${longitude}`),
+    label,
+    displayName: item.display_name || label,
+    type: item.type || item.class || "place",
+    latitude,
+    longitude,
+  };
 }
 
 function parseNdwBridgeOpenings(xml) {
@@ -492,20 +616,27 @@ localSocketServer.on("connection", (client) => {
   send(client, {
     type: "snapshot",
     vessels: getActiveVesselSnapshot(),
+    config: { movingStaleMs: aisMovingStaleMs, stationaryStaleMs: aisStationaryStaleMs, removeAfterMs: aisRemoveAfterMs },
   });
 
   if (!apiKey) {
     send(client, {
       type: "status",
-      status: "not-configured",
+      status: "offline",
       message: "Set AISSTREAM_API_KEY in .env to receive live AIS positions.",
+      reason: "AISStream API key is not configured",
+      configured: false,
+      config: { movingStaleMs: aisMovingStaleMs, stationaryStaleMs: aisStationaryStaleMs, removeAfterMs: aisRemoveAfterMs },
     });
   } else {
-    const isUpstreamLive = upstream?.readyState === WebSocket.OPEN;
+    const state = currentAisFeedState();
     send(client, {
       type: "status",
-      status: isUpstreamLive ? "live" : "connecting",
-      message: isUpstreamLive ? "Receiving live AIS positions" : "Connecting to the AIS stream…",
+      status: state.status,
+      message: aisStatusMessage(state),
+      reason: state.reason,
+      configured: true,
+      config: { movingStaleMs: aisMovingStaleMs, stationaryStaleMs: aisStationaryStaleMs, removeAfterMs: aisRemoveAfterMs },
     });
   }
 
@@ -542,10 +673,12 @@ function connectUpstream() {
   if (upstream && [WebSocket.CONNECTING, WebSocket.OPEN].includes(upstream.readyState)) return;
 
   clearTimeout(reconnectTimer);
-  broadcast({ type: "status", status: "connecting", message: "Connecting to AISStream…" });
+  broadcast({ type: "status", status: "reconnecting", message: "Connecting to AISStream…", reason: "Opening upstream WebSocket" });
   upstream = new WebSocket("wss://stream.aisstream.io/v0/stream");
 
   upstream.on("open", () => {
+    upstreamOpenCount += 1;
+    if (upstreamOpenCount > 1) upstreamReconnectCount += 1;
     reconnectAttempt = 0;
     upstreamConnectedAt = Date.now();
     lastUpstreamMessageAt = Date.now();
@@ -563,7 +696,7 @@ function connectUpstream() {
         ],
       }),
     );
-    broadcast({ type: "status", status: "live", message: "Receiving live AIS positions" });
+    broadcast({ type: "status", status: "live", message: "Receiving live AIS positions", reason: "AISStream connected" });
   });
 
   upstream.on("message", (raw) => {
@@ -578,13 +711,14 @@ function connectUpstream() {
 
     const normalizedMessage = normalizeAisMessage(message);
     if (normalizedMessage) {
-      persistAisMessage(normalizedMessage);
-      broadcast(normalizedMessage);
+      if (normalizedMessage.type === "vessel-position") lastPositionMessageAt = Date.now();
+      if (persistAisMessage(normalizedMessage)) broadcast(normalizedMessage);
     }
   });
 
   upstream.on("error", (error) => {
     console.error(`AIS upstream error: ${error.message}`);
+    broadcast({ type: "status", status: "degraded", message: "AISStream connection error; reconnecting…", reason: error.message });
   });
 
   upstream.on("pong", () => {
@@ -616,7 +750,7 @@ function checkUpstreamHealth() {
   const pongAge = now - lastUpstreamPongAt;
   const connectionAge = now - upstreamConnectedAt;
 
-  if (connectionAge > 120_000 && (messageAge > 120_000 || pongAge > 90_000)) {
+  if (connectionAge > aisWatchdogMs && (messageAge > aisWatchdogMs || pongAge > Math.max(30_000, aisWatchdogMs * 0.75))) {
     console.warn(`AIS watchdog: restarting stalled stream (message age ${Math.round(messageAge / 1000)}s)`);
     broadcast({ type: "status", status: "reconnecting", message: "AIS feed stalled; reconnecting automatically…" });
     upstream.terminate();
@@ -624,45 +758,64 @@ function checkUpstreamHealth() {
   }
 
   upstream.ping();
+  const state = currentAisFeedState(now);
   broadcast({
     type: "status",
-    status: "live",
-    message: `Receiving AIS positions · feed update ${Math.max(0, Math.round(messageAge / 1000))}s ago`,
+    status: state.status,
+    message: aisStatusMessage(state, now),
+    reason: state.reason,
   });
+}
+
+function currentAisFeedState(now = Date.now()) {
+  return feedState({ configured: Boolean(apiKey), open: upstream?.readyState === WebSocket.OPEN,
+    messageAgeMs: lastUpstreamMessageAt ? now - lastUpstreamMessageAt : Infinity, watchdogMs: aisWatchdogMs });
+}
+
+function latencySummary() {
+  if (!recentAisLatencies.length) return { average: null, maximum: null };
+  return {
+    average: Math.round(recentAisLatencies.reduce((total, value) => total + value, 0) / recentAisLatencies.length),
+    maximum: Math.max(...recentAisLatencies),
+  };
+}
+
+function aisStatusMessage(state, now = Date.now()) {
+  const age = lastUpstreamMessageAt ? Math.max(0, Math.round((now - lastUpstreamMessageAt) / 1000)) : null;
+  const latency = latencySummary().average;
+  if (state.status === "live") return `Live positions · feed ${age}s ago${latency === null ? "" : ` · avg latency ${(latency / 1000).toFixed(1)}s`}`;
+  if (state.status === "degraded") return `AISStream delayed · last feed ${age}s ago`;
+  return state.reason;
 }
 
 function persistAisMessage(message) {
   const existing = latestVessels.get(message.mmsi) || { mmsi: message.mmsi };
-  const merged = mergeDefined(existing, message);
+  if (message.type === "vessel-position" && !shouldAcceptPosition(existing, message)) return false;
+  const merged = mergeAisState(existing, message);
   latestVessels.set(message.mmsi, merged);
 
   const now = Date.now();
-  upsertVesselStatement.run(message.mmsi, JSON.stringify(merged), now);
+  try {
+    upsertVesselStatement.run(message.mmsi, JSON.stringify(merged), now);
+  } catch (error) {
+    if (error.errcode !== 5) throw error;
+    console.warn("AIS vessel cache write skipped: database is busy");
+  }
 
-  if (message.type !== "vessel-position") return;
+  if (message.type !== "vessel-position") return true;
 
   const receivedAt = parseAisTime(message.receivedAt);
   const lastStoredAt = lastStoredPositionAt.get(message.mmsi) || 0;
-  if (receivedAt - lastStoredAt < 10_000) return;
+  if (receivedAt - lastStoredAt < aisHistorySampleMs) return true;
 
-  insertPositionStatement.run(
-    message.mmsi,
-    message.latitude,
-    message.longitude,
-    message.speed,
-    message.course,
-    message.heading,
-    receivedAt,
-  );
-  lastStoredPositionAt.set(message.mmsi, receivedAt);
-}
-
-function mergeDefined(existing, update) {
-  const merged = { ...existing };
-  for (const [key, value] of Object.entries(update)) {
-    if (value !== null && value !== undefined && value !== "") merged[key] = value;
+  try {
+    insertPositionStatement.run(message.mmsi, message.latitude, message.longitude, message.speed, message.course, message.heading, receivedAt);
+    lastStoredPositionAt.set(message.mmsi, receivedAt);
+  } catch (error) {
+    if (error.errcode !== 5) throw error;
+    console.warn("AIS history point skipped: database is busy");
   }
-  return merged;
+  return true;
 }
 
 function parseAisTime(value) {
@@ -671,7 +824,7 @@ function parseAisTime(value) {
 }
 
 function loadLatestVessels() {
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - aisRemoveAfterMs;
   const rows = database.prepare("SELECT mmsi, data FROM vessels WHERE updated_at >= ?").all(cutoff);
   for (const row of rows) {
     try {
@@ -683,7 +836,7 @@ function loadLatestVessels() {
 }
 
 function getActiveVesselSnapshot() {
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - aisRemoveAfterMs;
   return Array.from(latestVessels.values()).filter((vessel) => parseAisTime(vessel.receivedAt) >= cutoff);
 }
 
@@ -696,11 +849,18 @@ function pruneHistory() {
 function handleAisApi(requestUrl, res) {
   if (requestUrl.pathname === "/api/ais/health") {
     const now = Date.now();
+    const state = currentAisFeedState(now);
+    const latency = latencySummary();
     sendJson(res, 200, {
-      status: upstream?.readyState === WebSocket.OPEN ? "connected" : "reconnecting",
+      status: state.status,
+      statusReason: state.reason,
       connectedAt: upstreamConnectedAt || null,
       lastMessageAt: lastUpstreamMessageAt || null,
+      lastPositionAt: lastPositionMessageAt || null,
       messageAgeSeconds: lastUpstreamMessageAt ? Math.round((now - lastUpstreamMessageAt) / 1000) : null,
+      averageLatencyMs: latency.average,
+      maximumLatencyMs: latency.maximum,
+      reconnectCount: upstreamReconnectCount,
       cachedVessels: latestVessels.size,
       activeVessels: getActiveVesselSnapshot().length,
       provider: "AISStream",
@@ -714,20 +874,27 @@ function handleAisApi(requestUrl, res) {
     return;
   }
 
+  const requestedFrom = Number(requestUrl.searchParams.get("from"));
+  const requestedTo = Number(requestUrl.searchParams.get("to"));
+  const hasRange = requestUrl.searchParams.has("from") && requestUrl.searchParams.has("to")
+    && Number.isFinite(requestedFrom) && Number.isFinite(requestedTo) && requestedTo > requestedFrom;
   const hours = Math.min(historyDays * 24, Math.max(1, Number(requestUrl.searchParams.get("hours") || 1)));
-  const since = Date.now() - hours * 60 * 60 * 1000;
+  const since = hasRange ? requestedFrom : Date.now() - hours * 60 * 60 * 1000;
+  const until = hasRange ? Math.min(requestedTo, since + 24 * 60 * 60 * 1000) : Date.now();
   const rows = database.prepare(`
     SELECT latitude, longitude, speed, course, heading, received_at AS receivedAt
     FROM positions
-    WHERE mmsi = ? AND received_at >= ?
+    WHERE mmsi = ? AND received_at >= ? AND received_at <= ?
     ORDER BY received_at ASC
     LIMIT 10000
-  `).all(historyMatch[1], since);
+  `).all(historyMatch[1], since, until);
 
   const step = Math.max(1, Math.ceil(rows.length / 1500));
   sendJson(res, 200, {
     mmsi: historyMatch[1],
     hours,
+    from: since,
+    to: until,
     points: rows.filter((_, index) => index % step === 0 || index === rows.length - 1),
   });
 }
@@ -739,11 +906,53 @@ function sendJson(res, statusCode, value) {
   res.end(JSON.stringify(value));
 }
 
+function planningTimeTimestamp(serviceDate, time) {
+  if (!isIsoDate(serviceDate) || !/^\d{2}:\d{2}$/.test(String(time || ""))) return null;
+  const timestamp = new Date(`${serviceDate}T${time}:00`).getTime();
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+function annotateTourPerformance(items, serviceDate) {
+  const positions = database.prepare(`
+    SELECT latitude, longitude, speed, received_at AS receivedAt
+    FROM positions
+    WHERE mmsi = ? AND received_at >= ? AND received_at <= ?
+    ORDER BY received_at ASC
+  `);
+  const now = Date.now();
+  return items.map((item) => {
+    if (item.event_type !== "tour") return item;
+    if (!item.mmsi) return { ...item, tour_status: "no-mmsi" };
+    const scheduledStart = planningTimeTimestamp(serviceDate, item.start_time);
+    let scheduledEnd = planningTimeTimestamp(serviceDate, item.end_time);
+    if (scheduledStart == null || scheduledEnd == null) return { ...item, tour_status: "invalid-time" };
+    if (scheduledEnd <= scheduledStart) scheduledEnd += 24 * 60 * 60_000;
+    const reports = positions.all(String(item.mmsi), scheduledStart - 15 * 60_000, scheduledEnd + 30 * 60_000);
+    const locationPin = findPlanningLocationPin(item.from_location || item.group_location);
+    const result = deriveTourPerformance({ scheduledStart, scheduledEnd, points: reports, now, locationPin });
+    return {
+      ...item,
+      tour_status: result.status,
+      scheduled_start_at: scheduledStart,
+      scheduled_end_at: scheduledEnd,
+      actual_start_at: result.actualStart,
+      actual_end_at: result.actualEnd,
+      delay_minutes: result.delayMinutes,
+      return_delay_minutes: result.returnDelayMinutes,
+      round_duration_minutes: result.roundDurationMinutes,
+      tracking_method: result.trackingMethod,
+      route_from: result.routeFrom,
+      route_to: result.routeTo,
+      ais_point_count: result.pointCount,
+    };
+  });
+}
+
 function applySecurityHeaders(req, res) {
   res.setHeader("Content-Security-Policy", [
     "default-src 'self'",
     "base-uri 'self'",
-    "connect-src 'self' ws: wss:",
+    "connect-src 'self' ws: wss: https://nominatim.openstreetmap.org",
     "font-src 'self' data:",
     "form-action 'self'",
     "frame-ancestors 'none'",
@@ -1410,13 +1619,14 @@ async function handlePlanningApi(req, requestUrl, res) {
         WHERE p.service_date = ?
         ORDER BY COALESCE(p.start_time, '99:99'), p.boat_name, p.id
       `).all(date);
-      const staff = database.prepare(`
+      const staffRows = database.prepare(`
         SELECT s.*, i.external_message_id, i.sender, i.received_at
         FROM planning_staff s
         JOIN planning_imports i ON i.id = s.import_id
         WHERE s.service_date = ?
         ORDER BY CASE s.role WHEN 'ops' THEN 1 WHEN 'runner' THEN 2 ELSE 3 END, s.person_name
       `).all(date);
+      const staff = deduplicateDayStaff(staffRows);
       const importedLocations = database.prepare(`
         SELECT DISTINCT location AS name FROM planning_imports
         WHERE service_date = ? AND location IS NOT NULL AND trim(location) <> ''
@@ -1429,7 +1639,8 @@ async function handlePlanningApi(req, requestUrl, res) {
         });
       const locations = [...new Map([...importedLocations, ...chatLocations].map((location) => [location.name, location])).values()]
         .sort((left, right) => left.name.localeCompare(right.name));
-      sendJson(res, 200, { date, locations, items, staff });
+      const consolidatedItems = consolidateDayPlanning(items);
+      sendJson(res, 200, { date, locations, items: annotateTourPerformance(consolidatedItems, date), staff });
       return;
     }
 
@@ -1592,17 +1803,41 @@ async function rescanAllWhatsAppPlanning() {
 
 async function importReadOnlyWhatsAppPlanningMessage(message) {
   try {
-    if (!message.externalMessageId || database.prepare("SELECT 1 FROM planning_imports WHERE external_message_id = ?").get(message.externalMessageId)) return;
+    if (!message.externalMessageId) return;
+    const existingImport = database.prepare("SELECT id, status FROM planning_imports WHERE external_message_id = ?").get(message.externalMessageId);
+    // Images can arrive before their separate WhatsApp caption. Reprocess the
+    // same image when that later caption supplies boat/driver/host context.
+    if (existingImport?.status === "imported" && !message.contextText) return;
     const context = parseDatedPlanningGroup(message.chatTitle, message.receivedAt);
     if (!context) return console.log(`Ignored WhatsApp image: no dated location in ${message.chatTitle}`);
     if (!isNearPlanningDate(message.receivedAt, context.serviceDate)) return console.log(`Ignored WhatsApp image outside ${context.serviceDate} window: ${message.chatTitle}`);
+    const storedContext = !message.contextText ? nearestPlanningMessageContext(message.chatId, message.receivedAt) : null;
+    const effectiveContextText = message.contextText || storedContext?.text || "";
     const knownBoats = database.prepare("SELECT name FROM fleet_boats WHERE active = 1 ORDER BY length(name) DESC").all().map(({ name }) => name);
     const mimeType = message.mimeType === "image/png" || message.mimeType === "image/webp" ? message.mimeType : "image/jpeg";
-    const analysis = await analyzePlanningImage(`data:${mimeType};base64,${message.image.toString("base64")}`, knownBoats, message.contextText);
-    const accepted = selectCredibleWhatsAppPlanning(analysis.text, analysis.items);
+    const analysis = await analyzePlanningImage(`data:${mimeType};base64,${message.image.toString("base64")}`, knownBoats, effectiveContextText);
+    const locationDefaultBoat = defaultPlanningBoatForLocation(context.location);
+    let accepted = selectCredibleWhatsAppPlanning(analysis.text, analysis.items);
+    if (locationDefaultBoat && accepted.length) accepted = accepted.map((item) => ({ ...item, boat: locationDefaultBoat,
+      notes: [item.notes, `Fixed boat for ${context.location}`].filter(Boolean).join(" · ") }));
+    if (!accepted.length) {
+      const unassigned = parseStaffingPlanning(analysis.text, "", [...knownBoats, "UNASSIGNED"], "UNASSIGNED").items
+        .filter((item) => item.boat === "UNASSIGNED" && item.eventType === "shift");
+      const existingCrew = database.prepare(`
+        SELECT p.boat_name AS boatName, p.start_time AS startTime, p.end_time AS endTime, p.role
+        FROM planning_items p JOIN planning_imports i ON i.id = p.import_id
+        WHERE p.service_date = ? AND p.event_type = 'shift' AND i.external_message_id <> ?
+      `).all(context.serviceDate, message.externalMessageId);
+      const matchedBoat = locationDefaultBoat || matchCrewFingerprint(unassigned, existingCrew);
+      if (matchedBoat) accepted = unassigned.map((item) => ({ ...item, boat: matchedBoat,
+        notes: "Boat matched by unique same-day crew fingerprint" }));
+    }
     const locationStaff = analysis.staff.filter((member) => ['runner', 'ops', 'kade'].includes(member.role)
       && isCredibleCrewName(member.person));
-    if (!accepted.length && !locationStaff.length) return console.log(`Ignored non-planning WhatsApp image: ${message.chatTitle}`);
+    if (!accepted.length && !locationStaff.length) {
+      recordUnresolvedPlanningImage(message, context, analysis);
+      return console.log(`Kept unresolved WhatsApp image for a later rescan: ${message.chatTitle}`);
+    }
     const items = accepted.map((item) => ({
       ...item,
       from: item.from || (["shift", "tour", "private"].includes(item.eventType) ? context.location : null),
@@ -1616,11 +1851,13 @@ async function importReadOnlyWhatsAppPlanningMessage(message) {
       serviceDate: context.serviceDate,
       location: context.location,
       sourceText: analysis.text,
+      sourceContextText: effectiveContextText,
       sourceOcrTsv: analysis.tsv,
       sourceImageHash: analysis.imageHash,
       sourceImagePath: analysis.imagePath,
       imageType: "whatsapp-read-only",
       snapshot: false,
+      force: Boolean(existingImport),
       items,
       staff: locationStaff.map((member) => ({ ...member, location: context.location })),
     });
@@ -1631,8 +1868,42 @@ async function importReadOnlyWhatsAppPlanningMessage(message) {
   }
 }
 
+function nearestPlanningMessageContext(chatId, receivedAt) {
+  return database.prepare(`
+    SELECT text, received_at FROM planning_message_contexts
+    WHERE chat_id = ? AND received_at BETWEEN ? AND ? AND instr(text, '@') > 0
+    ORDER BY abs(received_at - ?) LIMIT 1
+  `).get(chatId, Number(receivedAt) - 3 * 60_000, Number(receivedAt) + 3 * 60_000, Number(receivedAt));
+}
+
+function defaultPlanningBoatForLocation(location) {
+  const normalized = String(location || "").toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim();
+  return /\bCOOKIE(?:\s+TOURS?)?\b/.test(normalized) ? "HERMAN BROOD" : null;
+}
+
+function recordUnresolvedPlanningImage(message, context, analysis) {
+  database.prepare(`
+    INSERT INTO planning_imports
+    (external_message_id, chat_id, chat_title, sender, received_at, service_date, location,
+     source_text, source_context_text, source_ocr_tsv, source_image_hash, source_image_path, image_type, status, item_count, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'whatsapp-read-only', 'needs-review', 0, ?)
+    ON CONFLICT(external_message_id) DO UPDATE SET
+      source_text = excluded.source_text, source_context_text = excluded.source_context_text, source_ocr_tsv = excluded.source_ocr_tsv,
+      source_image_hash = excluded.source_image_hash, source_image_path = excluded.source_image_path,
+      status = 'needs-review'
+  `).run(message.externalMessageId, message.chatId, message.chatTitle, message.sender, message.receivedAt,
+    context.serviceDate, context.location, analysis.text, cleanOptional(message.contextText), analysis.tsv, analysis.imageHash, analysis.imagePath, Date.now());
+}
+
 function importReadOnlyWhatsAppLocationStaff(message) {
   try {
+    if (message.externalMessageId && message.chatId && message.text) {
+      database.prepare(`
+        INSERT INTO planning_message_contexts (external_message_id, chat_id, received_at, text, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(external_message_id) DO UPDATE SET text = excluded.text, received_at = excluded.received_at
+      `).run(message.externalMessageId, message.chatId, Number(message.receivedAt), message.text, Date.now());
+    }
     const externalMessageId = `${message.externalMessageId}:staff`;
     if (!message.externalMessageId || database.prepare("SELECT 1 FROM planning_imports WHERE external_message_id = ?").get(externalMessageId)) return;
     const context = parseDatedPlanningGroup(message.chatTitle, message.receivedAt);
@@ -1738,6 +2009,10 @@ function isCredibleCrewName(value) {
     && words.every((word) => word.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g, "").length >= 2);
 }
 
+function isInstructionPoster(value) {
+  return /KLEARLY|PAYMENT\s+DEVICES|MAPS\s*&\s*VHF|VIATOR|REBOOK|BRACELET|COOKIES\s+STATEMENT/i.test(String(value || ""));
+}
+
 function cleanupInvalidWhatsAppPlanningImports() {
   const imports = database.prepare("SELECT id, source_text FROM planning_imports WHERE image_type = 'whatsapp-read-only' ORDER BY id").all();
   if (!imports.length) return;
@@ -1752,13 +2027,13 @@ function cleanupInvalidWhatsAppPlanningImports() {
       }
       const staffRows = database.prepare("SELECT id, person_name, role FROM planning_staff WHERE import_id = ?").all(planningImport.id);
       for (const member of staffRows) {
-        if (!['runner', 'ops', 'kade'].includes(member.role) || !isCredibleCrewName(member.person_name)) {
+        if (isInstructionPoster(planningImport.source_text) || !['runner', 'ops', 'kade'].includes(member.role) || !isCredibleCrewName(member.person_name)) {
           database.prepare("DELETE FROM planning_staff WHERE id = ?").run(member.id);
         }
       }
       const count = database.prepare("SELECT COUNT(*) AS count FROM planning_items WHERE import_id = ?").get(planningImport.id).count;
-      if (!count) database.prepare("DELETE FROM planning_imports WHERE id = ?").run(planningImport.id);
-      else database.prepare("UPDATE planning_imports SET item_count = ? WHERE id = ?").run(count, planningImport.id);
+      if (!count) database.prepare("UPDATE planning_imports SET item_count = 0, status = 'needs-review' WHERE id = ?").run(planningImport.id);
+      else database.prepare("UPDATE planning_imports SET item_count = ?, status = 'imported' WHERE id = ?").run(count, planningImport.id);
     }
     const duplicates = database.prepare(`
       SELECT service_date, location, source_image_hash, GROUP_CONCAT(id) AS ids
@@ -1907,8 +2182,8 @@ function deduplicateWhatsAppPlanningRows(serviceDate, location, manageTransactio
     const imports = database.prepare("SELECT id FROM planning_imports WHERE image_type = 'whatsapp-read-only' AND service_date = ? AND location = ?").all(serviceDate, location);
     for (const planningImport of imports) {
       const count = database.prepare("SELECT COUNT(*) AS count FROM planning_items WHERE import_id = ?").get(planningImport.id).count;
-      if (!count) database.prepare("DELETE FROM planning_imports WHERE id = ?").run(planningImport.id);
-      else database.prepare("UPDATE planning_imports SET item_count = ? WHERE id = ?").run(count, planningImport.id);
+      if (!count) database.prepare("UPDATE planning_imports SET item_count = 0, status = 'needs-review' WHERE id = ?").run(planningImport.id);
+      else database.prepare("UPDATE planning_imports SET item_count = ?, status = 'imported' WHERE id = ?").run(count, planningImport.id);
     }
     if (manageTransaction) database.exec("COMMIT");
   } catch (error) {
@@ -2046,8 +2321,8 @@ function importPlanningMessage(body) {
     const result = database.prepare(`
       INSERT INTO planning_imports
       (external_message_id, chat_id, chat_title, sender, received_at, service_date, location,
-       source_text, source_ocr_tsv, source_image_hash, source_image_path, image_type, status, item_count, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'imported', ?, ?)
+       source_text, source_context_text, source_ocr_tsv, source_image_hash, source_image_path, image_type, status, item_count, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'imported', ?, ?)
     `).run(
       externalMessageId,
       cleanOptional(body.chatId),
@@ -2057,6 +2332,7 @@ function importPlanningMessage(body) {
       serviceDate,
       cleanOptional(body.location),
       cleanOptional(body.sourceText),
+      cleanOptional(body.sourceContextText),
       cleanOptional(body.sourceOcrTsv),
       cleanOptional(body.sourceImageHash),
       cleanOptional(body.sourceImagePath),
@@ -2077,11 +2353,12 @@ function importPlanningMessage(body) {
     }
     const insertStaff = database.prepare(`
       INSERT INTO planning_staff
-      (import_id, service_date, person_name, role, location, notes, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      (import_id, service_date, person_name, role, location, start_time, end_time, notes, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     for (const item of staff) {
-      insertStaff.run(importId, serviceDate, item.personName, item.role, item.location, item.notes, now);
+      insertStaff.run(importId, serviceDate, item.personName, item.role, item.location,
+        item.startTime, item.endTime, item.notes, now);
     }
     database.exec("COMMIT");
   } catch (error) {
@@ -2173,6 +2450,8 @@ function normalizePlanningStaff(item, index, serviceDate) {
     personName,
     role,
     location: normalizePlanningLocation(item.location),
+    startTime: normalizePlanningTime(item.startTime, `staff[${index}].startTime`),
+    endTime: normalizePlanningTime(item.endTime, `staff[${index}].endTime`),
     notes: cleanOptional(item.notes),
   };
 }
@@ -2189,6 +2468,9 @@ function normalizePlanningBoatName(value) {
     "PIERRE CUYPER": "PIERRE CUYPERS",
     "FLAGSHIP SLOEP": "FLAGSHIP",
     "JAN VD HEIJDEN": "JAN VAN DER HEIJDEN",
+    COOKIE: "HERMAN BROOD",
+    "COOKIE TOUR": "HERMAN BROOD",
+    "COOKIE TOURS": "HERMAN BROOD",
     "ZONNE BOOT": "ZONNEBOOT",
     CREUSEN: "CREUSEN 1",
   };
@@ -2221,7 +2503,7 @@ function normalizePlanningLocation(value) {
 
 function normalizePlanningRole(value) {
   const role = String(value || "").toUpperCase().trim();
-  return { DRIVER: "skipper", SL: "skipper", SKIPPER: "skipper", H: "host", HOST: "host", GUIDE: "host", SOLO: "solo" }[role]
+  return { DRIVER: "skipper", SL: "skipper", SKIPPER: "skipper", H: "host", HOST: "host", GUIDE: "host", SOLO: "host" }[role]
     || (role ? role.toLowerCase() : null);
 }
 
@@ -2422,6 +2704,7 @@ function ensurePlanningImportColumns() {
     chat_title: "TEXT",
     location: "TEXT",
     source_ocr_tsv: "TEXT",
+    source_context_text: "TEXT",
     source_image_hash: "TEXT",
     source_image_path: "TEXT",
     image_type: "TEXT",
@@ -2429,6 +2712,24 @@ function ensurePlanningImportColumns() {
   for (const [name, type] of Object.entries(columns)) {
     if (!existing.has(name)) database.exec(`ALTER TABLE planning_imports ADD COLUMN ${name} ${type}`);
   }
+}
+
+function ensurePlanningStaffColumns() {
+  const existing = new Set(database.prepare("PRAGMA table_info(planning_staff)").all().map((column) => column.name));
+  if (!existing.has("start_time")) database.exec("ALTER TABLE planning_staff ADD COLUMN start_time TEXT");
+  if (!existing.has("end_time")) database.exec("ALTER TABLE planning_staff ADD COLUMN end_time TEXT");
+}
+
+function deduplicateDayStaff(rows) {
+  const seen = new Set();
+  return rows.filter((member) => {
+    const scope = member.role === "ops" ? "day" : String(member.location || "").toUpperCase();
+    const key = [scope, member.role, member.person_name, member.start_time, member.end_time]
+      .map((value) => String(value || "").toUpperCase().trim()).join("|");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function ensureUserColumns() {
@@ -2477,16 +2778,15 @@ function normalizeAisMessage(message) {
     };
   }
 
-  const positionMessageTypes = new Set([
-    "PositionReport",
-    "StandardClassBPositionReport",
-    "ExtendedClassBPositionReport",
-  ]);
-  if (!positionMessageTypes.has(message.MessageType)) return null;
+  if (!POSITION_MESSAGE_TYPES.has(message.MessageType)) return null;
 
   const latitude = Number(meta.Latitude ?? data.Latitude);
   const longitude = Number(meta.Longitude ?? data.Longitude);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  if (!validAisCoordinates(latitude, longitude)) return null;
+  const gatewayReceivedAtMs = Date.now();
+  const parsedSourceAt = Date.parse(meta.time_utc || "");
+  const sourceReceivedAt = new Date(Number.isFinite(parsedSourceAt) ? parsedSourceAt : gatewayReceivedAtMs).toISOString();
+  const latencyMs = sourceLatencyMs(sourceReceivedAt, gatewayReceivedAtMs);
 
   const position = {
     type: "vessel-position",
@@ -2498,7 +2798,11 @@ function normalizeAisMessage(message) {
     heading: normalizeHeading(data.TrueHeading),
     speed: Number.isFinite(Number(data.Sog)) ? Number(data.Sog) : null,
     navigationStatus: data.NavigationalStatus ?? null,
-    receivedAt: meta.time_utc || new Date().toISOString(),
+    receivedAt: sourceReceivedAt,
+    sourceReceivedAt,
+    gatewayReceivedAt: new Date(gatewayReceivedAtMs).toISOString(),
+    latencyMs,
+    messageType: message.MessageType,
     aisClass: message.MessageType === "PositionReport" ? "A" : "B",
   };
   const shipType = data.Type ?? null;
@@ -2507,6 +2811,10 @@ function normalizeAisMessage(message) {
   if (shipType !== null) position.shipType = shipType;
   if (length !== null) position.length = length;
   if (width !== null) position.width = width;
+  if (latencyMs !== null) {
+    recentAisLatencies.push(latencyMs);
+    if (recentAisLatencies.length > 500) recentAisLatencies.shift();
+  }
   return position;
 }
 
