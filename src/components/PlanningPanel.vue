@@ -1,6 +1,6 @@
 <template>
-  <div class="pointer-events-none absolute left-3 top-3 z-[1250] sm:left-4">
-    <button v-if="!open" type="button" class="pointer-events-auto flex items-center gap-2 rounded-xl border border-white/20 bg-slate-950/80 px-4 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-md" @click="openPanel">
+  <div class="mobile-nav-item mobile-nav-planning pointer-events-none absolute left-3 top-3 z-[1250] sm:left-4">
+    <button v-if="!open" type="button" class="mobile-nav-button pointer-events-auto flex items-center gap-2 rounded-xl border border-white/20 bg-slate-950/80 px-4 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-md" @click="openPanel">
       <CalendarDays class="h-4 w-4 text-emerald-300" /> Schedule
       <span v-if="todayCount" class="rounded-full bg-emerald-400/15 px-1.5 text-[10px] text-emerald-200">{{ todayCount }}</span>
     </button>
@@ -248,8 +248,9 @@ function itemTitle(item) { const label = ({ preparation: 'Prepare boat', movemen
 function itemLocation(item) { if (item.from_location && item.to_location) return `${item.from_location} → ${item.to_location}`; return item.from_location || item.to_location || '' }
 function durationLabel(item) { if (!item.end_time) return ''; const [sh, sm] = item.start_time.split(':').map(Number); const [eh, em] = item.end_time.split(':').map(Number); const minutes = (eh * 60 + em) - (sh * 60 + sm); return minutes > 0 ? `${item.end_time} · ${minutes} min` : `to ${item.end_time}` }
 function eventStyle(type) { return ({ preparation: 'bg-amber-400/15 text-amber-200', movement: 'bg-violet-400/15 text-violet-200', tour: 'bg-emerald-400/15 text-emerald-200', private: 'bg-fuchsia-400/15 text-fuchsia-200', break: 'bg-sky-400/15 text-sky-200', shift: 'bg-orange-400/15 text-orange-200' })[type] || 'bg-white/10 text-slate-300' }
-function addItem() { editableItems.value.push({ key: crypto.randomUUID(), boat: '', eventType: 'tour', startTime: '', endTime: '', person: '', role: '' }) }
-function addDriver() { editableItems.value.push({ key: crypto.randomUUID(), boat: '', eventType: 'shift', startTime: '', endTime: '', person: '', role: 'skipper' }) }
+function localKey() { return globalThis.crypto?.randomUUID?.() || `local-${Date.now()}-${Math.random().toString(36).slice(2)}` }
+function addItem() { editableItems.value.push({ key: localKey(), boat: '', eventType: 'tour', startTime: '', endTime: '', person: '', role: '' }) }
+function addDriver() { editableItems.value.push({ key: localKey(), boat: '', eventType: 'shift', startTime: '', endTime: '', person: '', role: 'skipper' }) }
 async function rescanWhatsApp() {
   rescanning.value = true; rescanMessage.value = ''; rescanError.value = false
   try {
@@ -273,8 +274,8 @@ async function selectImage(event) {
   try {
     const image = await readAsDataUrl(file)
     analysis.value = await request('/api/planning/analyze', { method: 'POST', body: JSON.stringify({ image, contextText: contextText.value }) })
-    editableItems.value = analysis.value.items.map((item) => ({ ...item, key: crypto.randomUUID(), startTime: item.startTime || '', endTime: item.endTime || '', person: item.person || '', role: item.role || '' }))
-    editableStaff.value = analysis.value.staff.map((member) => ({ ...member, key: crypto.randomUUID() }))
+    editableItems.value = analysis.value.items.map((item) => ({ ...item, key: localKey(), startTime: item.startTime || '', endTime: item.endTime || '', person: item.person || '', role: item.role || '' }))
+    editableStaff.value = analysis.value.staff.map((member) => ({ ...member, key: localKey() }))
     importDate.value = analysis.value.suggestedDate || selectedDate.value
     if (!importLocation.value) importLocation.value = suggestedImportLocation(analysis.value.items)
   } catch (caught) { uploadError.value = caught.message; analysis.value = null } finally { analyzing.value = false; event.target.value = '' }

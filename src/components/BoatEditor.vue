@@ -13,7 +13,19 @@
     <input v-model="form.lengthM" class="fleet-input" inputmode="decimal" placeholder="Length in metres" />
     <input v-model="form.widthM" class="fleet-input" inputmode="decimal" placeholder="Width in metres" />
     <input v-model="form.propulsion" class="fleet-input" placeholder="Propulsion" />
-    <input v-model="form.homeDock" class="fleet-input" placeholder="Home dock" />
+    <label class="grid gap-1 text-xs font-bold text-slate-300">
+      Home harbour
+      <select v-model="dockChoice" class="fleet-input dock-select" required aria-label="Home harbour">
+        <option disabled value="">Choose a home harbour…</option>
+        <option value="EH">EH</option>
+        <option value="Staverno">Staverno</option>
+        <option value="other">Other — define a name</option>
+      </select>
+    </label>
+    <label v-if="dockChoice === 'other'" class="grid gap-1 text-xs font-bold text-slate-300">
+      Other harbour name
+      <input v-model.trim="customDock" class="fleet-input" required maxlength="100" placeholder="Enter harbour name" />
+    </label>
     <select v-model="form.nicenessRating" class="fleet-input">
       <option value="">Niceness rating (not rated)</option>
       <option v-for="rating in ['S', 'A', 'B', 'C', 'D', 'E', 'F']" :key="rating" :value="rating">{{ rating }} rating</option>
@@ -42,6 +54,9 @@ import { reactive, ref } from 'vue'
 const props = defineProps({ boat: { type: Object, default: null } })
 const emit = defineEmits(['save', 'cancel'])
 const photo = ref(null)
+const savedDock = props.boat?.home_dock || ''
+const dockChoice = ref(['EH', 'Staverno'].includes(savedDock) ? savedDock : savedDock ? 'other' : '')
+const customDock = ref(dockChoice.value === 'other' ? savedDock : '')
 const form = reactive({
   id: props.boat?.id || null,
   name: props.boat?.name || '',
@@ -65,7 +80,7 @@ function selectPhoto(event) {
 }
 
 function submit() {
-  emit('save', { ...form }, photo.value)
+  emit('save', { ...form, homeDock: dockChoice.value === 'other' ? customDock.value : dockChoice.value }, photo.value)
 }
 </script>
 
@@ -82,4 +97,5 @@ function submit() {
 }
 
 .fleet-input::placeholder { color: rgb(148 163 184); }
+.dock-select { appearance: auto; cursor: pointer; }
 </style>

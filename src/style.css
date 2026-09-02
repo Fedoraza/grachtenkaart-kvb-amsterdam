@@ -35,6 +35,34 @@ body {
 .ais-vessel-marker {
   background: transparent;
   border: 0;
+  cursor: pointer;
+}
+
+.leaflet-marker-icon,
+.leaflet-interactive {
+  cursor: pointer;
+}
+
+.leaflet-marker-icon.dock-location-icon {
+  background: transparent;
+  border: 0;
+  height: 20px !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  width: 20px !important;
+}
+
+.dock-location-icon__dot {
+  aspect-ratio: 1;
+  background: #f97316;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 0.35);
+  box-sizing: border-box;
+  display: block;
+  height: 20px !important;
+  min-height: 0 !important;
+  width: 20px !important;
 }
 
 .ais-vessel {
@@ -247,4 +275,106 @@ body {
   font-size: 11px;
   margin-top: 8px;
   padding-top: 7px;
+}
+
+/* Mobile is the primary operating surface: controls must remain usable with one
+   hand on a moving boat, without precise taps or browser zoom on form fields. */
+@media (max-width: 639px) {
+  .map-shell button,
+  .map-shell [role="button"],
+  .map-shell input:not([type="checkbox"]):not([type="radio"]),
+  .map-shell select {
+    min-height: 44px;
+  }
+
+  .map-shell input:not([type="checkbox"]):not([type="radio"]),
+  .map-shell select,
+  .map-shell textarea {
+    font-size: 16px !important;
+  }
+
+  .map-shell button,
+  .map-shell [role="button"] {
+    touch-action: manipulation;
+  }
+
+  .map-shell section {
+    overscroll-behavior: contain;
+  }
+
+  .map-shell section > header button,
+  .vessel-details header button {
+    align-items: center;
+    display: inline-flex;
+    flex: 0 0 44px;
+    justify-content: center;
+    min-width: 44px;
+  }
+
+  .mobile-nav-item > section > div,
+  .mobile-nav-item > section .schedule-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-nav-duty section > header,
+  .mobile-nav-planning section > header,
+  .mobile-nav-account section > header,
+  .mobile-nav-fleet section > header {
+    background: rgb(2 6 23 / 0.98);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .mobile-nav-duty section > header input[type="date"] {
+    flex: 1 1 10rem;
+    order: 3;
+  }
+
+  .mobile-nav-duty fieldset .grid-cols-3,
+  .mobile-nav-duty fieldset .grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobile-nav-duty article > div:first-child > button {
+    padding-inline: 0.75rem;
+  }
+
+  .mobile-nav-duty article > div:first-child {
+    align-items: center;
+  }
+
+  .mobile-nav-duty article > div:first-child > div {
+    flex-basis: calc(100% - 2rem);
+  }
+
+  .mobile-nav-duty article > div:first-child > button {
+    flex: 1 1 auto;
+  }
+
+  .mobile-nav-fleet section > div > .flex.items-center,
+  .mobile-nav-account section .flex.items-center.justify-between {
+    flex-wrap: wrap;
+  }
+
+  .mobile-nav-fleet section > div > .flex.items-center > input {
+    flex-basis: 100%;
+  }
+
+  .mobile-nav-fleet section > div > .flex.items-center > button {
+    width: 100%;
+  }
+
+  .mobile-nav-fleet section > div > .grid.grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobile-nav-planning .schedule-nav {
+    height: 44px;
+    width: 44px;
+  }
+
+  .picker-results button {
+    min-height: 52px;
+  }
 }

@@ -33,18 +33,11 @@ const CANAL_SEARCH_OPTIONS = {
 };
 const DOCK_ICON = L.divIcon({
   html: `
-    <div
-      style="
-        width: 100%;
-        height: 100%;
-        background: orange;
-        border-radius: 50%;
-        border: 2px solid white;
-      "
-    ></div>
+    <div class="dock-location-icon__dot"></div>
   `,
-  className: "",
-  iconSize: [17, 17],
+  className: "dock-location-icon",
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
 });
 const USER_LOCATION_ICON = L.divIcon({
   html: `
@@ -111,6 +104,12 @@ export function createMap(el) {
 
   const navigationPane = map.createPane("navigation-pane");
   navigationPane.style.zIndex = "620";
+
+  // Keep boats, docks, and other HTML markers above the full-size navigation
+  // canvas so the canvas cannot steal their clicks.
+  map.getPane("markerPane").style.zIndex = "680";
+  map.getPane("tooltipPane").style.zIndex = "690";
+  map.getPane("popupPane").style.zIndex = "800";
 
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors",

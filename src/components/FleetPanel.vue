@@ -1,7 +1,7 @@
 <template>
-  <div class="pointer-events-none absolute left-3 top-16 z-[1200] sm:left-4">
-    <button v-if="!open" type="button" class="pointer-events-auto rounded-xl border border-white/20 bg-slate-950/75 px-4 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-md" @click="openPanel">
-      Company fleet
+  <div class="mobile-nav-item mobile-nav-fleet pointer-events-none absolute left-3 top-16 z-[1200] sm:left-4">
+    <button v-if="!open" type="button" class="mobile-nav-button pointer-events-auto rounded-xl border border-white/20 bg-slate-950/75 px-4 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-md" @click="openPanel">
+      <span class="mobile-nav-icon hidden">⌁</span><span>Fleet</span><span class="hidden sm:inline"> directory</span>
     </button>
 
     <section v-else class="pointer-events-auto flex max-h-[calc(100dvh-5rem)] w-[calc(100vw-1.5rem)] max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-slate-950/95 text-slate-50 shadow-2xl backdrop-blur-xl">
@@ -17,8 +17,10 @@
         <WhatsAppSetup v-if="isAdmin" class="mb-4" />
         <div class="flex items-center gap-2">
           <input v-model="boatSearch" class="fleet-input flex-1" placeholder="Search by boat name, MMSI or type" />
-          <button v-if="isAdmin" type="button" class="rounded-xl bg-sky-500 px-3 py-2 text-sm font-semibold hover:bg-sky-400" @click="startNewBoat">Add boat</button>
+          <button v-if="isAdmin" type="button" class="rounded-xl px-3 py-2 text-sm font-semibold" :class="fleetSettingsOpen ? 'bg-sky-500 text-white' : 'bg-white/10 text-slate-200'" @click="fleetSettingsOpen = !fleetSettingsOpen">⚙ Settings</button>
         </div>
+
+        <div v-if="isAdmin && fleetSettingsOpen" class="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-sky-300/20 bg-sky-400/5 p-3"><div class="min-w-0 flex-1"><strong class="block text-xs">Fleet settings</strong><span class="text-[10px] text-slate-400">Adding a boat is only needed when the fleet changes.</span></div><button type="button" class="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold hover:bg-sky-400" @click="startNewBoat">Add boat</button></div>
 
         <div class="mt-2 grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-white/5 p-2 sm:grid-cols-5">
           <input v-model="filters.capacity" class="fleet-input" inputmode="numeric" placeholder="Min. capacity" />
@@ -111,6 +113,7 @@ const isAdmin = computed(() => auth.user?.role === 'admin')
 const open = ref(false)
 const boatSearch = ref('')
 const creatingBoat = ref(false)
+const fleetSettingsOpen = ref(false)
 const editingBoatId = ref(null)
 const summary = reactive({ boats: [] })
 const error = ref('')

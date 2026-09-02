@@ -386,6 +386,18 @@ function getOrCreateNode(nodes, grid, lat, lng) {
 }
 
 export function findNearestNode(network, lat, lng, maxDistanceMeters = MAX_SNAP_DISTANCE_METERS) {
+  if (!Number.isFinite(maxDistanceMeters)) {
+    let bestNode = null;
+    let bestDistance = Infinity;
+    for (const node of network?.nodes?.values?.() || []) {
+      const distance = distanceMeters({ lat, lng }, node);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestNode = node;
+      }
+    }
+    return bestNode ? { node: bestNode, distance: bestDistance } : null;
+  }
   const centerLat = Math.floor(lat / GRID_SIZE);
   const centerLng = Math.floor(lng / GRID_SIZE);
   let bestNode = null;
@@ -427,7 +439,7 @@ function findShortestPath(network, start, goal, maximumDistance, options = {}) {
 
     for (const [neighborKey, edge] of current.neighbors) {
       if (!isEdgePassable(edge, options.boatProfile) || !isEdgeAllowed(current.key, neighborKey, edge, network, options)) continue;
-      const edgeDistance = edgeMeters(edge);
+      const edgeDistance = edgeRoutingCost(edge);
       const nextDistance = currentDistance + edgeDistance;
       if (nextDistance >= (distance.get(neighborKey) ?? Infinity) || nextDistance > maximumDistance) continue;
       distance.set(neighborKey, nextDistance);
@@ -460,7 +472,7 @@ function findClosestReachablePath(network, start, goal, maximumDistance, options
 
     for (const [neighborKey, edge] of current.neighbors) {
       if (!isEdgePassable(edge, options.boatProfile) || !isEdgeAllowed(current.key, neighborKey, edge, network, options)) continue;
-      const nextDistance = currentDistance + edgeMeters(edge);
+      const nextDistance = currentDistance + edgeRoutingCost(edge);
       if (nextDistance >= (distance.get(neighborKey) ?? Infinity) || nextDistance > maximumDistance) continue;
       distance.set(neighborKey, nextDistance);
       previous.set(neighborKey, current.key);
@@ -496,6 +508,7 @@ function createEdge(distance, feature) {
     zone: properties.navigationZone || properties.zone || null,
     closed: isClosedForRouting(feature),
     oneway: isOneway(feature),
+    routeCostMultiplier: Math.max(0.1, Number.parseFloat(properties.routeCostMultiplier) || 1),
   };
 }
 
@@ -527,6 +540,10 @@ function isEdgeAllowed(fromKey, toKey, edge, network, options = {}) {
 
 function edgeMeters(edge) {
   return typeof edge === "number" ? edge : Number(edge?.distance) || 0;
+}
+
+function edgeRoutingCost(edge) {
+  return edgeMeters(edge) * (typeof edge === "object" ? Number(edge?.routeCostMultiplier) || 1 : 1);
 }
 
 function routeSteps(route, network) {

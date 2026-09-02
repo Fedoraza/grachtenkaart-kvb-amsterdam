@@ -76,6 +76,15 @@ export function showLiveAisVessels(map, options = {}) {
       return;
     }
 
+    if (message.type === "boat-duty-update") {
+      window.dispatchEvent(new CustomEvent("boat-duty-update", { detail: message }));
+      return;
+    }
+    if (message.type === "inventory-update") {
+      window.dispatchEvent(new CustomEvent("inventory-update", { detail: message }));
+      return;
+    }
+
     processVesselMessage(message);
     emitVesselState();
   }

@@ -1,8 +1,8 @@
-import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { dirname, extname, join, normalize } from "node:path";
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { DatabaseSync } from "node:sqlite";
+import { backup, DatabaseSync } from "node:sqlite";
 import { WebSocket, WebSocketServer } from "ws";
 import { gunzipSync } from "node:zlib";
 import { createWhatsAppConnector } from "./server/whatsapp.mjs";
@@ -18,8 +18,9 @@ loadLocalEnv();
 
 const isProduction = process.env.NODE_ENV === "production";
 const port = Number(process.env.PORT || 5173);
+const host = process.env.HOST?.trim() || "0.0.0.0";
 const apiKey = process.env.AISSTREAM_API_KEY?.trim();
-const historyDays = Math.max(1, Number(process.env.AIS_HISTORY_DAYS || 30));
+const historyDays = Math.min(30, Math.max(1, Number(process.env.AIS_HISTORY_DAYS || 30)));
 const aisHistorySampleMs = Math.max(1_000, Number(process.env.AIS_HISTORY_SAMPLE_MS || 5_000));
 const aisWatchdogMs = Math.max(30_000, Number(process.env.AIS_WATCHDOG_MS || 120_000));
 const aisMovingStaleMs = Math.max(10_000, Number(process.env.AIS_MOVING_STALE_MS || 15 * 60_000));
@@ -44,6 +45,17 @@ let lastPositionMessageAt = 0;
 let upstreamReconnectCount = 0;
 let upstreamOpenCount = 0;
 const recentAisLatencies = [];
+const DAY_MS = 24 * 60 * 60 * 1000;
+const temporaryDataRetention = {
+  verificationMs: 24 * 60 * 60 * 1000,
+  planningContextMs: Math.max(1, Number(process.env.PLANNING_CONTEXT_RETENTION_DAYS || 14)) * DAY_MS,
+  whatsappInboxMs: Math.max(1, Number(process.env.WHATSAPP_INBOX_RETENTION_DAYS || 30)) * DAY_MS,
+  boatDutyMs: Math.max(30, Number(process.env.BOAT_DUTY_RETENTION_DAYS || 400)) * DAY_MS,
+  planningSourceMs: Math.max(30, Number(process.env.PLANNING_SOURCE_RETENTION_DAYS || 90)) * DAY_MS,
+};
+const backupDirectory = process.env.DATABASE_BACKUP_DIRECTORY || join(process.cwd(), "data", "backups");
+const backupRetentionDays = Math.max(2, Number(process.env.DATABASE_BACKUP_RETENTION_DAYS || 14));
+let databaseBackupRunning = false;
 
 const databasePath = process.env.DATABASE_PATH || join(process.cwd(), "data", "ais.sqlite");
 mkdirSync(dirname(databasePath), { recursive: true });
@@ -51,6 +63,9 @@ const database = new DatabaseSync(databasePath);
 database.exec(`
   PRAGMA journal_mode = WAL;
   PRAGMA synchronous = NORMAL;
+  PRAGMA busy_timeout = 5000;
+  PRAGMA wal_autocheckpoint = 1000;
+  PRAGMA journal_size_limit = 67108864;
   PRAGMA foreign_keys = ON;
   CREATE TABLE IF NOT EXISTS vessels (
     mmsi TEXT PRIMARY KEY,
@@ -94,6 +109,15 @@ database.exec(`
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
     FOREIGN KEY (boat_id) REFERENCES fleet_boats(id)
+  );
+  CREATE TABLE IF NOT EXISTS map_object_overrides (
+    layer TEXT NOT NULL,
+    object_key TEXT NOT NULL,
+    action TEXT NOT NULL CHECK (action IN ('upsert', 'delete')),
+    feature_json TEXT,
+    updated_by INTEGER,
+    updated_at INTEGER NOT NULL,
+    PRIMARY KEY (layer, object_key)
   );
   CREATE TABLE IF NOT EXISTS whatsapp_inbox (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -189,7 +213,7 @@ database.exec(`
     phone_e164 TEXT UNIQUE,
     phone_verified_at INTEGER,
     auth_method TEXT NOT NULL DEFAULT 'password',
-    role TEXT NOT NULL CHECK (role IN ('admin', 'viewer')),
+    role TEXT NOT NULL CHECK (role IN ('admin', 'harbour', 'viewer')),
     active INTEGER NOT NULL DEFAULT 1,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
@@ -216,13 +240,83 @@ database.exec(`
     created_at INTEGER NOT NULL
   );
   CREATE INDEX IF NOT EXISTS account_verifications_phone_status ON account_verifications (phone_e164, status, expires_at);
+  CREATE TABLE IF NOT EXISTS boat_day_assignments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    boat_id INTEGER NOT NULL,
+    service_date TEXT NOT NULL,
+    created_by INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    UNIQUE(user_id, service_date),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (boat_id) REFERENCES fleet_boats(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id)
+  );
+  CREATE INDEX IF NOT EXISTS boat_day_assignments_date ON boat_day_assignments(service_date);
+  CREATE TABLE IF NOT EXISTS boat_day_lists (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignment_id INTEGER NOT NULL UNIQUE,
+    items_json TEXT NOT NULL DEFAULT '[]',
+    submitted_at INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    FOREIGN KEY (assignment_id) REFERENCES boat_day_assignments(id) ON DELETE CASCADE
+  );
+  CREATE TABLE IF NOT EXISTS inventory_locations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    location_type TEXT NOT NULL CHECK (location_type IN ('harbour', 'warehouse')),
+    active INTEGER NOT NULL DEFAULT 1, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS inventory_products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE COLLATE NOCASE, sku TEXT UNIQUE COLLATE NOCASE,
+    unit TEXT NOT NULL DEFAULT 'piece', is_bundle INTEGER NOT NULL DEFAULT 0,
+    show_on_boat_menu INTEGER NOT NULL DEFAULT 1,
+    active INTEGER NOT NULL DEFAULT 1, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS inventory_categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    sort_order INTEGER NOT NULL DEFAULT 0, active INTEGER NOT NULL DEFAULT 1, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS inventory_bundle_items (
+    bundle_product_id INTEGER NOT NULL, component_product_id INTEGER NOT NULL, quantity REAL NOT NULL CHECK (quantity > 0),
+    PRIMARY KEY (bundle_product_id, component_product_id),
+    FOREIGN KEY (bundle_product_id) REFERENCES inventory_products(id) ON DELETE CASCADE,
+    FOREIGN KEY (component_product_id) REFERENCES inventory_products(id)
+  );
+  CREATE TABLE IF NOT EXISTS inventory_stock (
+    location_id INTEGER NOT NULL, product_id INTEGER NOT NULL, quantity REAL NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL, PRIMARY KEY (location_id, product_id),
+    FOREIGN KEY (location_id) REFERENCES inventory_locations(id), FOREIGN KEY (product_id) REFERENCES inventory_products(id)
+  );
+  CREATE TABLE IF NOT EXISTS inventory_movements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, location_id INTEGER NOT NULL, product_id INTEGER NOT NULL,
+    quantity_delta REAL NOT NULL, movement_type TEXT NOT NULL, assignment_id INTEGER, note TEXT,
+    created_by INTEGER NOT NULL, created_at INTEGER NOT NULL,
+    FOREIGN KEY (location_id) REFERENCES inventory_locations(id), FOREIGN KEY (product_id) REFERENCES inventory_products(id),
+    FOREIGN KEY (assignment_id) REFERENCES boat_day_assignments(id), FOREIGN KEY (created_by) REFERENCES users(id)
+  );
+  CREATE INDEX IF NOT EXISTS inventory_movements_time ON inventory_movements(created_at DESC);
+  CREATE TABLE IF NOT EXISTS boat_inventory (
+    boat_id INTEGER NOT NULL, service_date TEXT NOT NULL, product_id INTEGER NOT NULL,
+    onboard_quantity REAL NOT NULL DEFAULT 0, requested_quantity REAL NOT NULL DEFAULT 0,
+    updated_by INTEGER NOT NULL, updated_at INTEGER NOT NULL,
+    PRIMARY KEY (boat_id, service_date, product_id),
+    FOREIGN KEY (boat_id) REFERENCES fleet_boats(id), FOREIGN KEY (product_id) REFERENCES inventory_products(id), FOREIGN KEY (updated_by) REFERENCES users(id)
+  );
 `);
+ensureUserRoleConstraint();
 ensureFleetBoatColumns();
+ensureBoatDayAssignmentColumns();
+ensureBoatDayListColumns();
 ensureWhatsAppChatColumns();
 ensurePlanningImportColumns();
 ensurePlanningStaffColumns();
 ensureUserColumns();
+ensureInventoryProductColumns();
+migrateLegacyBoatListsToInventory();
 cleanupInvalidWhatsAppPlanningImports();
+ensureIncrementalAutoVacuum();
 const upsertVesselStatement = database.prepare(`
   INSERT INTO vessels (mmsi, data, updated_at) VALUES (?, ?, ?)
   ON CONFLICT(mmsi) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at
@@ -290,6 +384,14 @@ const server = createServer(async (req, res) => {
     handleAisApi(requestUrl, res);
     return;
   }
+  if (requestUrl.pathname.startsWith("/api/boat-duty")) {
+    await handleBoatDutyApi(req, requestUrl, res);
+    return;
+  }
+  if (requestUrl.pathname.startsWith("/api/inventory")) {
+    await handleInventoryApi(req, requestUrl, res);
+    return;
+  }
   if (requestUrl.pathname.startsWith("/api/fleet/")) {
     if (req.method !== "GET" && !requireAdmin(req, res)) return;
     if (requestUrl.pathname.includes("/whatsapp") && !requireAdmin(req, res)) return;
@@ -306,6 +408,11 @@ const server = createServer(async (req, res) => {
   }
   if (requestUrl.pathname === "/api/map/navigation-layer") {
     await handleNavigationLayerApi(requestUrl, res);
+    return;
+  }
+  if (requestUrl.pathname.startsWith("/api/map/objects")) {
+    if (req.method !== "GET" && !requireAdmin(req, res)) return;
+    await handleMapObjectsApi(req, requestUrl, res);
     return;
   }
   if (requestUrl.pathname.startsWith("/api/whatsapp/")) {
@@ -375,7 +482,7 @@ async function handleBridgeDataApi(res) {
       bridgeDataCache = { type: "FeatureCollection", source: "Gemeente Amsterdam Civiele Constructies", fetchedAt: Date.now(), features };
       writeFileSync(cachePath, JSON.stringify(bridgeDataCache));
     }
-    sendJson(res, 200, bridgeDataCache);
+    sendJson(res, 200, applyMapObjectOverrides("bridges", bridgeDataCache));
   } catch (error) {
     console.error("Bridge data API error", error.message);
     sendJson(res, 502, { error: "Could not load Amsterdam bridge data" });
@@ -391,7 +498,7 @@ function finiteNumber(value) {
 async function handleNavigationLayerApi(requestUrl, res) {
   const layer = requestUrl.searchParams.get("layer");
   const cached = navigationLayerCache.get(layer);
-  if (cached && cached.expiresAt > Date.now()) return sendJson(res, 200, cached.data);
+  if (cached && cached.expiresAt > Date.now()) return sendJson(res, 200, applyMapObjectOverrides(layer, cached.data));
   try {
     let data;
     let maxAge = 6 * 60 * 60 * 1000;
@@ -497,11 +604,67 @@ async function handleNavigationLayerApi(requestUrl, res) {
       return sendJson(res, 400, { error: "Unknown navigation layer" });
     }
     navigationLayerCache.set(layer, { data, expiresAt: Date.now() + maxAge });
-    sendJson(res, 200, data);
+    sendJson(res, 200, applyMapObjectOverrides(layer, data));
   } catch (error) {
     console.error(`Navigation layer ${layer} failed`, error.message);
     sendJson(res, 502, { error: `Could not load ${layer}` });
   }
+}
+
+function mapFeatureKey(feature) {
+  if (feature?.properties?._mapObjectKey) return String(feature.properties._mapObjectKey);
+  if (feature?.id !== null && feature?.id !== undefined) return `id:${feature.id}`;
+  const properties = feature?.properties || {};
+  const identity = properties.number || properties.code || properties.obj_naam || properties.name || properties.locationName;
+  if (identity) return `value:${String(identity).trim().toLowerCase()}`;
+  return `geometry:${createHash("sha256").update(JSON.stringify(feature?.geometry || null)).digest("hex").slice(0, 20)}`;
+}
+
+function applyMapObjectOverrides(layer, collection) {
+  const rows = database.prepare("SELECT object_key, action, feature_json FROM map_object_overrides WHERE layer = ?").all(layer);
+  const overrides = new Map(rows.map((row) => [row.object_key, row]));
+  const seen = new Set();
+  const features = [];
+  for (const sourceFeature of collection?.features || []) {
+    const key = mapFeatureKey(sourceFeature);
+    seen.add(key);
+    const override = overrides.get(key);
+    if (override?.action === "delete") continue;
+    const feature = override?.feature_json ? JSON.parse(override.feature_json) : sourceFeature;
+    features.push({ ...feature, properties: { ...(feature.properties || {}), _mapObjectKey: key, _mapObjectSource: override ? "admin" : "source" } });
+  }
+  for (const row of rows) {
+    if (seen.has(row.object_key) || row.action !== "upsert" || !row.feature_json) continue;
+    const feature = JSON.parse(row.feature_json);
+    features.push({ ...feature, properties: { ...(feature.properties || {}), _mapObjectKey: row.object_key, _mapObjectSource: "admin" } });
+  }
+  return { ...(collection || {}), type: "FeatureCollection", features };
+}
+
+async function handleMapObjectsApi(req, requestUrl, res) {
+  const allowedLayers = new Set(["bridges", "bridge-openings", "closures", "water-levels", "locks", "moorings", "markers", "reporting-points"]);
+  const layer = String(requestUrl.searchParams.get("layer") || "");
+  if (!allowedLayers.has(layer)) return sendJson(res, 400, { error: "Unknown map layer" });
+  if (req.method === "GET") {
+    const rows = database.prepare("SELECT layer, object_key AS objectKey, action, feature_json AS featureJson, updated_at AS updatedAt FROM map_object_overrides WHERE layer = ? ORDER BY updated_at DESC").all(layer);
+    return sendJson(res, 200, rows.map((row) => ({ ...row, feature: row.featureJson ? JSON.parse(row.featureJson) : null, featureJson: undefined })));
+  }
+  const body = await readJsonBody(req);
+  const objectKey = String(body.objectKey || body.feature?.properties?._mapObjectKey || `custom:${randomBytes(12).toString("hex")}`);
+  const now = Date.now();
+  if (req.method === "DELETE") {
+    database.prepare(`INSERT INTO map_object_overrides (layer, object_key, action, feature_json, updated_by, updated_at) VALUES (?, ?, 'delete', NULL, ?, ?)
+      ON CONFLICT(layer, object_key) DO UPDATE SET action='delete', feature_json=NULL, updated_by=excluded.updated_by, updated_at=excluded.updated_at`).run(layer, objectKey, req.authUser.id, now);
+  } else if (["POST", "PUT", "PATCH"].includes(req.method)) {
+    const feature = body.feature;
+    if (feature?.type !== "Feature" || !feature.geometry || !feature.properties) return sendJson(res, 400, { error: "A valid GeoJSON feature is required" });
+    feature.properties = { ...feature.properties, _mapObjectKey: objectKey, _mapObjectSource: "admin" };
+    database.prepare(`INSERT INTO map_object_overrides (layer, object_key, action, feature_json, updated_by, updated_at) VALUES (?, ?, 'upsert', ?, ?, ?)
+      ON CONFLICT(layer, object_key) DO UPDATE SET action='upsert', feature_json=excluded.feature_json, updated_by=excluded.updated_by, updated_at=excluded.updated_at`).run(layer, objectKey, JSON.stringify(feature), req.authUser.id, now);
+  } else return sendJson(res, 405, { error: "Method not allowed" });
+  navigationLayerCache.delete(layer);
+  if (layer === "bridges") bridgeDataCache = null;
+  sendJson(res, 200, { layer, objectKey, saved: true });
 }
 
 async function handleGeocodeApi(requestUrl, res) {
@@ -651,8 +814,8 @@ server.requestTimeout = 30_000;
 server.keepAliveTimeout = 5_000;
 server.maxHeadersCount = 100;
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`Boat Tracker: http://127.0.0.1:${port}/`);
+server.listen(port, host, () => {
+  console.log(`Boat Tracker: http://${host}:${port}/`);
   console.log(apiKey ? "AIS: configured" : "AIS: not configured (copy .env.example to .env)");
   console.log(`AIS history: ${historyDays} days in data/ais.sqlite`);
   connectUpstream();
@@ -661,12 +824,12 @@ server.listen(port, "127.0.0.1", () => {
 
 const upstreamWatchdog = setInterval(checkUpstreamHealth, 30_000);
 upstreamWatchdog.unref();
-const authCleanup = setInterval(() => {
-  const now = Date.now();
-  database.prepare("DELETE FROM auth_sessions WHERE expires_at <= ?").run(now);
-  database.prepare("DELETE FROM account_verifications WHERE expires_at <= ? OR consumed_at <= ?").run(now - 24 * 60 * 60 * 1000, now - 24 * 60 * 60 * 1000);
-}, 60 * 60 * 1000);
-authCleanup.unref();
+runDatabaseMaintenance();
+createDatabaseBackupIfDue().catch((error) => console.error("Database backup failed", error));
+const databaseMaintenanceTimer = setInterval(runDatabaseMaintenance, 60 * 60 * 1000);
+databaseMaintenanceTimer.unref();
+const databaseBackupTimer = setInterval(() => createDatabaseBackupIfDue().catch((error) => console.error("Database backup failed", error)), 6 * 60 * 60 * 1000);
+databaseBackupTimer.unref();
 
 function connectUpstream() {
   if (!apiKey) return;
@@ -841,9 +1004,96 @@ function getActiveVesselSnapshot() {
 }
 
 function pruneHistory() {
-  const cutoff = Date.now() - historyDays * 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - historyDays * DAY_MS;
   database.prepare("DELETE FROM positions WHERE received_at < ?").run(cutoff);
   database.prepare("DELETE FROM vessels WHERE updated_at < ?").run(cutoff);
+}
+
+function runDatabaseMaintenance() {
+  const now = Date.now();
+  try {
+    database.exec("BEGIN IMMEDIATE");
+    pruneHistory();
+    database.prepare("DELETE FROM auth_sessions WHERE expires_at <= ?").run(now);
+    database.prepare("DELETE FROM account_verifications WHERE expires_at <= ? OR (consumed_at IS NOT NULL AND consumed_at <= ?)")
+      .run(now, now - temporaryDataRetention.verificationMs);
+    database.prepare("DELETE FROM planning_message_contexts WHERE received_at < ?").run(now - temporaryDataRetention.planningContextMs);
+    database.prepare("DELETE FROM whatsapp_inbox WHERE created_at < ?").run(now - temporaryDataRetention.whatsappInboxMs);
+    database.prepare("DELETE FROM boat_day_assignments WHERE service_date < ?")
+      .run(new Date(now - temporaryDataRetention.boatDutyMs).toISOString().slice(0, 10));
+    expirePlanningSourceData(now - temporaryDataRetention.planningSourceMs);
+    database.exec("COMMIT");
+    for (const [mmsi, vessel] of latestVessels) {
+      if (parseAisTime(vessel.receivedAt) < now - historyDays * DAY_MS) latestVessels.delete(mmsi);
+    }
+    database.exec("PRAGMA optimize");
+    database.exec("PRAGMA wal_checkpoint(TRUNCATE)");
+    database.exec("PRAGMA incremental_vacuum(2000)");
+  } catch (error) {
+    try { database.exec("ROLLBACK"); } catch { /* No active transaction. */ }
+    console.error("Database maintenance failed", error);
+  }
+}
+
+function expirePlanningSourceData(cutoff) {
+  const paths = database.prepare(`
+    SELECT DISTINCT source_image_path AS path FROM planning_imports
+    WHERE created_at < ? AND source_image_path IS NOT NULL AND trim(source_image_path) <> ''
+  `).all(cutoff).map((row) => row.path);
+  database.prepare(`
+    UPDATE planning_imports SET source_text = NULL, source_context_text = NULL, source_ocr_tsv = NULL, source_image_path = NULL
+    WHERE created_at < ?
+  `).run(cutoff);
+  const stillReferenced = database.prepare("SELECT 1 FROM planning_imports WHERE source_image_path = ? LIMIT 1");
+  for (const path of paths) {
+    if (!stillReferenced.get(path) && existsSync(path)) {
+      try { unlinkSync(path); } catch (error) { console.warn(`Old planning image could not be deleted: ${error.message}`); }
+    }
+  }
+}
+
+async function createDatabaseBackupIfDue(force = false) {
+  if (databaseBackupRunning) return;
+  mkdirSync(backupDirectory, { recursive: true });
+  removeExpiredDatabaseBackups();
+  const backups = databaseBackupFiles();
+  const newest = backups.reduce((latest, file) => Math.max(latest, statSync(join(backupDirectory, file)).mtimeMs), 0);
+  if (!force && Date.now() - newest < DAY_MS) return;
+  databaseBackupRunning = true;
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const temporaryPath = join(backupDirectory, `.boat-tracker-${stamp}.tmp.sqlite`);
+  const finalPath = join(backupDirectory, `boat-tracker-${stamp}.sqlite`);
+  try {
+    const integrity = database.prepare("PRAGMA quick_check").all();
+    if (integrity.some((row) => row.quick_check !== "ok")) throw new Error(`SQLite integrity check failed: ${JSON.stringify(integrity)}`);
+    await backup(database, temporaryPath);
+    const backupDatabase = new DatabaseSync(temporaryPath);
+    try {
+      backupDatabase.exec("PRAGMA foreign_keys = ON; DELETE FROM positions; DELETE FROM vessels; VACUUM; PRAGMA optimize;");
+    } finally {
+      backupDatabase.close();
+    }
+    renameSync(temporaryPath, finalPath);
+    removeExpiredDatabaseBackups();
+    console.log(`Database backup created: ${finalPath} (operational data only; AIS history excluded)`);
+  } catch (error) {
+    if (existsSync(temporaryPath)) unlinkSync(temporaryPath);
+    throw error;
+  } finally {
+    databaseBackupRunning = false;
+  }
+}
+
+function databaseBackupFiles() {
+  return readdirSync(backupDirectory).filter((file) => /^boat-tracker-.*\.sqlite$/.test(file));
+}
+
+function removeExpiredDatabaseBackups() {
+  const cutoff = Date.now() - backupRetentionDays * DAY_MS;
+  for (const file of databaseBackupFiles()) {
+    const path = join(backupDirectory, file);
+    if (statSync(path).mtimeMs < cutoff) unlinkSync(path);
+  }
 }
 
 function handleAisApi(requestUrl, res) {
@@ -1300,7 +1550,7 @@ function normalizeEmail(value) {
 }
 
 function normalizeRole(value) {
-  return value === "admin" ? "admin" : "viewer";
+  return ["admin", "harbour", "viewer"].includes(value) ? value : "viewer";
 }
 
 function validatePassword(value) {
@@ -1359,6 +1609,324 @@ function normalizePhoneNumber(value) {
   return phone;
 }
 
+async function handleBoatDutyApi(req, requestUrl, res) {
+  const path = requestUrl.pathname.replace(/\/+$/, "") || "/";
+  const user = req.authUser;
+  const canReadAll = user.role === "admin" || user.role === "harbour";
+  try {
+    if (req.method === "GET" && path === "/api/boat-duty") {
+      const serviceDate = normalizeServiceDate(requestUrl.searchParams.get("date") || new Date().toISOString().slice(0, 10));
+      const rows = database.prepare(`
+        SELECT a.id, a.user_id, a.boat_id, a.service_date, a.serviced_at, a.created_at, a.updated_at,
+               u.name AS user_name, b.name AS boat_name, b.home_dock,
+               l.items_json, l.restock_json, l.submitted_at, l.updated_at AS list_updated_at
+        FROM boat_day_assignments a
+        JOIN users u ON u.id = a.user_id
+        JOIN fleet_boats b ON b.id = a.boat_id
+        LEFT JOIN boat_day_lists l ON l.id = (
+          SELECT l2.id
+          FROM boat_day_assignments a2
+          JOIN boat_day_lists l2 ON l2.assignment_id = a2.id
+          WHERE a2.boat_id = a.boat_id AND a2.service_date = a.service_date
+          ORDER BY l2.updated_at DESC, l2.id DESC
+          LIMIT 1
+        )
+        WHERE a.service_date = ? ${canReadAll ? "" : "AND a.user_id = ?"}
+        ORDER BY b.name, u.name
+      `).all(...(canReadAll ? [serviceDate] : [serviceDate, user.id])).map(formatBoatDutyAssignment);
+      const boatInventory = database.prepare(`SELECT bi.*,p.name AS product_name,p.unit,p.is_bundle FROM boat_inventory bi JOIN inventory_products p ON p.id=bi.product_id WHERE bi.service_date=? AND p.active=1 ORDER BY p.name`).all(serviceDate);
+      for (const row of rows) row.inventory = boatInventory.filter((item) => item.boat_id === row.boat_id);
+      const response = { date: serviceDate, assignments: rows };
+      response.inventoryProducts = database.prepare(`
+        SELECT p.id,p.name,p.unit,p.is_bundle,p.show_on_boat_menu,p.category_id,c.name AS category_name
+        FROM inventory_products p
+        LEFT JOIN inventory_categories c ON c.id=p.category_id AND c.active=1
+        WHERE p.active=1
+        ORDER BY p.show_on_boat_menu DESC,COALESCE(c.sort_order,9999),c.name,p.name
+      `).all();
+      if (user.role === "admin") {
+        response.users = database.prepare("SELECT id, name, role FROM users WHERE active = 1 ORDER BY name").all();
+        response.boats = database.prepare("SELECT id, name FROM fleet_boats WHERE active = 1 ORDER BY name").all();
+      }
+      sendJson(res, 200, response);
+      return;
+    }
+
+    if (req.method === "POST" && path === "/api/boat-duty/assignments") {
+      if (!requireAdmin(req, res)) return;
+      const body = await readJsonBody(req);
+      const serviceDate = normalizeServiceDate(body.serviceDate);
+      const assignedUser = database.prepare("SELECT id FROM users WHERE id = ? AND active = 1").get(Number(body.userId));
+      const boat = database.prepare("SELECT id FROM fleet_boats WHERE id = ? AND active = 1").get(Number(body.boatId));
+      if (!assignedUser) return sendJson(res, 400, { error: "Choose an active account" });
+      if (!boat) return sendJson(res, 400, { error: "Choose an active boat" });
+      const now = Date.now();
+      database.prepare(`
+        INSERT INTO boat_day_assignments (user_id, boat_id, service_date, created_by, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(user_id, service_date) DO UPDATE SET boat_id = excluded.boat_id, created_by = excluded.created_by, updated_at = excluded.updated_at
+      `).run(assignedUser.id, boat.id, serviceDate, user.id, now, now);
+      broadcast({ type: "boat-duty-update", action: "assignment", serviceDate, updatedAt: now });
+      sendJson(res, 200, { saved: true });
+      return;
+    }
+
+    const assignmentMatch = path.match(/^\/api\/boat-duty\/assignments\/(\d+)$/);
+    if (req.method === "DELETE" && assignmentMatch) {
+      if (!requireAdmin(req, res)) return;
+      const assignmentId = Number(assignmentMatch[1]);
+      const assignment = database.prepare("SELECT service_date FROM boat_day_assignments WHERE id = ?").get(assignmentId);
+      database.prepare("DELETE FROM boat_day_assignments WHERE id = ?").run(assignmentId);
+      if (assignment) broadcast({ type: "boat-duty-update", action: "deleted", assignmentId, serviceDate: assignment.service_date, updatedAt: Date.now() });
+      sendJson(res, 200, { deleted: true });
+      return;
+    }
+
+    const statusMatch = path.match(/^\/api\/boat-duty\/assignments\/(\d+)\/status$/);
+    if (req.method === "PUT" && statusMatch) {
+      if (!canReadAll) return sendJson(res, 403, { error: "Only administrators and harbour accounts can update boat status" });
+      const assignment = database.prepare("SELECT id, service_date FROM boat_day_assignments WHERE id = ?").get(Number(statusMatch[1]));
+      if (!assignment) return sendJson(res, 404, { error: "Boat assignment not found" });
+      const body = await readJsonBody(req);
+      const servicedAt = body.serviced ? Date.now() : null;
+      database.prepare("UPDATE boat_day_assignments SET serviced_at = ?, updated_at = ? WHERE id = ?").run(servicedAt, Date.now(), assignment.id);
+      broadcast({ type: "boat-duty-update", action: "status", assignmentId: assignment.id, serviceDate: assignment.service_date, updatedAt: Date.now() });
+      sendJson(res, 200, { saved: true, servicedAt });
+      return;
+    }
+
+    const listMatch = path.match(/^\/api\/boat-duty\/assignments\/(\d+)\/list$/);
+    if (req.method === "PUT" && listMatch) {
+      const assignment = database.prepare("SELECT * FROM boat_day_assignments WHERE id = ?").get(Number(listMatch[1]));
+      if (!assignment) return sendJson(res, 404, { error: "Boat assignment not found" });
+      if (assignment.user_id !== user.id && user.role !== "admin") return sendJson(res, 403, { error: "You can only send a list for your own assigned boat" });
+      const body = await readJsonBody(req);
+      const items = normalizeBoatDutyItems(body.items);
+      const restock = normalizeStavernoRestock(body.restock, assignment.boat_id, Boolean(body.submit));
+      const now = Date.now();
+      const submittedAt = body.submit ? now : null;
+      const sharedAssignments = database.prepare("SELECT id FROM boat_day_assignments WHERE boat_id = ? AND service_date = ?").all(assignment.boat_id, assignment.service_date);
+      const saveSharedList = database.prepare(`
+        INSERT INTO boat_day_lists (assignment_id, items_json, restock_json, submitted_at, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(assignment_id) DO UPDATE SET items_json = excluded.items_json,
+          restock_json = excluded.restock_json,
+          submitted_at = CASE WHEN excluded.submitted_at IS NOT NULL THEN excluded.submitted_at ELSE boat_day_lists.submitted_at END,
+          updated_at = excluded.updated_at
+      `);
+      database.exec("BEGIN IMMEDIATE");
+      try {
+        for (const sharedAssignment of sharedAssignments) saveSharedList.run(sharedAssignment.id, JSON.stringify(items), restock ? JSON.stringify(restock) : null, submittedAt, now, now);
+        database.exec("COMMIT");
+      } catch (error) {
+        database.exec("ROLLBACK");
+        throw error;
+      }
+      broadcast({ type: "boat-duty-update", action: body.submit ? "submitted" : "draft", assignmentId: assignment.id, serviceDate: assignment.service_date, updatedAt: now });
+      sendJson(res, 200, { saved: true, submittedAt, sharedWith: sharedAssignments.length });
+      return;
+    }
+
+    const inventoryMatch = path.match(/^\/api\/boat-duty\/assignments\/(\d+)\/inventory$/);
+    if (req.method === "PUT" && inventoryMatch) {
+      const assignment=database.prepare("SELECT a.*,b.home_dock FROM boat_day_assignments a JOIN fleet_boats b ON b.id=a.boat_id WHERE a.id=?").get(Number(inventoryMatch[1]));
+      if(!assignment)return sendJson(res,404,{error:"Boat assignment not found"});
+      const isCrew=Boolean(database.prepare("SELECT 1 FROM boat_day_assignments WHERE boat_id=? AND service_date=? AND user_id=?").get(assignment.boat_id,assignment.service_date,user.id));
+      if(!isCrew&&user.role!=="admin")return sendJson(res,403,{error:"Only assigned crew can update this boat inventory"});
+      const body=await readJsonBody(req);const mode=assignment.home_dock?.trim().toLowerCase()==="eh"?"requested":"onboard";const lines=Array.isArray(body.lines)?body.lines:[];const now=Date.now();
+      const upsert=database.prepare(`INSERT INTO boat_inventory(boat_id,service_date,product_id,onboard_quantity,requested_quantity,updated_by,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(boat_id,service_date,product_id) DO UPDATE SET ${mode==="requested"?"requested_quantity=excluded.requested_quantity":"onboard_quantity=excluded.onboard_quantity"},updated_by=excluded.updated_by,updated_at=excluded.updated_at`);
+      database.exec("BEGIN IMMEDIATE");try{for(const line of lines){const productId=Number(line.productId);const quantity=Math.max(0,Number(line.quantity)||0);if(!Number.isInteger(productId))continue;const current=database.prepare("SELECT onboard_quantity,requested_quantity FROM boat_inventory WHERE boat_id=? AND service_date=? AND product_id=?").get(assignment.boat_id,assignment.service_date,productId)||{};upsert.run(assignment.boat_id,assignment.service_date,productId,mode==="onboard"?quantity:Number(current.onboard_quantity||0),mode==="requested"?quantity:Number(current.requested_quantity||0),user.id,now);}const shared=database.prepare("SELECT id FROM boat_day_assignments WHERE boat_id=? AND service_date=?").all(assignment.boat_id,assignment.service_date);const markSubmitted=database.prepare(`INSERT INTO boat_day_lists(assignment_id,items_json,restock_json,submitted_at,created_at,updated_at) VALUES(?,'[]',NULL,?,?,?) ON CONFLICT(assignment_id) DO UPDATE SET submitted_at=excluded.submitted_at,updated_at=excluded.updated_at`);for(const row of shared)markSubmitted.run(row.id,now,now,now);database.exec("COMMIT");}catch(error){database.exec("ROLLBACK");throw error;}
+      broadcast({type:"boat-duty-update",action:"inventory",assignmentId:assignment.id,serviceDate:assignment.service_date,updatedAt:now});return sendJson(res,200,{saved:true,mode});
+    }
+
+    sendJson(res, 404, { error: "Boat duty endpoint not found" });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    console.error("Boat duty API error", status < 500 ? error.message : error);
+    sendJson(res, status, { error: status < 500 ? error.message : "Boat duty request failed" });
+  }
+}
+
+function formatBoatDutyAssignment(row) {
+  let items = [];
+  let restock = null;
+  try { items = JSON.parse(row.items_json || "[]"); } catch { items = []; }
+  try { restock = row.restock_json ? JSON.parse(row.restock_json) : null; } catch { restock = null; }
+  return { ...row, items, restock, items_json: undefined, restock_json: undefined };
+}
+
+function migrateLegacyBoatListsToInventory() {
+  const rows = database.prepare(`SELECT a.boat_id,a.service_date,a.user_id,l.items_json,l.updated_at FROM boat_day_lists l JOIN boat_day_assignments a ON a.id=l.assignment_id WHERE l.items_json IS NOT NULL AND l.items_json <> '[]'`).all();
+  const findProduct=database.prepare("SELECT id FROM inventory_products WHERE name=? COLLATE NOCASE"); const addProduct=database.prepare("INSERT OR IGNORE INTO inventory_products(name,unit,is_bundle,created_at,updated_at) VALUES(?,'item',0,?,?)"); const addBoatItem=database.prepare("INSERT OR IGNORE INTO boat_inventory(boat_id,service_date,product_id,onboard_quantity,requested_quantity,updated_by,updated_at) VALUES(?,?,?,0,1,?,?)");
+  for(const row of rows){let items=[];try{items=JSON.parse(row.items_json||"[]")}catch{continue}for(const value of items){const name=String(value||"").trim().slice(0,100);if(!name)continue;const now=row.updated_at||Date.now();addProduct.run(name,now,now);const product=findProduct.get(name);if(product)addBoatItem.run(row.boat_id,row.service_date,product.id,row.user_id,now);}}
+}
+
+function normalizeBoatDutyItems(value) {
+  if (!Array.isArray(value)) throw boatDutyValidationError("List items must be an array");
+  const items = value.map((item) => String(item || "").trim()).filter(Boolean);
+  if (items.length > 100) throw boatDutyValidationError("A list can contain at most 100 items");
+  if (items.some((item) => item.length > 500)) throw boatDutyValidationError("A list item can contain at most 500 characters");
+  return items;
+}
+
+function normalizeStavernoRestock(value, boatId, requireComplete) {
+  const homeDock = database.prepare("SELECT home_dock FROM fleet_boats WHERE id = ?").get(boatId)?.home_dock || "";
+  if (homeDock.trim().toLowerCase() !== "staverno") return null;
+  const input = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const fields = ["tourType", "beer", "wine", "soda", "water", "extraStock"];
+  const result = Object.fromEntries(fields.map((field) => [field, String(input[field] ?? "").trim().slice(0, 500)]));
+  for (const field of ["smallSilverBowl", "smallSilverBowlComplete", "bigSilverBowl", "bigSilverBowlComplete"]) {
+    result[field] = ["yes", "no"].includes(input[field]) ? input[field] : "";
+  }
+  result.merlot = Number.isInteger(Number(input.merlot)) && Number(input.merlot) >= 0 ? Number(input.merlot) : null;
+  if (requireComplete && (fields.some((field) => !result[field]) || !result.smallSilverBowl || !result.smallSilverBowlComplete || !result.bigSilverBowl || !result.bigSilverBowlComplete || result.merlot === null)) {
+    throw boatDutyValidationError("Complete all Staverno restock fields before submitting");
+  }
+  return result;
+}
+
+function normalizeServiceDate(value) {
+  const date = String(value || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(`${date}T00:00:00Z`))) throw boatDutyValidationError("Use a valid service date");
+  return date;
+}
+
+function boatDutyValidationError(message) {
+  const error = new Error(message);
+  error.statusCode = 400;
+  return error;
+}
+
+async function handleInventoryApi(req, requestUrl, res) {
+  const path = requestUrl.pathname.replace(/\/+$/, "") || "/";
+  const canManage = ["admin", "harbour"].includes(req.authUser.role);
+  if (!canManage) return sendJson(res, 403, { error: "Inventory is available to harbour and administrator accounts" });
+  try {
+    if (req.method === "GET" && path === "/api/inventory") {
+      const locations = database.prepare("SELECT * FROM inventory_locations WHERE active = 1 ORDER BY name").all();
+      const categories = database.prepare("SELECT * FROM inventory_categories WHERE active=1 ORDER BY sort_order,name").all();
+      const products = database.prepare("SELECT p.*,c.name AS category_name FROM inventory_products p LEFT JOIN inventory_categories c ON c.id=p.category_id WHERE p.active=1 ORDER BY COALESCE(c.sort_order,9999),c.name,p.is_bundle,p.name").all();
+      const bundleItems = database.prepare(`SELECT bi.*, p.name AS component_name, p.unit AS component_unit FROM inventory_bundle_items bi JOIN inventory_products p ON p.id = bi.component_product_id ORDER BY p.name`).all();
+      const stock = database.prepare(`SELECT s.*, l.name AS location_name, p.name AS product_name, p.unit FROM inventory_stock s JOIN inventory_locations l ON l.id=s.location_id JOIN inventory_products p ON p.id=s.product_id ORDER BY l.name,p.name`).all();
+      const assignments = database.prepare(`
+        SELECT MIN(a.id) AS id, a.service_date, a.boat_id, b.name AS boat_name,
+               GROUP_CONCAT(DISTINCT u.name) AS assigned_users,
+               COUNT(DISTINCT a.id) AS assignment_count
+        FROM boat_day_assignments a
+        JOIN fleet_boats b ON b.id=a.boat_id
+        JOIN users u ON u.id=a.user_id
+        WHERE a.service_date >= ?
+        GROUP BY a.service_date, a.boat_id, b.name
+        ORDER BY a.service_date,b.name
+      `).all(new Date(Date.now() - DAY_MS).toISOString().slice(0, 10));
+      const movements = database.prepare(`SELECT m.*, l.name AS location_name, p.name AS product_name, b.name AS boat_name, u.name AS user_name FROM inventory_movements m JOIN inventory_locations l ON l.id=m.location_id JOIN inventory_products p ON p.id=m.product_id JOIN users u ON u.id=m.created_by LEFT JOIN boat_day_assignments a ON a.id=m.assignment_id LEFT JOIN fleet_boats b ON b.id=a.boat_id ORDER BY m.created_at DESC LIMIT 100`).all();
+      return sendJson(res, 200, { locations, categories, products, bundleItems, stock, assignments, movements });
+    }
+    if (req.method === "POST" && path === "/api/inventory/locations") {
+      if (!requireAdmin(req, res)) return;
+      const body = await readJsonBody(req); const name = String(body.name || "").trim().slice(0, 80); const type = body.locationType;
+      if (!name || !["harbour", "warehouse"].includes(type)) throw boatDutyValidationError("Enter a name and choose harbour or warehouse");
+      const now = Date.now(); const result = database.prepare("INSERT INTO inventory_locations(name,location_type,created_at,updated_at) VALUES(?,?,?,?)").run(name,type,now,now);
+      broadcast({ type: "inventory-update", action: "location", updatedAt: now }); return sendJson(res, 200, { id: Number(result.lastInsertRowid) });
+    }
+    if (req.method === "POST" && path === "/api/inventory/products") {
+      if (!requireAdmin(req, res)) return;
+      const body = await readJsonBody(req); const name = String(body.name || "").trim().slice(0, 100); const sku = String(body.sku || "").trim().slice(0, 50) || null; const unit = String(body.unit || "piece").trim().slice(0, 30); const categoryId=Number.isInteger(Number(body.categoryId))?Number(body.categoryId):null; const components = Array.isArray(body.components) ? body.components : [];
+      if (!name) throw boatDutyValidationError("Product name is required");
+      const now = Date.now(); database.exec("BEGIN IMMEDIATE");
+      try {
+        const result = database.prepare("INSERT INTO inventory_products(name,sku,unit,is_bundle,category_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?)").run(name,sku,unit,components.length ? 1 : 0,categoryId,now,now);
+        const id = Number(result.lastInsertRowid); const insert = database.prepare("INSERT INTO inventory_bundle_items(bundle_product_id,component_product_id,quantity) VALUES(?,?,?)");
+        for (const row of components) { const quantity = Number(row.quantity); if (!Number.isInteger(Number(row.productId)) || !(quantity > 0)) throw boatDutyValidationError("Every bulk component needs a product and positive quantity"); insert.run(id,Number(row.productId),quantity); }
+        database.exec("COMMIT"); broadcast({ type: "inventory-update", action: "product", updatedAt: now }); return sendJson(res, 200, { id });
+      } catch (error) { database.exec("ROLLBACK"); throw error; }
+    }
+    const deleteProductMatch=path.match(/^\/api\/inventory\/products\/(\d+)$/);
+    if(req.method==="PUT"&&deleteProductMatch){
+      if(!requireAdmin(req,res))return;const productId=Number(deleteProductMatch[1]);const existing=database.prepare("SELECT * FROM inventory_products WHERE id=? AND active=1").get(productId);if(!existing)return sendJson(res,404,{error:"Product not found"});const body=await readJsonBody(req);const name=String(body.name||"").trim().slice(0,100);const sku=String(body.sku||"").trim().slice(0,50)||null;const unit=String(body.unit||"piece").trim().slice(0,30);const categoryId=Number.isInteger(Number(body.categoryId))?Number(body.categoryId):null;const components=Array.isArray(body.components)?body.components:[];if(!name)throw boatDutyValidationError("Product name is required");const now=Date.now();database.exec("BEGIN IMMEDIATE");try{database.prepare("UPDATE inventory_products SET name=?,sku=?,unit=?,is_bundle=?,category_id=?,updated_at=? WHERE id=?").run(name,sku,unit,components.length?1:0,categoryId,now,productId);database.prepare("DELETE FROM inventory_bundle_items WHERE bundle_product_id=?").run(productId);const insert=database.prepare("INSERT INTO inventory_bundle_items(bundle_product_id,component_product_id,quantity) VALUES(?,?,?)");for(const row of components){const componentId=Number(row.productId);const quantity=Number(row.quantity);if(!Number.isInteger(componentId)||componentId===productId||!(quantity>0))throw boatDutyValidationError("Every box component needs another product and a positive quantity");insert.run(productId,componentId,quantity);}database.exec("COMMIT");}catch(error){database.exec("ROLLBACK");throw error;}broadcast({type:"inventory-update",action:"product-edited",updatedAt:now});broadcast({type:"boat-duty-update",action:"inventory-menu",updatedAt:now});return sendJson(res,200,{saved:true});
+    }
+    if(req.method==="DELETE"&&deleteProductMatch){
+      if(!requireAdmin(req,res))return;const productId=Number(deleteProductMatch[1]);const product=database.prepare("SELECT id,name FROM inventory_products WHERE id=? AND active=1").get(productId);if(!product)return sendJson(res,404,{error:"Product not found"});
+      const usedBy=database.prepare("SELECT p.name FROM inventory_bundle_items bi JOIN inventory_products p ON p.id=bi.bundle_product_id WHERE bi.component_product_id=? AND p.active=1 LIMIT 1").get(productId);
+      if(usedBy)throw boatDutyValidationError(`${product.name} is still used inside ${usedBy.name}. Delete that box first or remove the product from its recipe.`);
+      const now=Date.now();database.prepare("UPDATE inventory_products SET active=0,updated_at=? WHERE id=?").run(now,productId);broadcast({type:"inventory-update",action:"product-deleted",updatedAt:now});return sendJson(res,200,{deleted:true});
+    }
+    const boatMenuMatch=path.match(/^\/api\/inventory\/products\/(\d+)\/boat-menu$/);
+    if(req.method==="PUT"&&boatMenuMatch){if(!requireAdmin(req,res))return;const body=await readJsonBody(req);const productId=Number(boatMenuMatch[1]);const now=Date.now();const result=database.prepare("UPDATE inventory_products SET show_on_boat_menu=?,updated_at=? WHERE id=? AND active=1").run(body.enabled?1:0,now,productId);if(!result.changes)return sendJson(res,404,{error:"Product not found"});broadcast({type:"inventory-update",action:"boat-menu",updatedAt:now});broadcast({type:"boat-duty-update",action:"inventory-menu",serviceDate:localIsoDate(),updatedAt:now});return sendJson(res,200,{saved:true});}
+    if(req.method==="POST"&&path==="/api/inventory/categories"){
+      if(!requireAdmin(req,res))return;
+      const body=await readJsonBody(req);
+      const name=String(body.name||"").trim().slice(0,60);
+      if(!name)throw boatDutyValidationError("Category name is required");
+      const now=Date.now();
+      const sortOrder=Number.isFinite(Number(body.sortOrder))?Number(body.sortOrder):0;
+      database.prepare(`
+        INSERT INTO inventory_categories(name,sort_order,active,created_at,updated_at)
+        VALUES(?,?,1,?,?)
+        ON CONFLICT(name) DO UPDATE SET active=1,sort_order=excluded.sort_order,updated_at=excluded.updated_at
+      `).run(name,sortOrder,now,now);
+      const category=database.prepare("SELECT id,name FROM inventory_categories WHERE name=? COLLATE NOCASE").get(name);
+      broadcast({type:"inventory-update",action:"category",updatedAt:now});
+      broadcast({type:"boat-duty-update",action:"inventory-menu",updatedAt:now});
+      return sendJson(res,200,{id:category.id,name:category.name});
+    }
+    const categoryMatch=path.match(/^\/api\/inventory\/categories\/(\d+)$/);
+    if(req.method==="DELETE"&&categoryMatch){
+      if(!requireAdmin(req,res))return;
+      const categoryId=Number(categoryMatch[1]);
+      const category=database.prepare("SELECT id,name FROM inventory_categories WHERE id=? AND active=1").get(categoryId);
+      if(!category)return sendJson(res,404,{error:"Category not found"});
+      const now=Date.now();
+      database.exec("BEGIN IMMEDIATE");
+      try{
+        database.prepare("UPDATE inventory_products SET category_id=NULL,updated_at=? WHERE category_id=?").run(now,categoryId);
+        database.prepare("DELETE FROM inventory_categories WHERE id=?").run(categoryId);
+        database.exec("COMMIT");
+      }catch(error){database.exec("ROLLBACK");throw error;}
+      broadcast({type:"inventory-update",action:"category-deleted",updatedAt:now});
+      broadcast({type:"boat-duty-update",action:"inventory-menu",updatedAt:now});
+      return sendJson(res,200,{deleted:true});
+    }
+    if (req.method === "POST" && path === "/api/inventory/adjustments") {
+      const body = await readJsonBody(req); const locationId = Number(body.locationId); const productId = Number(body.productId); const delta = Number(body.quantityDelta);
+      const product = database.prepare("SELECT id,is_bundle FROM inventory_products WHERE id=? AND active=1").get(productId);
+      if (!Number.isInteger(locationId) || !product || !Number.isFinite(delta) || delta === 0) throw boatDutyValidationError("Choose a product and enter a non-zero quantity");
+      applyInventoryMovement({ locationId, productId, delta, type: "adjustment", note: body.note, userId: req.authUser.id });
+      broadcast({ type: "inventory-update", action: "adjustment", updatedAt: Date.now() }); return sendJson(res, 200, { saved: true });
+    }
+    if (req.method === "POST" && path === "/api/inventory/conversions") {
+      const body = await readJsonBody(req); const locationId=Number(body.locationId); const bundleId=Number(body.bundleProductId); const quantity=Number(body.quantity); const direction=body.direction;
+      const bundle=database.prepare("SELECT id,name FROM inventory_products WHERE id=? AND is_bundle=1 AND active=1").get(bundleId); const components=database.prepare("SELECT component_product_id,quantity FROM inventory_bundle_items WHERE bundle_product_id=?").all(bundleId);
+      if(!Number.isInteger(locationId)||!bundle||!(quantity>0)||!["pack","unpack"].includes(direction)||!components.length) throw boatDutyValidationError("Choose a location, bulk box, direction and positive quantity");
+      database.exec("BEGIN IMMEDIATE");
+      try {
+        if(direction==="pack") { for(const row of components) applyInventoryMovement({locationId,productId:row.component_product_id,delta:-(row.quantity*quantity),type:"bundle_pack",note:`Packed into ${bundle.name}`,userId:req.authUser.id,inTransaction:true}); applyInventoryMovement({locationId,productId:bundleId,delta:quantity,type:"bundle_pack",note:`Packed ${bundle.name}`,userId:req.authUser.id,inTransaction:true}); }
+        else { applyInventoryMovement({locationId,productId:bundleId,delta:-quantity,type:"bundle_unpack",note:`Unpacked ${bundle.name}`,userId:req.authUser.id,inTransaction:true}); for(const row of components) applyInventoryMovement({locationId,productId:row.component_product_id,delta:row.quantity*quantity,type:"bundle_unpack",note:`Unpacked from ${bundle.name}`,userId:req.authUser.id,inTransaction:true}); }
+        database.exec("COMMIT");
+      } catch(error){database.exec("ROLLBACK");throw error;}
+      broadcast({type:"inventory-update",action:direction,updatedAt:Date.now()}); return sendJson(res,200,{saved:true});
+    }
+    if (req.method === "POST" && path === "/api/inventory/issues") {
+      const body = await readJsonBody(req); const locationId = Number(body.locationId); const assignmentId = Number(body.assignmentId); const lines = Array.isArray(body.lines) ? body.lines : [];
+      if (!Number.isInteger(locationId) || !Number.isInteger(assignmentId) || !lines.length) throw boatDutyValidationError("Choose a location, boat and at least one product");
+      const requirements = new Map();
+      for (const line of lines) { const productId=Number(line.productId); const quantity=Number(line.quantity); if (!Number.isInteger(productId) || !(quantity>0)) throw boatDutyValidationError("Every issue line needs a product and positive quantity"); const product=database.prepare("SELECT id FROM inventory_products WHERE id=? AND active=1").get(productId); if(!product) throw boatDutyValidationError("Product not found"); requirements.set(productId,(requirements.get(productId)||0)+quantity); }
+      database.exec("BEGIN IMMEDIATE");
+      try { const assignedBoat=database.prepare("SELECT boat_id,service_date FROM boat_day_assignments WHERE id=?").get(assignmentId); if(!assignedBoat)throw boatDutyValidationError("Boat assignment not found"); for (const [productId, quantity] of requirements) { applyInventoryMovement({ locationId, productId, delta: -quantity, type: "boat_issue", assignmentId, note: body.note, userId: req.authUser.id, inTransaction: true }); database.prepare(`INSERT INTO boat_inventory(boat_id,service_date,product_id,onboard_quantity,requested_quantity,updated_by,updated_at) VALUES(?,?,?, ?,0,?,?) ON CONFLICT(boat_id,service_date,product_id) DO UPDATE SET onboard_quantity=boat_inventory.onboard_quantity+excluded.onboard_quantity,requested_quantity=MAX(0,boat_inventory.requested_quantity-excluded.onboard_quantity),updated_by=excluded.updated_by,updated_at=excluded.updated_at`).run(assignedBoat.boat_id,assignedBoat.service_date,productId,quantity,req.authUser.id,Date.now()); } database.exec("COMMIT"); }
+      catch(error){ database.exec("ROLLBACK"); throw error; }
+      const issuedAssignment=database.prepare("SELECT service_date FROM boat_day_assignments WHERE id=?").get(assignmentId); broadcast({ type: "inventory-update", action: "boat-issue", assignmentId, updatedAt: Date.now() }); if(issuedAssignment)broadcast({type:"boat-duty-update",action:"inventory-issued",assignmentId,serviceDate:issuedAssignment.service_date,updatedAt:Date.now()}); return sendJson(res, 200, { saved: true });
+    }
+    sendJson(res, 404, { error: "Inventory endpoint not found" });
+  } catch (error) { const status=error.statusCode || (String(error.message).includes("UNIQUE")?409:500); console.error("Inventory API error", status<500?error.message:error); sendJson(res,status,{error:status<500?error.message:"Inventory request failed"}); }
+}
+
+function applyInventoryMovement({ locationId, productId, delta, type, assignmentId = null, note = "", userId, inTransaction = false }) {
+  const current = Number(database.prepare("SELECT quantity FROM inventory_stock WHERE location_id=? AND product_id=?").get(locationId,productId)?.quantity || 0); const next=current+delta;
+  if (next < 0) { const product=database.prepare("SELECT name FROM inventory_products WHERE id=?").get(productId); throw boatDutyValidationError(`Not enough stock for ${product?.name || "product"} (${current} available)`); }
+  const now=Date.now(); database.prepare(`INSERT INTO inventory_stock(location_id,product_id,quantity,updated_at) VALUES(?,?,?,?) ON CONFLICT(location_id,product_id) DO UPDATE SET quantity=excluded.quantity,updated_at=excluded.updated_at`).run(locationId,productId,next,now);
+  database.prepare("INSERT INTO inventory_movements(location_id,product_id,quantity_delta,movement_type,assignment_id,note,created_by,created_at) VALUES(?,?,?,?,?,?,?,?)").run(locationId,productId,delta,type,assignmentId,String(note||"").slice(0,300),userId,now);
+}
+
 function normalizePhoneForLogin(value) {
   try { return normalizePhoneNumber(value); } catch { return null; }
 }
@@ -1395,6 +1963,7 @@ async function handleFleetApi(req, requestUrl, res) {
     if (req.method === "POST" && path === "/api/fleet/boats") {
       const body = await readJsonBody(req);
       if (!body.name?.trim()) return sendJson(res, 400, { error: "Boat name is required" });
+      if (!body.homeDock?.trim()) return sendJson(res, 400, { error: "Docking location is required" });
       const now = Date.now();
       const result = database.prepare(`
         INSERT INTO fleet_boats
@@ -1426,6 +1995,7 @@ async function handleFleetApi(req, requestUrl, res) {
     if (boatMatch && req.method === "PUT") {
       const body = await readJsonBody(req);
       if (!body.name?.trim()) return sendJson(res, 400, { error: "Boat name is required" });
+      if (!body.homeDock?.trim()) return sendJson(res, 400, { error: "Docking location is required" });
       database.prepare(`
         UPDATE fleet_boats SET name = ?, mmsi = ?, registration = ?, capacity = ?, notes = ?, active = ?,
           license_required = ?, open_boat = ?, length_m = ?, width_m = ?, boat_type = ?, propulsion = ?, home_dock = ?, has_toilet = ?, niceness_rating = ?, updated_at = ?
@@ -2684,6 +3254,62 @@ function ensureFleetBoatColumns() {
   for (const [name, type] of Object.entries(columns)) {
     if (!existing.has(name)) database.exec(`ALTER TABLE fleet_boats ADD COLUMN ${name} ${type}`);
   }
+}
+
+function ensureBoatDayListColumns() {
+  const existing = new Set(database.prepare("PRAGMA table_info(boat_day_lists)").all().map((column) => column.name));
+  if (!existing.has("restock_json")) database.exec("ALTER TABLE boat_day_lists ADD COLUMN restock_json TEXT");
+}
+
+function ensureBoatDayAssignmentColumns() {
+  const existing = new Set(database.prepare("PRAGMA table_info(boat_day_assignments)").all().map((column) => column.name));
+  if (!existing.has("serviced_at")) database.exec("ALTER TABLE boat_day_assignments ADD COLUMN serviced_at INTEGER");
+}
+
+function ensureInventoryProductColumns() {
+  const existing=new Set(database.prepare("PRAGMA table_info(inventory_products)").all().map(column=>column.name));
+  if(!existing.has("show_on_boat_menu"))database.exec("ALTER TABLE inventory_products ADD COLUMN show_on_boat_menu INTEGER NOT NULL DEFAULT 1");
+  if(!existing.has("category_id"))database.exec("ALTER TABLE inventory_products ADD COLUMN category_id INTEGER");
+}
+
+function ensureUserRoleConstraint() {
+  const schema = database.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'").get()?.sql || "";
+  if (schema.includes("'harbour'")) return;
+  database.exec("PRAGMA foreign_keys = OFF");
+  database.exec("BEGIN IMMEDIATE");
+  try {
+    database.exec(`
+      CREATE TABLE users_role_migration (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        password_hash TEXT NOT NULL,
+        phone_e164 TEXT UNIQUE,
+        phone_verified_at INTEGER,
+        auth_method TEXT NOT NULL DEFAULT 'password',
+        role TEXT NOT NULL CHECK (role IN ('admin', 'harbour', 'viewer')),
+        active INTEGER NOT NULL DEFAULT 1,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+      INSERT INTO users_role_migration SELECT id, name, email, password_hash, phone_e164, phone_verified_at, auth_method, role, active, created_at, updated_at FROM users;
+      DROP TABLE users;
+      ALTER TABLE users_role_migration RENAME TO users;
+    `);
+    database.exec("COMMIT");
+  } catch (error) {
+    database.exec("ROLLBACK");
+    throw error;
+  } finally {
+    database.exec("PRAGMA foreign_keys = ON");
+  }
+}
+
+function ensureIncrementalAutoVacuum() {
+  const mode = Number(database.prepare("PRAGMA auto_vacuum").get()?.auto_vacuum);
+  if (mode === 2) return;
+  console.log("SQLite: enabling incremental auto-vacuum (one-time compaction)");
+  database.exec("PRAGMA auto_vacuum = INCREMENTAL; VACUUM;");
 }
 
 function ensureWhatsAppChatColumns() {

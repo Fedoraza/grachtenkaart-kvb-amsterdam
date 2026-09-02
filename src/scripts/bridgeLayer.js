@@ -30,7 +30,7 @@ export function createBridgeLayer(map, data, options = {}) {
       const center = layer.getBounds?.().getCenter()
       const markerPoint = bridgeMarkerPoint(properties, center, options)
       const routeLinkPoint = markerPoint ? { latitude: markerPoint.lat, longitude: markerPoint.lng } : null
-      layer.bindPopup(() => bridgePopup(properties, options.routeLinkPopupHtml?.(properties, routeLinkPoint) || ''), { maxWidth: 380 })
+      layer.bindPopup(() => bridgePopup(properties, `${options.routeLinkPopupHtml?.(properties, routeLinkPoint) || ''}${options.adminObjectHtml?.(feature, routeLinkPoint) || ''}`), { maxWidth: 380 })
       layer.bindTooltip(`${bridgeTitle(properties)} · ${displayHeight(properties)}${waterkaartInfo?.vhfChannel ? ` · VHF ${waterkaartInfo.vhfChannel}` : ''}`, { sticky: true })
       if (!markerPoint || !hasHeight(properties)) return
       L.marker(markerPoint, {
@@ -45,7 +45,7 @@ export function createBridgeLayer(map, data, options = {}) {
         }),
       })
         .on('dragend', (event) => options.onPositionDragEnd?.(properties, event.target.getLatLng()))
-        .bindPopup(() => bridgePopup(properties, options.routeLinkPopupHtml?.(properties, markerLatLngToPoint(markerPoint)) || ''), { maxWidth: 380 })
+        .bindPopup(() => bridgePopup(properties, `${options.routeLinkPopupHtml?.(properties, markerLatLngToPoint(markerPoint)) || ''}${options.adminObjectHtml?.(feature, markerLatLngToPoint(markerPoint)) || ''}`), { maxWidth: 380 })
         .addTo(labels)
     },
   }).addTo(group)

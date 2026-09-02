@@ -75,6 +75,23 @@ test('manual route planning reports points that are too far from water', () => {
   assert.equal(result.status, 'not-on-water')
 })
 
+test('manual route planning can connect freely placed map points to the nearest water', () => {
+  const network = buildCanalRoutingNetwork({
+    type: 'FeatureCollection',
+    features: [{ type: 'Feature', geometry: { type: 'LineString', coordinates: [[4.9000, 52.3700], [4.9020, 52.3700]] }, properties: { name: 'Test canal' } }],
+  }, { respectRestrictions: true, includeSupplementalOpenWater: false })
+  const result = planCanalRoute(
+    { latitude: 52.3750, longitude: 4.9000 },
+    { latitude: 52.3700, longitude: 4.9020 },
+    network,
+    { snapDistanceMeters: Infinity },
+  )
+
+  assert.ok(['ok', 'partial'].includes(result.status))
+  assert.ok(result.snapped[0].snapDistanceMeters > 120)
+  assert.ok(result.coordinates.length >= 2)
+})
+
 test('manual route planning returns the closest reachable water point when the destination is disconnected', () => {
   const network = buildCanalRoutingNetwork({
     type: 'FeatureCollection',

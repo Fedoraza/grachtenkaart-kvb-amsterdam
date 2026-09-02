@@ -1,8 +1,9 @@
 <template>
-  <div class="pointer-events-none absolute bottom-3 left-3 z-[1600]">
-    <button v-if="!open" type="button" class="pointer-events-auto flex items-center gap-2 rounded-2xl border border-white/20 bg-slate-950/85 p-2 pr-3 text-left text-white shadow-xl backdrop-blur-md hover:bg-slate-900" @click="openPanel">
+  <div class="mobile-nav-item mobile-nav-account pointer-events-none absolute bottom-3 left-3 z-[1600]">
+    <button v-if="!open" type="button" class="mobile-nav-button pointer-events-auto flex items-center gap-2 rounded-2xl border border-white/20 bg-slate-950/85 p-2 pr-3 text-left text-white shadow-xl backdrop-blur-md hover:bg-slate-900" @click="openPanel">
       <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/20 text-xs font-black text-sky-200">{{ initials(auth.user.name) }}</span>
-      <span><strong class="block max-w-40 truncate text-xs">{{ auth.user.name }}</strong><span class="text-[10px] capitalize text-slate-400">{{ auth.user.role }}</span></span>
+      <span class="mobile-nav-label"><strong class="block max-w-40 truncate text-xs">{{ auth.user.name }}</strong><span class="text-[10px] capitalize text-slate-400">{{ auth.user.role }}</span></span>
+      <span class="mobile-nav-short-label hidden">Account</span>
     </button>
 
     <section v-else class="pointer-events-auto fixed inset-2 flex flex-col overflow-hidden rounded-3xl border border-white/15 bg-slate-950/97 text-white shadow-2xl backdrop-blur-xl sm:inset-5">
@@ -13,6 +14,10 @@
           <h1 class="m-0 truncate text-lg font-black">{{ isAdmin ? 'User administration' : 'Your account' }}</h1>
         </div>
         <div class="hidden text-right sm:block"><strong class="block text-xs">{{ auth.user.name }}</strong><span class="text-[11px] text-slate-400">{{ accountContact(auth.user) }}</span></div>
+        <div class="flex items-center gap-1 rounded-xl border border-white/10 bg-black/20 p-1" aria-label="Language">
+          <button type="button" class="rounded-lg px-2 py-1.5 text-[11px] font-black transition" :class="language.locale === 'en' ? 'bg-sky-500 text-white' : 'text-slate-400 hover:bg-white/10'" @click="language.setLocale('en')">EN</button>
+          <button type="button" class="rounded-lg px-2 py-1.5 text-[11px] font-black transition" :class="language.locale === 'nl' ? 'bg-sky-500 text-white' : 'text-slate-400 hover:bg-white/10'" @click="language.setLocale('nl')">NL</button>
+        </div>
         <button type="button" class="rounded-xl bg-white/10 p-2 text-slate-300 hover:bg-white/20 hover:text-white" aria-label="Close" @click="open = false"><X class="h-5 w-5" /></button>
       </header>
 
@@ -30,7 +35,7 @@
               <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input v-model="search" class="admin-input pl-9" type="search" placeholder="Search by name, email or phone" />
             </label>
-            <select v-model="roleFilter" class="admin-input sm:w-40"><option value="">All roles</option><option value="admin">Administrators</option><option value="viewer">Viewers</option></select>
+            <select v-model="roleFilter" class="admin-input sm:w-40"><option value="">All roles</option><option value="admin">Administrators</option><option value="harbour">Harbour</option><option value="viewer">Viewers</option></select>
             <button type="button" class="flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold hover:bg-sky-400" @click="showCreate = !showCreate"><UserPlus class="h-4 w-4" /> Add user</button>
           </div>
 
@@ -41,7 +46,7 @@
               <label class="admin-label">Email address<input v-model="newUser.email" class="admin-input mt-1" type="email" autocomplete="off" required /></label>
               <label class="admin-label">Password<span class="relative mt-1 block"><input v-model="newUser.password" class="admin-input pr-16" :type="showCreatePassword ? 'text' : 'password'" minlength="12" autocomplete="new-password" required /><button type="button" class="password-toggle" @click="showCreatePassword = !showCreatePassword">{{ showCreatePassword ? 'Hide' : 'Show' }}</button></span></label>
               <label class="admin-label">Confirm password<input v-model="newUser.confirmPassword" class="admin-input mt-1" :type="showCreatePassword ? 'text' : 'password'" minlength="12" autocomplete="new-password" required /></label>
-              <label class="admin-label">Role<select v-model="newUser.role" class="admin-input mt-1"><option value="viewer">Viewer — read only</option><option value="admin">Administrator — full access</option></select></label>
+              <label class="admin-label">Role<select v-model="newUser.role" class="admin-input mt-1"><option value="viewer">Viewer — own boat list</option><option value="harbour">Harbour — read all boat lists</option><option value="admin">Administrator — full access</option></select></label>
             </div>
             <div class="mt-4 flex items-center justify-between gap-3"><span class="text-[11px]" :class="createPasswordsMatch ? 'text-emerald-300' : 'text-amber-300'">{{ createPasswordHint }}</span><button class="rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold hover:bg-sky-400">Create user</button></div>
           </form>
@@ -52,7 +57,7 @@
               <div class="flex items-center gap-3">
                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-black" :class="user.role === 'admin' ? 'bg-violet-400/15 text-violet-200' : 'bg-slate-400/15 text-slate-200'">{{ initials(user.name) }}</span>
                 <div class="min-w-0 flex-1"><strong class="block truncate text-sm">{{ user.name }}</strong><span class="block truncate text-[11px] text-slate-400">{{ accountContact(user) }}<template v-if="user.phone_verified_at"> · WhatsApp verified</template></span></div>
-                <span class="rounded-full px-2 py-1 text-[10px] font-bold" :class="user.role === 'admin' ? 'bg-violet-400/15 text-violet-200' : 'bg-sky-400/15 text-sky-200'">{{ user.role === 'admin' ? 'Admin' : 'Viewer' }}</span>
+                <span class="rounded-full px-2 py-1 text-[10px] font-bold" :class="user.role === 'admin' ? 'bg-violet-400/15 text-violet-200' : user.role === 'harbour' ? 'bg-amber-400/15 text-amber-200' : 'bg-sky-400/15 text-sky-200'">{{ user.role === 'admin' ? 'Admin' : user.role === 'harbour' ? 'Harbour' : 'Viewer' }}</span>
                 <span class="h-2.5 w-2.5 rounded-full" :class="user.active ? 'bg-emerald-400' : 'bg-red-400'" :title="user.active ? 'Active' : 'Disabled'"></span>
                 <button type="button" class="rounded-lg bg-white/10 p-2 hover:bg-white/20" :aria-label="`Edit ${user.name}`" @click="editingId = editingId === user.id ? null : user.id"><Pencil class="h-3.5 w-3.5" /></button>
               </div>
@@ -60,7 +65,7 @@
               <div v-if="editingId === user.id" class="mt-3 border-t border-white/10 pt-3">
                 <div class="grid gap-3 sm:grid-cols-2">
                   <label class="admin-label">Name<input v-model="user.name" class="admin-input mt-1" /></label>
-                  <label class="admin-label">Role<select v-model="user.role" class="admin-input mt-1" :disabled="user.id === auth.user.id"><option value="viewer">Viewer</option><option value="admin">Administrator</option></select></label>
+                  <label class="admin-label">Role<select v-model="user.role" class="admin-input mt-1" :disabled="user.id === auth.user.id"><option value="viewer">Viewer</option><option value="harbour">Harbour</option><option value="admin">Administrator</option></select></label>
                 </div>
                 <label class="mt-3 flex items-center gap-2 text-xs text-slate-300"><input v-model="user.active" type="checkbox" :disabled="user.id === auth.user.id" /> Account active <span v-if="user.id === auth.user.id" class="text-[10px] text-slate-500">You cannot disable yourself here</span></label>
                 <div class="mt-3 rounded-xl bg-black/15 p-3">
@@ -86,7 +91,7 @@
 
         <div v-else class="mx-auto max-w-lg rounded-3xl border border-white/10 bg-white/5 p-6 text-center">
           <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-500/15 text-lg font-black text-sky-200">{{ initials(auth.user.name) }}</span>
-          <h2 class="mb-0 mt-3 text-lg font-bold">{{ auth.user.name }}</h2><p class="m-0 text-sm text-slate-400">{{ accountContact(auth.user) }}</p><span class="mt-3 inline-block rounded-full bg-sky-400/15 px-3 py-1 text-xs font-bold text-sky-200">Viewer · read only</span>
+          <h2 class="mb-0 mt-3 text-lg font-bold">{{ auth.user.name }}</h2><p class="m-0 text-sm text-slate-400">{{ accountContact(auth.user) }}</p><span class="mt-3 inline-block rounded-full bg-sky-400/15 px-3 py-1 text-xs font-bold text-sky-200">{{ auth.user.role === 'harbour' ? 'Harbour · alle bootlijsten lezen' : 'Viewer · eigen bootlijst' }}</span>
         </div>
       </div>
 
@@ -103,6 +108,7 @@ import { computed, inject, reactive, ref } from 'vue'
 import { LogOut, Pencil, Search, UserPlus, X } from '@lucide/vue'
 
 const auth = inject('auth')
+const language = inject('language')
 const open = ref(false)
 const users = ref([])
 const search = ref('')
@@ -118,7 +124,7 @@ const stats = computed(() => [
   { label: 'Total users', value: users.value.length },
   { label: 'Active', value: users.value.filter((user) => user.active).length },
   { label: 'Administrators', value: users.value.filter((user) => user.role === 'admin').length },
-  { label: 'Viewers', value: users.value.filter((user) => user.role === 'viewer').length },
+  { label: 'Harbour', value: users.value.filter((user) => user.role === 'harbour').length },
 ])
 const filteredUsers = computed(() => {
   const query = search.value.trim().toLowerCase()

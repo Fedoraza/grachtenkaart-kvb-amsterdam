@@ -19,7 +19,7 @@ export function createNavigationLayer(id, data, canals = null, options = {}) {
     style: { pane: 'navigation-pane', color: colors[id], weight: 3, opacity: 0.95, fillColor: colors[id], fillOpacity: 0.35 },
     onEachFeature(feature, layer) {
       const properties = feature.properties || {}
-      layer.bindPopup(popupFor(id, properties), { maxWidth: 300 })
+      layer.bindPopup(`${popupFor(id, properties)}${options.adminObjectHtml?.(feature) || ''}`, { maxWidth: 360 })
       layer.bindTooltip(featureTitle(id, properties), { sticky: true, direction: 'top' })
     },
   })
@@ -59,13 +59,15 @@ function createReportingPointLayer(data, canals, options = {}) {
       obligation: p.obligation,
       bearing: p.bearing,
       routeNames: Array.isArray(p.routeNames) ? p.routeNames : [],
+      _mapObjectKey: p._mapObjectKey,
+      _mapObjectSource: p._mapObjectSource,
     })
   }
   for (const location of locations.values()) {
     location.calls.sort((a, b) => Number(a.number) - Number(b.number))
     const names = [...location.names]
     L.marker([location.latitude, location.longitude], {
-      pane: 'navigation-pane',
+      pane: 'markerPane',
       icon: reportingPointIcon(location.calls.length),
       zIndexOffset: 650,
       draggable: Boolean(options.draggablePositions),
@@ -92,11 +94,12 @@ function reportingPointIcon(callCount) {
 }
 
 function reportingPointPopup(location, options = {}) {
+  const locationName = location.names.join(' / ')
   const names = location.names.map(escapeHtml).join('<br>')
   const calls = location.calls.map((call) => `
     <li>
       <span class="reporting-popup__number">${escapeHtml(call.number)}</span>
-      <span class="reporting-popup__text">${escapeHtml(call.call)}${options.routeLinkPopupHtml ? options.routeLinkPopupHtml(call, { latitude: location.latitude, longitude: location.longitude }) : ''}</span>
+      <span class="reporting-popup__text">${escapeHtml(call.call)}${options.routeLinkPopupHtml ? options.routeLinkPopupHtml(call, { latitude: location.latitude, longitude: location.longitude }) : ''}${options.adminObjectHtml ? options.adminObjectHtml({ type: 'Feature', geometry: { type: 'Point', coordinates: [location.longitude, location.latitude] }, properties: call }) : ''}</span>
     </li>
   `).join('')
   const instruction = location.calls.find((call) => call.instruction)?.instruction || 'Noem eerst de scheepsnaam en daarna de vaarrichting.'
@@ -105,6 +108,7 @@ function reportingPointPopup(location, options = {}) {
     <div class="reporting-popup__content">
       <div class="reporting-popup__eyebrow">Marifoonmeldpunt</div>
       <strong class="reporting-popup__title">${names}</strong>
+      ${options.adminLocationHtml ? options.adminLocationHtml({ type: 'Feature', geometry: { type: 'Point', coordinates: [location.longitude, location.latitude] }, properties: { name: locationName, locationName, calls: location.calls } }) : ''}
       <div class="reporting-popup__section">
         <span>Wat zeg je?</span>
         <b>${escapeHtml(instruction)}</b>
