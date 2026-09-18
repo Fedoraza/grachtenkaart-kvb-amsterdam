@@ -1,7 +1,8 @@
 import L from 'leaflet'
 
 export async function loadNavigationLayer(id) {
-  const response = await fetch(`/api/map/navigation-layer?layer=${encodeURIComponent(id)}`)
+  const query = new URLSearchParams({ layer: id, refresh: String(Date.now()) })
+  const response = await fetch(`/api/map/navigation-layer?${query}`, { cache: 'no-store' })
   const data = await response.json()
   if (!response.ok) throw new Error(data.error || `Could not load ${id}`)
   return data
@@ -14,9 +15,13 @@ export function createNavigationLayer(id, data, canals = null, options = {}) {
     pane: 'navigation-pane',
     pointToLayer(feature, latlng) {
       const radius = id === 'markers' ? 5 : id === 'moorings' ? 6 : id === 'reporting-points' ? 11 : 9
-      return L.circleMarker(latlng, { pane: 'navigation-pane', radius, color: '#fff', weight: 2, fillColor: colors[id], fillOpacity: 0.95 })
+      const fillColor = id === 'closures' ? closureColor(feature.properties) : colors[id]
+      return L.circleMarker(latlng, { pane: 'navigation-pane', radius, color: '#fff', weight: 2, fillColor, fillOpacity: 0.95 })
     },
-    style: { pane: 'navigation-pane', color: colors[id], weight: 3, opacity: 0.95, fillColor: colors[id], fillOpacity: 0.35 },
+    style(feature) {
+      const color = id === 'closures' ? closureColor(feature.properties) : colors[id]
+      return { pane: 'navigation-pane', color, weight: id === 'closures' ? 6 : 3, opacity: 0.95, fillColor: color, fillOpacity: 0.35, dashArray: id === 'closures' && feature.properties?.state === 'upcoming' ? '8 7' : null }
+    },
     onEachFeature(feature, layer) {
       const properties = feature.properties || {}
       layer.bindPopup(`${popupFor(id, properties)}${options.adminObjectHtml?.(feature) || ''}`, { maxWidth: 360 })
@@ -58,6 +63,7 @@ function createReportingPointLayer(data, canals, options = {}) {
       instruction: p.instruction,
       obligation: p.obligation,
       bearing: p.bearing,
+      movementRules: p.movementRules,
       routeNames: Array.isArray(p.routeNames) ? p.routeNames : [],
       _mapObjectKey: p._mapObjectKey,
       _mapObjectSource: p._mapObjectSource,
@@ -66,6 +72,7 @@ function createReportingPointLayer(data, canals, options = {}) {
   for (const location of locations.values()) {
     location.calls.sort((a, b) => Number(a.number) - Number(b.number))
     const names = [...location.names]
+    let movementPreview = null
     L.marker([location.latitude, location.longitude], {
       pane: 'markerPane',
       icon: reportingPointIcon(location.calls.length),
@@ -78,6 +85,12 @@ function createReportingPointLayer(data, canals, options = {}) {
       })
       .bindTooltip(`${names.join(' / ')} · ${location.calls.length} melding${location.calls.length === 1 ? '' : 'en'}`, { sticky: true, direction: 'top' })
       .bindPopup(() => reportingPointPopup({ ...location, names }, options), { maxWidth: 420, className: 'reporting-popup' })
+      .on('popupopen', () => {
+        movementPreview?.remove()
+        movementPreview = reportingMovementPreview(location)
+        movementPreview?.addTo(group)
+      })
+      .on('popupclose', () => { movementPreview?.remove(); movementPreview = null })
       .addTo(group)
   }
   return group
@@ -86,11 +99,41 @@ function createReportingPointLayer(data, canals, options = {}) {
 function reportingPointIcon(callCount) {
   return L.divIcon({
     className: 'reporting-point-icon',
-    html: `<span class="reporting-point-icon__main">VHF</span><span class="reporting-point-icon__count">${escapeHtml(callCount)}</span>`,
+    html: `<span class="reporting-point-icon__main"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 27V6m0 0-5 5m5-5 5 5M16 18l-8-7m0 0v6m0-6h6m2 7 8-7m0 0v6m0-6h-6"/></svg><b>VHF</b></span><span class="reporting-point-icon__count">${escapeHtml(callCount)}</span>`,
     iconSize: [42, 42],
     iconAnchor: [21, 21],
     popupAnchor: [0, -20],
   })
+}
+
+function reportingMovementPreview(location) {
+  const layers = [], seen = new Set()
+  for (const call of location.calls) for (const rule of call.movementRules || []) {
+    if (rule.kind !== 'map-passage' || !rule.from || !rule.to) continue
+    const key = [rule.from.latitude, rule.from.longitude, rule.to.latitude, rule.to.longitude].join(':')
+    if (seen.has(key)) continue
+    seen.add(key)
+    const color = ({ left: '#8b5cf6', right: '#f97316', uturn: '#ef4444', straight: '#0ea5e9' })[rule.maneuver] || '#0ea5e9'
+    const line = L.polyline([
+      [rule.from.latitude, rule.from.longitude],
+      [location.latitude, location.longitude],
+      [rule.to.latitude, rule.to.longitude],
+    ], { pane: 'navigation-pane', color, weight: 5, opacity: 0.9, interactive: false })
+    layers.push(line)
+    if (L.polylineDecorator) layers.push(L.polylineDecorator(line, { patterns: [{ offset: '88%', symbol: L.Symbol.arrowHead({ pixelSize: 11, polygon: true, pathOptions: { color, fillColor: color, fillOpacity: 1, interactive: false } }) }] }))
+  }
+  return layers.length ? L.layerGroup(layers) : null
+}
+
+function reportingMovementSummary(call) {
+  if (!Array.isArray(call.movementRules)) return escapeHtml(call.call)
+  if (!call.movementRules.length) return 'Nog geen vaarbeweging ingesteld'
+  return call.movementRules.map(rule => {
+    const from = rule.from?.lineName || rule.incomingLine || 'Aankomstkant'
+    const to = rule.to?.lineName || rule.outgoingLine || 'Vervolgrichting'
+    const maneuver = ({ left: 'Linksaf', right: 'Rechtsaf', straight: 'Rechtdoor / kruisen', uturn: 'Keren' })[rule.maneuver]
+    return `<span class="reporting-popup__movement"><em>${escapeHtml(maneuver || 'Vaarbeweging')}</em><strong>${escapeHtml(from)} → ${escapeHtml(to)}</strong><span><b>Meld:</b> ${escapeHtml(rule.call)}</span></span>`
+  }).join('')
 }
 
 function reportingPointPopup(location, options = {}) {
@@ -99,9 +142,10 @@ function reportingPointPopup(location, options = {}) {
   const calls = location.calls.map((call) => `
     <li>
       <span class="reporting-popup__number">${escapeHtml(call.number)}</span>
-      <span class="reporting-popup__text">${escapeHtml(call.call)}${options.routeLinkPopupHtml ? options.routeLinkPopupHtml(call, { latitude: location.latitude, longitude: location.longitude }) : ''}${options.adminObjectHtml ? options.adminObjectHtml({ type: 'Feature', geometry: { type: 'Point', coordinates: [location.longitude, location.latitude] }, properties: call }) : ''}</span>
+      <span class="reporting-popup__text">${reportingMovementSummary(call)}${options.routeLinkPopupHtml ? options.routeLinkPopupHtml(call, { latitude: location.latitude, longitude: location.longitude }) : ''}${options.adminObjectHtml ? options.adminObjectHtml({ type: 'Feature', geometry: { type: 'Point', coordinates: [location.longitude, location.latitude] }, properties: call }) : ''}</span>
     </li>
   `).join('')
+  const hasDirectionalRules = location.calls.some(call => Array.isArray(call.movementRules) && call.movementRules.length)
   const instruction = location.calls.find((call) => call.instruction)?.instruction || 'Noem eerst de scheepsnaam en daarna de vaarrichting.'
   const obligation = location.calls.find((call) => call.obligation)?.obligation || 'Melden geeft geen voorrang.'
   return `
@@ -109,10 +153,7 @@ function reportingPointPopup(location, options = {}) {
       <div class="reporting-popup__eyebrow">Marifoonmeldpunt</div>
       <strong class="reporting-popup__title">${names}</strong>
       ${options.adminLocationHtml ? options.adminLocationHtml({ type: 'Feature', geometry: { type: 'Point', coordinates: [location.longitude, location.latitude] }, properties: { name: locationName, locationName, calls: location.calls } }) : ''}
-      <div class="reporting-popup__section">
-        <span>Wat zeg je?</span>
-        <b>${escapeHtml(instruction)}</b>
-      </div>
+      ${hasDirectionalRules ? '<div class="reporting-popup__direction-note">Kies hieronder de richting waarin je vaart. Iedere vaarbeweging heeft een eigen melding.</div>' : `<div class="reporting-popup__section"><span>Algemene melding (nog niet per richting ingesteld)</span><b>${escapeHtml(instruction)}</b></div>`}
       <ol class="reporting-popup__calls">${calls}</ol>
       <div class="reporting-popup__note">${escapeHtml(obligation)}</div>
       ${location.source ? `<div class="reporting-popup__source">${escapeHtml(location.source)}</div>` : ''}
@@ -188,9 +229,7 @@ function popupFor(id, properties) {
   if (id === 'bridge-openings') return popupRows(properties.name || 'Brugopening', [
     ['Locatiecode', properties.code], ['Start', formatDate(properties.start)], ['Einde', formatDate(properties.end)],
   ])
-  if (id === 'closures') return popupRows(properties.name || 'Scheepvaartbeperking', [
-    ['Type', properties.type], ['Netwerk', properties.network], ['Omschrijving', properties.description], ['Bron', properties.source],
-  ])
+  if (id === 'closures') return closurePopup(properties)
   if (id === 'moorings') return popupRows(properties.name || 'Openbare aanlegplaats', [
     ['Nummer', properties.number], ['Type', properties.type], ['Laden en lossen', properties.loading],
     ['Elektrisch laadpunt', properties.charging], ['Beheerder', properties.operator],
@@ -205,6 +244,36 @@ function popupFor(id, properties) {
     ['Type', properties.type || properties.category || properties.obj_type],
     ['Kenmerk', properties.code || properties.id || properties.objectid],
   ])
+}
+
+function closureColor(properties = {}) {
+  if (properties.blocksRouting) return '#dc2626'
+  return ({ service: '#f97316', dimensions: '#ea580c', delay: '#f59e0b', warning: '#eab308', mooring: '#8b5cf6', traffic: '#d97706', information: '#0ea5e9' })[properties.category] || '#f43f5e'
+}
+
+function closurePopup(properties) {
+  const isUpcoming = properties.state === 'upcoming'
+  const end = properties.end && Date.parse(properties.end) < Date.parse('2100-01-01') ? formatDate(properties.end) : 'Tot nader bericht'
+  const value = limitationValue(properties)
+  const sourceUrl = /^https:\/\/vaarweginformatie\.nl\//.test(properties.sourceUrl || '') ? properties.sourceUrl : null
+  return `<div class="closure-popup">
+    <div class="closure-popup__top"><span class="closure-popup__badge" style="background:${closureColor(properties)}">${isUpcoming ? 'GEPLAND' : 'ACTUEEL'}</span><span>${escapeHtml(properties.type || 'Scheepvaartbericht')}</span></div>
+    <strong class="closure-popup__title">${escapeHtml(properties.name || 'Scheepvaartbeperking')}</strong>
+    ${properties.waterway ? `<div class="closure-popup__waterway">${escapeHtml(properties.waterway)}</div>` : ''}
+    <div class="closure-popup__period"><b>${isUpcoming ? 'Vanaf' : 'Geldig'}</b><span>${escapeHtml(formatDate(properties.start) || 'Nu')} – ${escapeHtml(end)}</span></div>
+    ${value ? `<div class="closure-popup__impact"><b>Beperking</b><span>${escapeHtml(value)}</span></div>` : ''}
+    ${properties.reason ? `<div class="closure-popup__impact"><b>Reden</b><span>${escapeHtml(properties.reason)}</span></div>` : ''}
+    ${properties.description ? `<p>${escapeHtml(properties.description)}</p>` : ''}
+    <div class="closure-popup__route">${properties.blocksRouting ? 'Routeplanner vermijdt deze locatie.' : 'Informatie en waarschuwing; route blijft beschikbaar.'}</div>
+    ${sourceUrl ? `<a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener">Open officieel bericht bij Vaarweginformatie ↗</a>` : ''}
+  </div>`
+}
+
+function limitationValue(properties) {
+  if (properties.value === null || properties.value === undefined) return properties.direction ? `Richting ${properties.direction}` : ''
+  const units = { H: 'uur', M: 'm', CM: 'cm', MIN: 'min' }
+  const indication = properties.indication === 'MAX' ? 'maximaal ' : properties.indication === 'MIN' ? 'minimaal ' : ''
+  return `${indication}${properties.value} ${units[properties.unit] || properties.unit || ''}${properties.direction ? ` · richting ${properties.direction}` : ''}`.trim()
 }
 
 function popupRows(title, rows) {

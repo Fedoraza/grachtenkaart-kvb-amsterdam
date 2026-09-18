@@ -1,0 +1,3614 @@
+{
+  "BRU2520": {
+    "routeNames": [
+      "Plantage Muidergracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36402348640629,
+      "sourceLongitude": 4.914076935266067,
+      "latitude": 52.36402828122116,
+      "longitude": 4.914081396410506,
+      "lineName": "Plantage Muidergracht"
+    }
+  },
+  "BRU2521": {
+    "routeNames": [
+      "Nieuwe Achtergracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.363681033494984,
+      "sourceLongitude": 4.9138224736371425,
+      "latitude": 52.36367735150361,
+      "longitude": 4.913824371713239,
+      "lineName": "Nieuwe Achtergracht"
+    }
+  },
+  "BRU2522": {
+    "routeNames": [
+      "Nieuwe Achtergracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36328270244064,
+      "sourceLongitude": 4.9118262559500305,
+      "latitude": 52.3632871232181,
+      "longitude": 4.911823996204392,
+      "lineName": "Nieuwe Achtergracht"
+    }
+  },
+  "BRU2189": {
+    "routeNames": [
+      "Duivendrechtsevaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.336203491630535,
+      "sourceLongitude": 4.914170055357241,
+      "latitude": 52.3362054519093,
+      "longitude": 4.914177735154461,
+      "lineName": "Duivendrechtsevaart"
+    }
+  },
+  "BRU0001": {
+    "routeNames": [
+      "Singel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3670929958771,
+      "sourceLongitude": 4.893536387943331,
+      "latitude": 52.367078626359074,
+      "longitude": 4.893565365396975,
+      "lineName": "Singel"
+    }
+  },
+  "BRU0002": {
+    "routeNames": [
+      "Heiligewegsluis"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36740111547258,
+      "sourceLongitude": 4.889615020924499,
+      "latitude": 52.36733393955127,
+      "longitude": 4.889651726370309,
+      "lineName": "Heiligewegsluis"
+    }
+  },
+  "BRU0004": {
+    "routeNames": [
+      "Singel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.368760434001935,
+      "sourceLongitude": 4.887819863916357,
+      "latitude": 52.36876222326389,
+      "longitude": 4.887847093187381,
+      "lineName": "Singel"
+    }
+  },
+  "BRU0005": {
+    "routeNames": [
+      "Singel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37019064693041,
+      "sourceLongitude": 4.888099244575917,
+      "latitude": 52.370190431281856,
+      "longitude": 4.888102292043719,
+      "lineName": "Singel"
+    }
+  },
+  "BRU0006": {
+    "routeNames": [
+      "Singel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.372193071694724,
+      "sourceLongitude": 4.8884701473013425,
+      "latitude": 52.372191955091054,
+      "longitude": 4.888488275195768,
+      "lineName": "Singel"
+    }
+  },
+  "BRU0007": {
+    "routeNames": [
+      "Hugo de Grootgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37259421917342,
+      "sourceLongitude": 4.871389082810781,
+      "latitude": 52.37259417105162,
+      "longitude": 4.87138910966715,
+      "lineName": "Hugo de Grootgracht"
+    }
+  },
+  "BRU0008": {
+    "routeNames": [
+      "Singel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37325927677955,
+      "sourceLongitude": 4.888851957687455,
+      "latitude": 52.37325962467344,
+      "longitude": 4.888848332091107,
+      "lineName": "Singel"
+    }
+  },
+  "BRU0009": {
+    "routeNames": [
+      "Singel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37461936958036,
+      "sourceLongitude": 4.8894313832382394,
+      "latitude": 52.37461017214313,
+      "longitude": 4.889458268648388,
+      "lineName": "Singel"
+    }
+  },
+  "BRU0010": {
+    "routeNames": [
+      "Singel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.376256263874026,
+      "sourceLongitude": 4.891283190033379,
+      "latitude": 52.376275291134945,
+      "longitude": 4.891236157866133,
+      "lineName": "Singel"
+    }
+  },
+  "BRU0011": {
+    "routeNames": [
+      "Blauwburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.376427960791695,
+      "sourceLongitude": 4.89105715469973,
+      "latitude": 52.376429921259735,
+      "longitude": 4.891059191331238,
+      "lineName": "Blauwburgwal"
+    }
+  },
+  "BRU0012": {
+    "routeNames": [
+      "Singel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37703834009311,
+      "sourceLongitude": 4.8920839623708545,
+      "latitude": 52.377042222817046,
+      "longitude": 4.892074438201607,
+      "lineName": "Singel"
+    }
+  },
+  "BRU0014": {
+    "routeNames": [
+      "Singel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37908141611098,
+      "sourceLongitude": 4.894418793709121,
+      "latitude": 52.37908036260557,
+      "longitude": 4.894420621697581,
+      "lineName": "Singel"
+    }
+  },
+  "BRU0015": {
+    "routeNames": [
+      "Brouwersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37887645480069,
+      "sourceLongitude": 4.893734383315621,
+      "latitude": 52.37887675659943,
+      "longitude": 4.893734723865042,
+      "lineName": "Brouwersgracht"
+    }
+  },
+  "BRU0016": {
+    "routeNames": [
+      "Brouwersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.379208203391045,
+      "sourceLongitude": 4.892281673174951,
+      "latitude": 52.3792090115647,
+      "longitude": 4.8922821470976405,
+      "lineName": "Brouwersgracht"
+    }
+  },
+  "BRU0017": {
+    "routeNames": [
+      "Brouwersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.379269544965034,
+      "sourceLongitude": 4.891713573643662,
+      "latitude": 52.379267450572634,
+      "longitude": 4.891712329489642,
+      "lineName": "Brouwersgracht"
+    }
+  },
+  "BRU0018": {
+    "routeNames": [
+      "Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37682815266983,
+      "sourceLongitude": 4.889817017405059,
+      "latitude": 52.37682783712859,
+      "longitude": 4.889817961933511,
+      "lineName": "Herengracht"
+    }
+  },
+  "BRU0019": {
+    "routeNames": [
+      "Blauwburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3768155163912,
+      "sourceLongitude": 4.890101766326408,
+      "latitude": 52.37681735750935,
+      "longitude": 4.890103696097612,
+      "lineName": "Blauwburgwal"
+    }
+  },
+  "BRU0020": {
+    "routeNames": [
+      "Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37486128237137,
+      "sourceLongitude": 4.887983176291425,
+      "latitude": 52.37485021229587,
+      "longitude": 4.8880157511081075,
+      "lineName": "Herengracht"
+    }
+  },
+  "BRU0021": {
+    "routeNames": [
+      "Leliegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.374807027553636,
+      "sourceLongitude": 4.887648230894344,
+      "latitude": 52.374806958568534,
+      "longitude": 4.8876481679003,
+      "lineName": "Leliegracht"
+    }
+  },
+  "BRU0022": {
+    "routeNames": [
+      "Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37340106489427,
+      "sourceLongitude": 4.887194544760749,
+      "latitude": 52.373401113275094,
+      "longitude": 4.8871933795691955,
+      "lineName": "Herengracht"
+    }
+  },
+  "BRU0023": {
+    "routeNames": [
+      "Bilderdijkgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36685246968008,
+      "sourceLongitude": 4.870814123054295,
+      "latitude": 52.366852055582186,
+      "longitude": 4.870812519110139,
+      "lineName": "Bilderdijkgracht"
+    }
+  },
+  "BRU0024": {
+    "routeNames": [
+      "Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37226627109321,
+      "sourceLongitude": 4.887086863919083,
+      "latitude": 52.37226617436728,
+      "longitude": 4.8870897655920364,
+      "lineName": "Herengracht"
+    }
+  },
+  "BRU0025": {
+    "routeNames": [
+      "Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.370270546114945,
+      "sourceLongitude": 4.886890304762774,
+      "latitude": 52.37026994528736,
+      "longitude": 4.88690382098468,
+      "lineName": "Herengracht"
+    }
+  },
+  "BRU0026": {
+    "routeNames": [
+      "Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36878312139058,
+      "sourceLongitude": 4.886759127632526,
+      "latitude": 52.368783046760996,
+      "longitude": 4.88676264126894,
+      "lineName": "Herengracht"
+    }
+  },
+  "BRU0028": {
+    "routeNames": [
+      "Leidsegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.367512446489755,
+      "sourceLongitude": 4.886568991335403,
+      "latitude": 52.36751036305659,
+      "longitude": 4.886571588905477,
+      "lineName": "Leidsegracht"
+    }
+  },
+  "BRU0029": {
+    "routeNames": [
+      "Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36676547584028,
+      "sourceLongitude": 4.8882748284112125,
+      "latitude": 52.36676699444131,
+      "longitude": 4.888277158222382,
+      "lineName": "Herengracht"
+    }
+  },
+  "BRU0030": {
+    "routeNames": [
+      "Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.365177646539436,
+      "sourceLongitude": 4.892813556162387,
+      "latitude": 52.36517201123814,
+      "longitude": 4.892811482581824,
+      "lineName": "Herengracht"
+    }
+  },
+  "BRU0031": {
+    "routeNames": [
+      "Reguliersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.364621142729945,
+      "sourceLongitude": 4.895878733681657,
+      "latitude": 52.36462144969491,
+      "longitude": 4.895888480366962,
+      "lineName": "Reguliersgracht"
+    }
+  },
+  "BRU0032": {
+    "routeNames": [
+      "Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3647913594413,
+      "sourceLongitude": 4.896056046508344,
+      "latitude": 52.36479515437561,
+      "longitude": 4.896053946925233,
+      "lineName": "Herengracht"
+    }
+  },
+  "BRU0034": {
+    "routeNames": [
+      "Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36512086756236,
+      "sourceLongitude": 4.897787049173228,
+      "latitude": 52.36512958128581,
+      "longitude": 4.897782639529768,
+      "lineName": "Herengracht"
+    }
+  },
+  "BRU0035": {
+    "routeNames": [
+      "Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36564249114095,
+      "sourceLongitude": 4.900508040922277,
+      "latitude": 52.365643383383464,
+      "longitude": 4.900507589768097,
+      "lineName": "Herengracht"
+    }
+  },
+  "BRU0036": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36435310417468,
+      "sourceLongitude": 4.901172984520423,
+      "latitude": 52.364343866778185,
+      "longitude": 4.9011776695240945,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0037": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.363801764539595,
+      "sourceLongitude": 4.898303282678056,
+      "latitude": 52.36379930572157,
+      "longitude": 4.898304548432087,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0038": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36340116715469,
+      "sourceLongitude": 4.896145658456295,
+      "latitude": 52.36338913104085,
+      "longitude": 4.896147457183268,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0039": {
+    "routeNames": [
+      "Reguliersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36356923754309,
+      "sourceLongitude": 4.895953088235288,
+      "latitude": 52.36356931920576,
+      "longitude": 4.89595562736264,
+      "lineName": "Reguliersgracht"
+    }
+  },
+  "BRU0040": {
+    "routeNames": [
+      "Reguliersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36320078020839,
+      "sourceLongitude": 4.895978636398652,
+      "latitude": 52.36320080237855,
+      "longitude": 4.895979510334102,
+      "lineName": "Reguliersgracht"
+    }
+  },
+  "BRU0041": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.363858823411846,
+      "sourceLongitude": 4.8923542646084766,
+      "latitude": 52.363845314281456,
+      "longitude": 4.8923491597132465,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0042": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36426501293384,
+      "sourceLongitude": 4.889435856097825,
+      "latitude": 52.36426341403858,
+      "longitude": 4.889434346845634,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0043": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.365964253802424,
+      "sourceLongitude": 4.886446007169662,
+      "latitude": 52.365962574288346,
+      "longitude": 4.8864434514929584,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0044": {
+    "routeNames": [
+      "Leidsegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36679797228945,
+      "sourceLongitude": 4.884575372111181,
+      "latitude": 52.36679530007157,
+      "longitude": 4.884577796893372,
+      "lineName": "Leidsegracht"
+    }
+  },
+  "BRU0045": {
+    "routeNames": [
+      "Leidsegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36699383146728,
+      "sourceLongitude": 4.885114250222651,
+      "latitude": 52.36699205010311,
+      "longitude": 4.885115927207054,
+      "lineName": "Leidsegracht"
+    }
+  },
+  "BRU0046": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.367000618778434,
+      "sourceLongitude": 4.884741497654987,
+      "latitude": 52.36700036291751,
+      "longitude": 4.884740790474972,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0047": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.368855786701886,
+      "sourceLongitude": 4.88453447997942,
+      "latitude": 52.368854842645845,
+      "longitude": 4.88456183634827,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0048": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37035529835513,
+      "sourceLongitude": 4.884690234526124,
+      "latitude": 52.37035499204163,
+      "longitude": 4.88469938780332,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0049": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.372351666605496,
+      "sourceLongitude": 4.884876312282472,
+      "latitude": 52.372351658226066,
+      "longitude": 4.88487656683877,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0050": {
+    "routeNames": [
+      "Nieuwe Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36917392544355,
+      "sourceLongitude": 4.909841980437914,
+      "latitude": 52.369172880084875,
+      "longitude": 4.909843861314983,
+      "lineName": "Nieuwe Herengracht"
+    }
+  },
+  "BRU0051": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37546722626206,
+      "sourceLongitude": 4.886045263238495,
+      "latitude": 52.37547789054459,
+      "longitude": 4.886014455505687,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0052": {
+    "routeNames": [
+      "Leliegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37546879362061,
+      "sourceLongitude": 4.885714588775356,
+      "latitude": 52.37546631773233,
+      "longitude": 4.885712262156153,
+      "lineName": "Leliegracht"
+    }
+  },
+  "BRU0053": {
+    "routeNames": [
+      "Leliegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37530059863387,
+      "sourceLongitude": 4.886208794660799,
+      "latitude": 52.37529808159905,
+      "longitude": 4.886206672459654,
+      "lineName": "Leliegracht"
+    }
+  },
+  "BRU0054": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37750707225773,
+      "sourceLongitude": 4.887911903993559,
+      "latitude": 52.37751029163027,
+      "longitude": 4.8879026028432975,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0055": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37955645446506,
+      "sourceLongitude": 4.889802164118061,
+      "latitude": 52.37955606188581,
+      "longitude": 4.889803297502225,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0056": {
+    "routeNames": [
+      "Brouwersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37961290874523,
+      "sourceLongitude": 4.8901803950545615,
+      "latitude": 52.3796115652634,
+      "longitude": 4.890179289032986,
+      "lineName": "Brouwersgracht"
+    }
+  },
+  "BRU0057": {
+    "routeNames": [
+      "Brouwersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38040301231363,
+      "sourceLongitude": 4.888639392779556,
+      "latitude": 52.38040379681971,
+      "longitude": 4.888640538687307,
+      "lineName": "Brouwersgracht"
+    }
+  },
+  "BRU0058": {
+    "routeNames": [
+      "Singel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37949035345464,
+      "sourceLongitude": 4.895101518350714,
+      "latitude": 52.3795228675041,
+      "longitude": 4.895039898475321,
+      "lineName": "Singel"
+    }
+  },
+  "BRU0062": {
+    "routeNames": [
+      "Leliegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37587999054773,
+      "sourceLongitude": 4.884511552327989,
+      "latitude": 52.375879341277326,
+      "longitude": 4.884510943747767,
+      "lineName": "Leliegracht"
+    }
+  },
+  "BRU0071": {
+    "routeNames": [
+      "Prinsengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36163278986146,
+      "sourceLongitude": 4.896277861818088,
+      "latitude": 52.3616230645431,
+      "longitude": 4.896279529806914,
+      "lineName": "Prinsengracht"
+    }
+  },
+  "BRU0072": {
+    "routeNames": [
+      "Reguliersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3614461595392,
+      "sourceLongitude": 4.896102886900255,
+      "latitude": 52.36144607375177,
+      "longitude": 4.896099812151634,
+      "lineName": "Reguliersgracht"
+    }
+  },
+  "BRU0073": {
+    "routeNames": [
+      "Reguliersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3617751312499,
+      "sourceLongitude": 4.896060890879555,
+      "latitude": 52.36177549112531,
+      "longitude": 4.896077823539036,
+      "lineName": "Reguliersgracht"
+    }
+  },
+  "BRU0074": {
+    "routeNames": [
+      "Reguliersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36242026198548,
+      "sourceLongitude": 4.896034032006703,
+      "latitude": 52.362420413429106,
+      "longitude": 4.896040125771393,
+      "lineName": "Reguliersgracht"
+    }
+  },
+  "BRU0075": {
+    "routeNames": [
+      "Prinsengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.362114109964025,
+      "sourceLongitude": 4.898965202309048,
+      "latitude": 52.362108887955,
+      "longitude": 4.898967794513923,
+      "lineName": "Prinsengracht"
+    }
+  },
+  "BRU0076": {
+    "routeNames": [
+      "Prinsengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.362670601620835,
+      "sourceLongitude": 4.902034445167679,
+      "latitude": 52.36267747282918,
+      "longitude": 4.90203114602393,
+      "lineName": "Prinsengracht"
+    }
+  },
+  "BRU0077": {
+    "routeNames": [
+      "Achtergracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36151122639191,
+      "sourceLongitude": 4.902632092273368,
+      "latitude": 52.36150844279324,
+      "longitude": 4.902633468192505,
+      "lineName": "Achtergracht"
+    }
+  },
+  "BRU0078": {
+    "routeNames": [
+      "way/1323632231"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3667306775322,
+      "sourceLongitude": 4.926951320108994,
+      "latitude": 52.366731164800086,
+      "longitude": 4.92695331904089,
+      "lineName": "way/1323632231"
+    }
+  },
+  "BRU0079": {
+    "routeNames": [
+      "Boerenwetering"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.35760712324774,
+      "sourceLongitude": 4.886629708184891,
+      "latitude": 52.357606767309306,
+      "longitude": 4.886638416366148,
+      "lineName": "Boerenwetering"
+    }
+  },
+  "BRU0080": {
+    "routeNames": [
+      "Entrepotdoksluis"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36796442596922,
+      "sourceLongitude": 4.91926117061168,
+      "latitude": 52.367963269198924,
+      "longitude": 4.91926445269716,
+      "lineName": "Entrepotdoksluis"
+    }
+  },
+  "BRU0081": {
+    "routeNames": [
+      "Reguliersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.359838319656674,
+      "sourceLongitude": 4.896201243819252,
+      "latitude": 52.3598395961625,
+      "longitude": 4.896193560488821,
+      "lineName": "Reguliersgracht"
+    }
+  },
+  "BRU0082": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36078041698479,
+      "sourceLongitude": 4.886300113817027,
+      "latitude": 52.36078212726793,
+      "longitude": 4.886302327546168,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0084": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.358384190274776,
+      "sourceLongitude": 4.890855346762757,
+      "latitude": 52.35836525462657,
+      "longitude": 4.890850055584941,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0086": {
+    "routeNames": [
+      "Lijnbaansgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.360013345145276,
+      "sourceLongitude": 4.8909186780996325,
+      "latitude": 52.359999845885945,
+      "longitude": 4.8909165636124134,
+      "lineName": "Lijnbaansgracht"
+    }
+  },
+  "BRU0087": {
+    "routeNames": [
+      "Spiegelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36262109103634,
+      "sourceLongitude": 4.887742125833945,
+      "latitude": 52.3626183210449,
+      "longitude": 4.8877494536046395,
+      "lineName": "Spiegelgracht"
+    }
+  },
+  "BRU0088": {
+    "routeNames": [
+      "Spiegelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36175656160712,
+      "sourceLongitude": 4.886959678635792,
+      "latitude": 52.361755969881216,
+      "longitude": 4.886961322643932,
+      "lineName": "Spiegelgracht"
+    }
+  },
+  "BRU0089": {
+    "routeNames": [
+      "Lijnbaansgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36083315457786,
+      "sourceLongitude": 4.888447164088614,
+      "latitude": 52.36083277742851,
+      "longitude": 4.8884467244048535,
+      "lineName": "Lijnbaansgracht"
+    }
+  },
+  "BRU0090": {
+    "routeNames": [
+      "Schutsluis"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36047431478545,
+      "sourceLongitude": 4.8881419713972205,
+      "latitude": 52.360474727411464,
+      "longitude": 4.888141123690137,
+      "lineName": "Schutsluis"
+    }
+  },
+  "BRU0093": {
+    "routeNames": [
+      "Leidsegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.366081220280755,
+      "sourceLongitude": 4.882542723089709,
+      "latitude": 52.366084347836015,
+      "longitude": 4.882539667867155,
+      "lineName": "Leidsegracht"
+    }
+  },
+  "BRU0094": {
+    "routeNames": [
+      "Leidsegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36549026918612,
+      "sourceLongitude": 4.880905588384868,
+      "latitude": 52.36548926134382,
+      "longitude": 4.880906540199968,
+      "lineName": "Leidsegracht"
+    }
+  },
+  "BRU0095": {
+    "routeNames": [
+      "Korte Prinsengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.382342979649735,
+      "sourceLongitude": 4.889820838314744,
+      "latitude": 52.38222993812665,
+      "longitude": 4.890125742215023,
+      "lineName": "Korte Prinsengracht"
+    }
+  },
+  "BRU0096": {
+    "routeNames": [
+      "Passeerdersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36742156652238,
+      "sourceLongitude": 4.882222846337782,
+      "latitude": 52.36741550539459,
+      "longitude": 4.882227591994902,
+      "lineName": "Passeerdersgracht"
+    }
+  },
+  "BRU0097": {
+    "routeNames": [
+      "Lijnbaansgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36153659836812,
+      "sourceLongitude": 4.886983604098973,
+      "latitude": 52.36153467150467,
+      "longitude": 4.886981119214317,
+      "lineName": "Lijnbaansgracht"
+    }
+  },
+  "BRU0098": {
+    "routeNames": [
+      "Passeerdersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36670227212387,
+      "sourceLongitude": 4.8800185442530015,
+      "latitude": 52.366699485142504,
+      "longitude": 4.8800206540177955,
+      "lineName": "Passeerdersgracht"
+    }
+  },
+  "BRU0099": {
+    "routeNames": [
+      "Lijnbaansgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36716155191644,
+      "sourceLongitude": 4.879483905029874,
+      "latitude": 52.367161392978026,
+      "longitude": 4.879483301920399,
+      "lineName": "Lijnbaansgracht"
+    }
+  },
+  "BRU0100": {
+    "routeNames": [
+      "Looiersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36779506934214,
+      "sourceLongitude": 4.879222303936271,
+      "latitude": 52.367791957258454,
+      "longitude": 4.879224587352712,
+      "lineName": "Looiersgracht"
+    }
+  },
+  "BRU0101": {
+    "routeNames": [
+      "Amstel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.356162505080405,
+      "sourceLongitude": 4.906051044298421,
+      "latitude": 52.35615911540336,
+      "longitude": 4.906035196029636,
+      "lineName": "Amstel"
+    }
+  },
+  "BRU0102": {
+    "routeNames": [
+      "Looiersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3685005549638,
+      "sourceLongitude": 4.881391020183942,
+      "latitude": 52.36849858740567,
+      "longitude": 4.881392744266449,
+      "lineName": "Looiersgracht"
+    }
+  },
+  "BRU0103": {
+    "routeNames": [
+      "Looiersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36876346772214,
+      "sourceLongitude": 4.88233752433865,
+      "latitude": 52.36876329034105,
+      "longitude": 4.882337508368088,
+      "lineName": "Looiersgracht"
+    }
+  },
+  "BRU0105": {
+    "routeNames": [
+      "Oudezijds Voorburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37014260219705,
+      "sourceLongitude": 4.894541466427015,
+      "latitude": 52.3701063,
+      "longitude": 4.8945296,
+      "lineName": "Oudezijds Voorburgwal"
+    }
+  },
+  "BRU0106": {
+    "routeNames": [
+      "Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37400090985881,
+      "sourceLongitude": 4.885031341170848,
+      "latitude": 52.373999400737375,
+      "longitude": 4.885101439860213,
+      "lineName": "Keizersgracht"
+    }
+  },
+  "BRU0107": {
+    "routeNames": [
+      "Lijnbaansgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36884695002435,
+      "sourceLongitude": 4.878288539378555,
+      "latitude": 52.368847541103385,
+      "longitude": 4.878290942237474,
+      "lineName": "Lijnbaansgracht"
+    }
+  },
+  "BRU0108": {
+    "routeNames": [
+      "Da Costagracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.371355998338316,
+      "sourceLongitude": 4.872169429850395,
+      "latitude": 52.37135481585597,
+      "longitude": 4.872174417710503,
+      "lineName": "Da Costagracht"
+    }
+  },
+  "BRU0111": {
+    "routeNames": [
+      "Lauriergracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37109672100093,
+      "sourceLongitude": 4.879608202670315,
+      "latitude": 52.37109360809839,
+      "longitude": 4.8796103810438485,
+      "lineName": "Lauriergracht"
+    }
+  },
+  "BRU0112": {
+    "routeNames": [
+      "Lauriergracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.371850917901625,
+      "sourceLongitude": 4.882606739556778,
+      "latitude": 52.37185098620289,
+      "longitude": 4.882606740929944,
+      "lineName": "Lauriergracht"
+    }
+  },
+  "BRU0114": {
+    "routeNames": [
+      "Oesjesduiker"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36919430688215,
+      "sourceLongitude": 4.920597959573579,
+      "latitude": 52.36918874385672,
+      "longitude": 4.920613508187822,
+      "lineName": "Oesjesduiker"
+    }
+  },
+  "BRU0116": {
+    "routeNames": [
+      "Boerenwetering"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.35223592536727,
+      "sourceLongitude": 4.886477794190778,
+      "latitude": 52.35223615990547,
+      "longitude": 4.886504141094831,
+      "lineName": "Boerenwetering"
+    }
+  },
+  "BRU0117": {
+    "routeNames": [
+      "Lijnbaansgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37231693636144,
+      "sourceLongitude": 4.87631010941075,
+      "latitude": 52.372317565917086,
+      "longitude": 4.876304916167861,
+      "lineName": "Lijnbaansgracht"
+    }
+  },
+  "BRU0118": {
+    "routeNames": [
+      "Lijnbaansgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37395788305871,
+      "sourceLongitude": 4.876922737191105,
+      "latitude": 52.37395791088738,
+      "longitude": 4.876924351519659,
+      "lineName": "Lijnbaansgracht"
+    }
+  },
+  "BRU0119": {
+    "routeNames": [
+      "Bloemgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.373854812771256,
+      "sourceLongitude": 4.877043090370133,
+      "latitude": 52.37386057080705,
+      "longitude": 4.877040383422619,
+      "lineName": "Bloemgracht"
+    }
+  },
+  "BRU0120": {
+    "routeNames": [
+      "Bloemgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3743607020821,
+      "sourceLongitude": 4.879262059036831,
+      "latitude": 52.37435928901512,
+      "longitude": 4.879262886285256,
+      "lineName": "Bloemgracht"
+    }
+  },
+  "BRU0121": {
+    "routeNames": [
+      "Bloemgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37479350974755,
+      "sourceLongitude": 4.88116418797353,
+      "latitude": 52.37479230867326,
+      "longitude": 4.881164933152505,
+      "lineName": "Bloemgracht"
+    }
+  },
+  "BRU0122": {
+    "routeNames": [
+      "Leidsegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36625661470489,
+      "sourceLongitude": 4.883013975835317,
+      "latitude": 52.36625602172573,
+      "longitude": 4.883014524998672,
+      "lineName": "Leidsegracht"
+    }
+  },
+  "BRU0123": {
+    "routeNames": [
+      "Bloemgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37522161005754,
+      "sourceLongitude": 4.883290713111824,
+      "latitude": 52.3752216302362,
+      "longitude": 4.883290717466754,
+      "lineName": "Bloemgracht"
+    }
+  },
+  "BRU0124": {
+    "routeNames": [
+      "Egelantiersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.376587561994526,
+      "sourceLongitude": 4.8845312616378695,
+      "latitude": 52.37658696922017,
+      "longitude": 4.884530716870872,
+      "lineName": "Egelantiersgracht"
+    }
+  },
+  "BRU0125": {
+    "routeNames": [
+      "Egelantiersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.376199687389075,
+      "sourceLongitude": 4.882427947051676,
+      "latitude": 52.376198528569354,
+      "longitude": 4.8824286240135315,
+      "lineName": "Egelantiersgracht"
+    }
+  },
+  "BRU0126": {
+    "routeNames": [
+      "Egelantiersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37579514321574,
+      "sourceLongitude": 4.880556718138715,
+      "latitude": 52.375794532732804,
+      "longitude": 4.880557079080265,
+      "lineName": "Egelantiersgracht"
+    }
+  },
+  "BRU0127": {
+    "routeNames": [
+      "Egelantiersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37519685219121,
+      "sourceLongitude": 4.877756223064706,
+      "latitude": 52.375203744497256,
+      "longitude": 4.877757659535383,
+      "lineName": "Egelantiersgracht"
+    }
+  },
+  "BRU0128": {
+    "routeNames": [
+      "Lijnbaansgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3776989940537,
+      "sourceLongitude": 4.879200310338757,
+      "latitude": 52.377699523394185,
+      "longitude": 4.879198130406093,
+      "lineName": "Lijnbaansgracht"
+    }
+  },
+  "BRU0130": {
+    "routeNames": [
+      "Lijnbaansgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.376263472331374,
+      "sourceLongitude": 4.878264899227904,
+      "latitude": 52.37626218937472,
+      "longitude": 4.878270333270656,
+      "lineName": "Lijnbaansgracht"
+    }
+  },
+  "BRU0131": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36177738158285,
+      "sourceLongitude": 4.915079508398117,
+      "latitude": 52.3617614715274,
+      "longitude": 4.915090835175157,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0132": {
+    "routeNames": [
+      "Kostverlorenvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38100906625051,
+      "sourceLongitude": 4.87376024578735,
+      "latitude": 52.38100912252528,
+      "longitude": 4.873759991370495,
+      "lineName": "Kostverlorenvaart"
+    }
+  },
+  "BRU0135": {
+    "routeNames": [
+      "Bilderdijkgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.370478940597934,
+      "sourceLongitude": 4.8682815408439275,
+      "latitude": 52.37048001094543,
+      "longitude": 4.86828586815126,
+      "lineName": "Bilderdijkgracht"
+    }
+  },
+  "BRU0137": {
+    "routeNames": [
+      "Boerenwetering"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.35461849300745,
+      "sourceLongitude": 4.886756152783828,
+      "latitude": 52.3546185330899,
+      "longitude": 4.886758483807799,
+      "lineName": "Boerenwetering"
+    }
+  },
+  "BRU0138": {
+    "routeNames": [
+      "Da Costagracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36929717993982,
+      "sourceLongitude": 4.8723762664413295,
+      "latitude": 52.369298315643995,
+      "longitude": 4.8723808136382125,
+      "lineName": "Da Costagracht"
+    }
+  },
+  "BRU0139": {
+    "routeNames": [
+      "Kostverlorenvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.383176394260474,
+      "sourceLongitude": 4.877057639268871,
+      "latitude": 52.38319141042217,
+      "longitude": 4.877031762541023,
+      "lineName": "Kostverlorenvaart"
+    }
+  },
+  "BRU0140": {
+    "routeNames": [
+      "Jacob van Lennepkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36307075642202,
+      "sourceLongitude": 4.863776939038235,
+      "latitude": 52.36306166364456,
+      "longitude": 4.863782764908744,
+      "lineName": "Jacob van Lennepkanaal"
+    }
+  },
+  "BRU0142": {
+    "routeNames": [
+      "Lijnbaansgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38079529152424,
+      "sourceLongitude": 4.88113842704008,
+      "latitude": 52.38079401364485,
+      "longitude": 4.881143818208882,
+      "lineName": "Lijnbaansgracht"
+    }
+  },
+  "BRU0143": {
+    "routeNames": [
+      "Boerenwetering"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3534510055205,
+      "sourceLongitude": 4.886753858035207,
+      "latitude": 52.35345110402481,
+      "longitude": 4.88674063089973,
+      "lineName": "Boerenwetering"
+    }
+  },
+  "BRU0145": {
+    "routeNames": [
+      "Jacob van Lennepkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36218150259798,
+      "sourceLongitude": 4.860117637622194,
+      "latitude": 52.362182048222124,
+      "longitude": 4.860117309066256,
+      "lineName": "Jacob van Lennepkanaal"
+    }
+  },
+  "BRU0146": {
+    "routeNames": [
+      "Brouwersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38169030163888,
+      "sourceLongitude": 4.886326057234106,
+      "latitude": 52.38169463311674,
+      "longitude": 4.886332570898029,
+      "lineName": "Brouwersgracht"
+    }
+  },
+  "BRU0147": {
+    "routeNames": [
+      "Westertoegang"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38116589516876,
+      "sourceLongitude": 4.896813386661291,
+      "latitude": 52.38113862826873,
+      "longitude": 4.896887248003239,
+      "lineName": "Westertoegang"
+    }
+  },
+  "BRU0148": {
+    "routeNames": [
+      "Brouwersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38252225406679,
+      "sourceLongitude": 4.884845893880668,
+      "latitude": 52.38252542468144,
+      "longitude": 4.884850645939569,
+      "lineName": "Brouwersgracht"
+    }
+  },
+  "BRU0149": {
+    "routeNames": [
+      "Brouwersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.383892131250875,
+      "sourceLongitude": 4.8826040473778995,
+      "latitude": 52.383892674409516,
+      "longitude": 4.88260462293504,
+      "lineName": "Brouwersgracht"
+    }
+  },
+  "BRU0150": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38145810169931,
+      "sourceLongitude": 4.8797694047006335,
+      "latitude": 52.381453549470535,
+      "longitude": 4.87975246249492,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0151": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38490903726478,
+      "sourceLongitude": 4.882140940858289,
+      "latitude": 52.38490665933444,
+      "longitude": 4.882150832908971,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0152": {
+    "routeNames": [
+      "Haarlemmervaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.385670249115556,
+      "sourceLongitude": 4.881515488832714,
+      "latitude": 52.38567355389075,
+      "longitude": 4.881516749270421,
+      "lineName": "Haarlemmervaart"
+    }
+  },
+  "BRU0155": {
+    "routeNames": [
+      "Kattensloot"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.381837782633916,
+      "sourceLongitude": 4.879077243229611,
+      "latitude": 52.381835305212945,
+      "longitude": 4.87907895322182,
+      "lineName": "Kattensloot"
+    }
+  },
+  "BRU0156": {
+    "routeNames": [
+      "Doorvaart P-Q"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.370384395792044,
+      "sourceLongitude": 4.876903066680856,
+      "latitude": 52.37038608852303,
+      "longitude": 4.876901888703538,
+      "lineName": "Doorvaart P-Q"
+    }
+  },
+  "BRU0160": {
+    "routeNames": [
+      "way/1308584514"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37374772305441,
+      "sourceLongitude": 4.876236796511781,
+      "latitude": 52.37374727803363,
+      "longitude": 4.876236716771507,
+      "lineName": "way/1308584514"
+    }
+  },
+  "BRU0161": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.378504750623776,
+      "sourceLongitude": 4.878159791061071,
+      "latitude": 52.37849999687294,
+      "longitude": 4.878179814797761,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0164": {
+    "routeNames": [
+      "Bilderdijkgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.368604305966215,
+      "sourceLongitude": 4.869586395743601,
+      "latitude": 52.368607008233575,
+      "longitude": 4.86959693820592,
+      "lineName": "Bilderdijkgracht"
+    }
+  },
+  "BRU0165": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.374078773171505,
+      "sourceLongitude": 4.875501278149056,
+      "latitude": 52.37407863042242,
+      "longitude": 4.8755030788785225,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0166": {
+    "routeNames": [
+      "Hugo de Grootgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.373318014627536,
+      "sourceLongitude": 4.874942807015036,
+      "latitude": 52.37331439154052,
+      "longitude": 4.8749446042532565,
+      "lineName": "Hugo de Grootgracht"
+    }
+  },
+  "BRU0167": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37188992476851,
+      "sourceLongitude": 4.874516119113285,
+      "latitude": 52.37189032634213,
+      "longitude": 4.874518622973155,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0169": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.368515879847024,
+      "sourceLongitude": 4.8767867807534895,
+      "latitude": 52.36851508881815,
+      "longitude": 4.876783638715849,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0170": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36624936748832,
+      "sourceLongitude": 4.87824490531343,
+      "latitude": 52.36624699251708,
+      "longitude": 4.878240852754694,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0171": {
+    "routeNames": [
+      "Kostverlorenvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37902160537563,
+      "sourceLongitude": 4.872941341685126,
+      "latitude": 52.37901851041986,
+      "longitude": 4.872950831394792,
+      "lineName": "Kostverlorenvaart"
+    }
+  },
+  "BRU0173": {
+    "routeNames": [
+      "Kostverlorenvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37013697757337,
+      "sourceLongitude": 4.865021492725052,
+      "latitude": 52.37013474077962,
+      "longitude": 4.86502815136678,
+      "lineName": "Kostverlorenvaart"
+    }
+  },
+  "BRU0174": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36325444877314,
+      "sourceLongitude": 4.881249323608091,
+      "latitude": 52.36325745087599,
+      "longitude": 4.881254386360809,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0175": {
+    "routeNames": [
+      "Leidsegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36524579789051,
+      "sourceLongitude": 4.880198425363119,
+      "latitude": 52.365242292819445,
+      "longitude": 4.88020154995209,
+      "lineName": "Leidsegracht"
+    }
+  },
+  "BRU0176": {
+    "routeNames": [
+      "Boerenwetering"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36001439194951,
+      "sourceLongitude": 4.887081689204991,
+      "latitude": 52.360013359563666,
+      "longitude": 4.887083842874814,
+      "lineName": "Boerenwetering"
+    }
+  },
+  "BRU0178": {
+    "routeNames": [
+      "Jacob van Lennepkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36666159037624,
+      "sourceLongitude": 4.877128893295401,
+      "latitude": 52.36664982434106,
+      "longitude": 4.877138258829185,
+      "lineName": "Jacob van Lennepkanaal"
+    }
+  },
+  "BRU0179": {
+    "routeNames": [
+      "Jacob van Lennepkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3637756126763,
+      "sourceLongitude": 4.866705933096771,
+      "latitude": 52.36377498028896,
+      "longitude": 4.8667063350656194,
+      "lineName": "Jacob van Lennepkanaal"
+    }
+  },
+  "BRU0180": {
+    "routeNames": [
+      "Da Costagracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36656053021423,
+      "sourceLongitude": 4.874276125427847,
+      "latitude": 52.36656020478779,
+      "longitude": 4.874274916081962,
+      "lineName": "Da Costagracht"
+    }
+  },
+  "BRU0181": {
+    "routeNames": [
+      "Jacob van Lennepkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36555048598659,
+      "sourceLongitude": 4.873344726840298,
+      "latitude": 52.36554547484493,
+      "longitude": 4.873348698902248,
+      "lineName": "Jacob van Lennepkanaal"
+    }
+  },
+  "BRU0183": {
+    "routeNames": [
+      "Da Costagracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36763740096613,
+      "sourceLongitude": 4.873526382665408,
+      "latitude": 52.36763683407958,
+      "longitude": 4.8735241746104325,
+      "lineName": "Da Costagracht"
+    }
+  },
+  "BRU0184": {
+    "routeNames": [
+      "Bilderdijkgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36579228852361,
+      "sourceLongitude": 4.87153061781062,
+      "latitude": 52.36579583955794,
+      "longitude": 4.8715443584659655,
+      "lineName": "Bilderdijkgracht"
+    }
+  },
+  "BRU0187": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36126843474834,
+      "sourceLongitude": 4.911905477807128,
+      "latitude": 52.36127768907581,
+      "longitude": 4.911903686022537,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0193": {
+    "routeNames": [
+      "Haarlemmertrekvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.385631087384354,
+      "sourceLongitude": 4.874840034525199,
+      "latitude": 52.38563118004961,
+      "longitude": 4.874840030919374,
+      "lineName": "Haarlemmertrekvaart"
+    }
+  },
+  "BRU0199": {
+    "routeNames": [
+      "Kostverlorenvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.35785023771845,
+      "sourceLongitude": 4.854850386705522,
+      "latitude": 52.357847145693746,
+      "longitude": 4.854860727766373,
+      "lineName": "Kostverlorenvaart"
+    }
+  },
+  "BRU0203": {
+    "routeNames": [
+      "Oudezijds Voorburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37074819570486,
+      "sourceLongitude": 4.8947460059282495,
+      "latitude": 52.3707147,
+      "longitude": 4.89473,
+      "lineName": "Oudezijds Voorburgwal"
+    }
+  },
+  "BRU0204": {
+    "routeNames": [
+      "Oudezijds Voorburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37183620799667,
+      "sourceLongitude": 4.895851203745211,
+      "latitude": 52.3719185,
+      "longitude": 4.8959406,
+      "lineName": "Oudezijds Voorburgwal"
+    }
+  },
+  "BRU0205": {
+    "routeNames": [
+      "Oudezijds Voorburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37268798033945,
+      "sourceLongitude": 4.896863741815422,
+      "latitude": 52.3727111,
+      "longitude": 4.8968921,
+      "lineName": "Oudezijds Voorburgwal"
+    }
+  },
+  "BRU0206": {
+    "routeNames": [
+      "Oudezijds Voorburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37392188872806,
+      "sourceLongitude": 4.898460096487012,
+      "latitude": 52.3739514,
+      "longitude": 4.8984944,
+      "lineName": "Oudezijds Voorburgwal"
+    }
+  },
+  "BRU0207": {
+    "routeNames": [
+      "Oudezijds Voorburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37474643682181,
+      "sourceLongitude": 4.899398004684512,
+      "latitude": 52.3747026,
+      "longitude": 4.8993598,
+      "lineName": "Oudezijds Voorburgwal"
+    }
+  },
+  "BRU0220": {
+    "routeNames": [
+      "Rokin"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36756561598759,
+      "sourceLongitude": 4.893807421483629,
+      "latitude": 52.3675656808886,
+      "longitude": 4.893807567234618,
+      "lineName": "Rokin"
+    }
+  },
+  "BRU0221": {
+    "routeNames": [
+      "Amstel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36740448656029,
+      "sourceLongitude": 4.895866894094489,
+      "latitude": 52.36744013448104,
+      "longitude": 4.895868987147477,
+      "lineName": "Amstel"
+    }
+  },
+  "BRU0222": {
+    "routeNames": [
+      "Kloveniersburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3683742120909,
+      "sourceLongitude": 4.896278082416455,
+      "latitude": 52.368374323121095,
+      "longitude": 4.896277734236118,
+      "lineName": "Kloveniersburgwal"
+    }
+  },
+  "BRU0223": {
+    "routeNames": [
+      "Kloveniersburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36986739719761,
+      "sourceLongitude": 4.897732223862432,
+      "latitude": 52.36988206777032,
+      "longitude": 4.897690221758711,
+      "lineName": "Kloveniersburgwal"
+    }
+  },
+  "BRU0224": {
+    "routeNames": [
+      "Kloveniersburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37099292206614,
+      "sourceLongitude": 4.898752353173237,
+      "latitude": 52.37099213454989,
+      "longitude": 4.898754648738601,
+      "lineName": "Kloveniersburgwal"
+    }
+  },
+  "BRU0226": {
+    "routeNames": [
+      "Groenburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36966065260492,
+      "sourceLongitude": 4.898999227467188,
+      "latitude": 52.36966215139273,
+      "longitude": 4.898994902528708,
+      "lineName": "Groenburgwal"
+    }
+  },
+  "BRU0227": {
+    "routeNames": [
+      "Groenburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.368238763323404,
+      "sourceLongitude": 4.897678123849702,
+      "latitude": 52.3682394699772,
+      "longitude": 4.897675712072186,
+      "lineName": "Groenburgwal"
+    }
+  },
+  "BRU0229": {
+    "routeNames": [
+      "Zwanenburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.368087177897166,
+      "sourceLongitude": 4.899042417743085,
+      "latitude": 52.368105531188334,
+      "longitude": 4.899001267671768,
+      "lineName": "Zwanenburgwal"
+    }
+  },
+  "BRU0236": {
+    "routeNames": [
+      "Amstel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36635844169402,
+      "sourceLongitude": 4.9008811328286805,
+      "latitude": 52.366359922635176,
+      "longitude": 4.900886901596828,
+      "lineName": "Amstel"
+    }
+  },
+  "BRU0237": {
+    "routeNames": [
+      "Nieuwe Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36591387007078,
+      "sourceLongitude": 4.9019484829711715,
+      "latitude": 52.365910951683446,
+      "longitude": 4.90194998171016,
+      "lineName": "Nieuwe Herengracht"
+    }
+  },
+  "BRU0238": {
+    "routeNames": [
+      "Nieuwe Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36645267718583,
+      "sourceLongitude": 4.904789255976924,
+      "latitude": 52.36644894295384,
+      "longitude": 4.904791323147127,
+      "lineName": "Nieuwe Herengracht"
+    }
+  },
+  "BRU0239": {
+    "routeNames": [
+      "Nieuwe Herengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36734169582811,
+      "sourceLongitude": 4.907099547985322,
+      "latitude": 52.36733339972322,
+      "longitude": 4.907112985601105,
+      "lineName": "Nieuwe Herengracht"
+    }
+  },
+  "BRU0240": {
+    "routeNames": [
+      "Nieuwe Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36519933816641,
+      "sourceLongitude": 4.905595741036658,
+      "latitude": 52.365197769555955,
+      "longitude": 4.9055965976752205,
+      "lineName": "Nieuwe Keizersgracht"
+    }
+  },
+  "BRU0241": {
+    "routeNames": [
+      "Nieuwe Keizersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.364630071668245,
+      "sourceLongitude": 4.902613616206565,
+      "latitude": 52.36462715576049,
+      "longitude": 4.902615156564082,
+      "lineName": "Nieuwe Keizersgracht"
+    }
+  },
+  "BRU0242": {
+    "routeNames": [
+      "Amstel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36358115866486,
+      "sourceLongitude": 4.902371491195427,
+      "latitude": 52.36358159043848,
+      "longitude": 4.902374053564426,
+      "lineName": "Amstel"
+    }
+  },
+  "BRU0246": {
+    "routeNames": [
+      "Amstel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.360350514601606,
+      "sourceLongitude": 4.904017066609553,
+      "latitude": 52.36033847740721,
+      "longitude": 4.90395376933867,
+      "lineName": "Amstel"
+    }
+  },
+  "BRU0249": {
+    "routeNames": [
+      "Recht Boomssloot"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.373027474111964,
+      "sourceLongitude": 4.901959512401122,
+      "latitude": 52.373020499356734,
+      "longitude": 4.901949426341198,
+      "lineName": "Recht Boomssloot"
+    }
+  },
+  "BRU0250": {
+    "routeNames": [
+      "Nieuwe Prinsengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36293560544836,
+      "sourceLongitude": 4.903466251817596,
+      "latitude": 52.36293275587918,
+      "longitude": 4.9034676503872525,
+      "lineName": "Nieuwe Prinsengracht"
+    }
+  },
+  "BRU0251": {
+    "routeNames": [
+      "Nieuwe Prinsengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.363506399330774,
+      "sourceLongitude": 4.906609443929563,
+      "latitude": 52.36350070803673,
+      "longitude": 4.906612276213135,
+      "lineName": "Nieuwe Prinsengracht"
+    }
+  },
+  "BRU0252": {
+    "routeNames": [
+      "Nieuwe Achtergracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36202643031419,
+      "sourceLongitude": 4.905240194093659,
+      "latitude": 52.36204102993294,
+      "longitude": 4.9052328843505055,
+      "lineName": "Nieuwe Achtergracht"
+    }
+  },
+  "BRU0253": {
+    "routeNames": [
+      "Onbekendegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.362966783088375,
+      "sourceLongitude": 4.904550456208273,
+      "latitude": 52.362963876037206,
+      "longitude": 4.9045350730460315,
+      "lineName": "Onbekendegracht"
+    }
+  },
+  "BRU0255": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.35944968729591,
+      "sourceLongitude": 4.905696441356373,
+      "latitude": 52.359506242463816,
+      "longitude": 4.905667532999308,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0257": {
+    "routeNames": [
+      "Nieuwe Achtergracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36241612410354,
+      "sourceLongitude": 4.907262748233965,
+      "latitude": 52.36241245754065,
+      "longitude": 4.9072646398325634,
+      "lineName": "Nieuwe Achtergracht"
+    }
+  },
+  "BRU0258": {
+    "routeNames": [
+      "Nieuwe Prinsengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3643064432341,
+      "sourceLongitude": 4.910909459082404,
+      "latitude": 52.36430378397383,
+      "longitude": 4.910910707834108,
+      "lineName": "Nieuwe Prinsengracht"
+    }
+  },
+  "BRU0259": {
+    "routeNames": [
+      "Plantage Muidergracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36521164171137,
+      "sourceLongitude": 4.910634265377901,
+      "latitude": 52.36522512349715,
+      "longitude": 4.910646937435125,
+      "lineName": "Plantage Muidergracht"
+    }
+  },
+  "BRU0260": {
+    "routeNames": [
+      "Nieuwe Achtergracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36305946020567,
+      "sourceLongitude": 4.910641107383206,
+      "latitude": 52.36306388825597,
+      "longitude": 4.9106390178041,
+      "lineName": "Nieuwe Achtergracht"
+    }
+  },
+  "BRU0263": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36058072550563,
+      "sourceLongitude": 4.908321244438932,
+      "latitude": 52.36057662148111,
+      "longitude": 4.908323633484615,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0264": {
+    "routeNames": [
+      "Plantage Muidergracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36393846949893,
+      "sourceLongitude": 4.918595957013006,
+      "latitude": 52.36393692048587,
+      "longitude": 4.918597395928649,
+      "lineName": "Plantage Muidergracht"
+    }
+  },
+  "BRU0265": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.363251772583666,
+      "sourceLongitude": 4.919990311303643,
+      "latitude": 52.36325074737801,
+      "longitude": 4.9199913878402235,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0266": {
+    "routeNames": [
+      "Kostverlorenvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36460170103193,
+      "sourceLongitude": 4.860050324720613,
+      "latitude": 52.36459778872754,
+      "longitude": 4.860062519731103,
+      "lineName": "Kostverlorenvaart"
+    }
+  },
+  "BRU0270": {
+    "routeNames": [
+      "Kattenburgervaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37170472497489,
+      "sourceLongitude": 4.919483156205713,
+      "latitude": 52.37170186278001,
+      "longitude": 4.919488146589521,
+      "lineName": "Kattenburgervaart"
+    }
+  },
+  "BRU0272": {
+    "routeNames": [
+      "Dijksgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3751953936104,
+      "sourceLongitude": 4.921241844620041,
+      "latitude": 52.37519103935292,
+      "longitude": 4.921239819482842,
+      "lineName": "Dijksgracht"
+    }
+  },
+  "BRU0274": {
+    "routeNames": [
+      "Nieuwe Vaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.370906371394405,
+      "sourceLongitude": 4.914320638878859,
+      "latitude": 52.37107316684375,
+      "longitude": 4.914554390585976,
+      "lineName": "Nieuwe Vaart"
+    }
+  },
+  "BRU0277": {
+    "routeNames": [
+      "Nieuwe Vaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36925608103772,
+      "sourceLongitude": 4.918892541359509,
+      "latitude": 52.36933058873126,
+      "longitude": 4.918960371554,
+      "lineName": "Nieuwe Vaart"
+    }
+  },
+  "BRU0278": {
+    "routeNames": [
+      "Schippersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37032391765027,
+      "sourceLongitude": 4.911668344219841,
+      "latitude": 52.37032634260025,
+      "longitude": 4.9116640299642516,
+      "lineName": "Schippersgracht"
+    }
+  },
+  "BRU0279": {
+    "routeNames": [
+      "Oudeschans"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37273551894998,
+      "sourceLongitude": 4.90777340342132,
+      "latitude": 52.37273353867024,
+      "longitude": 4.90777600928925,
+      "lineName": "Oudeschans"
+    }
+  },
+  "BRU0280": {
+    "routeNames": [
+      "Waalseilandgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37228031536384,
+      "sourceLongitude": 4.905945995886771,
+      "latitude": 52.37227859242672,
+      "longitude": 4.905942269463684,
+      "lineName": "Waalseilandgracht"
+    }
+  },
+  "BRU0281": {
+    "routeNames": [
+      "Rapenburgwal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.371525064509015,
+      "sourceLongitude": 4.907398059862605,
+      "latitude": 52.37150469931637,
+      "longitude": 4.907352493586332,
+      "lineName": "Rapenburgwal"
+    }
+  },
+  "BRU0283": {
+    "routeNames": [
+      "Waalseilandgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37366816722675,
+      "sourceLongitude": 4.903514589774482,
+      "latitude": 52.37365686532697,
+      "longitude": 4.9034815065379,
+      "lineName": "Waalseilandgracht"
+    }
+  },
+  "BRU0285": {
+    "routeNames": [
+      "Open Havenfront"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3772038918564,
+      "sourceLongitude": 4.902138822468313,
+      "latitude": 52.37720080569786,
+      "longitude": 4.90213706373903,
+      "lineName": "Open Havenfront"
+    }
+  },
+  "BRU0286": {
+    "routeNames": [
+      "Oudeschans"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.371084507118034,
+      "sourceLongitude": 4.904014048867557,
+      "latitude": 52.37108918066548,
+      "longitude": 4.9040090236394,
+      "lineName": "Oudeschans"
+    }
+  },
+  "BRU0287": {
+    "routeNames": [
+      "Sint Antoniesluis"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36965628521857,
+      "sourceLongitude": 4.901150277107556,
+      "latitude": 52.36965447919824,
+      "longitude": 4.901153403612224,
+      "lineName": "Sint Antoniesluis"
+    }
+  },
+  "BRU0288": {
+    "routeNames": [
+      "Recht Boomssloot"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.371610207096836,
+      "sourceLongitude": 4.904487741289754,
+      "latitude": 52.37160929502209,
+      "longitude": 4.904486209180103,
+      "lineName": "Recht Boomssloot"
+    }
+  },
+  "BRU0289": {
+    "routeNames": [
+      "Snoekjesgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37051847735247,
+      "sourceLongitude": 4.901301241338519,
+      "latitude": 52.37051805981932,
+      "longitude": 4.9012996946136,
+      "lineName": "Snoekjesgracht"
+    }
+  },
+  "BRU0290": {
+    "routeNames": [
+      "Krom Boomssloot"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37099580108021,
+      "sourceLongitude": 4.9016286310674255,
+      "latitude": 52.37099636121287,
+      "longitude": 4.901627874400341,
+      "lineName": "Krom Boomssloot"
+    }
+  },
+  "BRU0291": {
+    "routeNames": [
+      "way/130751449"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3695786939531,
+      "sourceLongitude": 4.902948239698036,
+      "latitude": 52.36957722573254,
+      "longitude": 4.902946700369647,
+      "lineName": "way/130751449"
+    }
+  },
+  "BRU0292": {
+    "routeNames": [
+      "Krom Boomssloot"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37200598990838,
+      "sourceLongitude": 4.902517285838766,
+      "latitude": 52.37200558525918,
+      "longitude": 4.902519211691543,
+      "lineName": "Krom Boomssloot"
+    }
+  },
+  "BRU0293": {
+    "routeNames": [
+      "Krom Boomssloot"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37152082678446,
+      "sourceLongitude": 4.90229131307634,
+      "latitude": 52.371521139697954,
+      "longitude": 4.902290003107426,
+      "lineName": "Krom Boomssloot"
+    }
+  },
+  "BRU0295": {
+    "routeNames": [
+      "Krom Boomssloot"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37246917045784,
+      "sourceLongitude": 4.90277824205485,
+      "latitude": 52.37246906844752,
+      "longitude": 4.902778539460241,
+      "lineName": "Krom Boomssloot"
+    }
+  },
+  "BRU0296": {
+    "routeNames": [
+      "Recht Boomssloot"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37247576342725,
+      "sourceLongitude": 4.902950305570106,
+      "latitude": 52.372477133388514,
+      "longitude": 4.902952371931562,
+      "lineName": "Recht Boomssloot"
+    }
+  },
+  "BRU0297": {
+    "routeNames": [
+      "Recht Boomssloot"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3734042396961,
+      "sourceLongitude": 4.901239411213219,
+      "latitude": 52.373396290514435,
+      "longitude": 4.901233897417127,
+      "lineName": "Recht Boomssloot"
+    }
+  },
+  "BRU0298": {
+    "routeNames": [
+      "Geldersekade"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37415074368779,
+      "sourceLongitude": 4.901325142062598,
+      "latitude": 52.374155816261975,
+      "longitude": 4.901298323132277,
+      "lineName": "Geldersekade"
+    }
+  },
+  "BRU0299": {
+    "routeNames": [
+      "Geldersekade"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.376336479038386,
+      "sourceLongitude": 4.902709106669568,
+      "latitude": 52.376340994616136,
+      "longitude": 4.902703596649059,
+      "lineName": "Geldersekade"
+    }
+  },
+  "BRU0300": {
+    "routeNames": [
+      "Waalseilandgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37524978833949,
+      "sourceLongitude": 4.903584607770954,
+      "latitude": 52.375248177944776,
+      "longitude": 4.903587697784635,
+      "lineName": "Waalseilandgracht"
+    }
+  },
+  "BRU0301": {
+    "routeNames": [
+      "Oudezijds Kolk"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37663242248061,
+      "sourceLongitude": 4.902342702329325,
+      "latitude": 52.37663338026929,
+      "longitude": 4.902341516800026,
+      "lineName": "Oudezijds Kolk"
+    }
+  },
+  "BRU0302": {
+    "routeNames": [
+      "Oudezijds Kolk"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37582190785701,
+      "sourceLongitude": 4.900613446639197,
+      "latitude": 52.375817768379044,
+      "longitude": 4.900619605550386,
+      "lineName": "Oudezijds Kolk"
+    }
+  },
+  "BRU0303": {
+    "routeNames": [
+      "Damrak"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.376830524451506,
+      "sourceLongitude": 4.898766225787824,
+      "latitude": 52.37686457577013,
+      "longitude": 4.898709188039516,
+      "lineName": "Damrak"
+    }
+  },
+  "BRU0306": {
+    "routeNames": [
+      "Open Havenfront"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37766701979777,
+      "sourceLongitude": 4.899014914072332,
+      "latitude": 52.377661885753184,
+      "longitude": 4.899007218726949,
+      "lineName": "Open Havenfront"
+    }
+  },
+  "BRU0307": {
+    "routeNames": [
+      "way/481375798"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34238118142993,
+      "sourceLongitude": 4.846573666923217,
+      "latitude": 52.342379419397204,
+      "longitude": 4.846572728447352,
+      "lineName": "way/481375798"
+    }
+  },
+  "BRU0313": {
+    "routeNames": [
+      "Korte Prinsengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.381445713187134,
+      "sourceLongitude": 4.889364513403972,
+      "latitude": 52.381467202639044,
+      "longitude": 4.889303942018186,
+      "lineName": "Korte Prinsengracht"
+    }
+  },
+  "BRU0314": {
+    "routeNames": [
+      "Westerdoksluis"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3830920502789,
+      "sourceLongitude": 4.893246120567283,
+      "latitude": 52.3830902492922,
+      "longitude": 4.8932468457288945,
+      "lineName": "Westerdoksluis"
+    }
+  },
+  "BRU0315": {
+    "routeNames": [
+      "Bickersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38554955943404,
+      "sourceLongitude": 4.88831247899855,
+      "latitude": 52.385549669700524,
+      "longitude": 4.888310518863014,
+      "lineName": "Bickersgracht"
+    }
+  },
+  "BRU0316": {
+    "routeNames": [
+      "Realengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38707050631925,
+      "sourceLongitude": 4.889916446050801,
+      "latitude": 52.387087257828455,
+      "longitude": 4.889919398905816,
+      "lineName": "Realengracht"
+    }
+  },
+  "BRU0317": {
+    "routeNames": [
+      "Zoutkeetsgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38838287013857,
+      "sourceLongitude": 4.890125448473196,
+      "latitude": 52.388383784003246,
+      "longitude": 4.890125540485203,
+      "lineName": "Zoutkeetsgracht"
+    }
+  },
+  "BRU0318": {
+    "routeNames": [
+      "Zoutkeetsgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3881687713061,
+      "sourceLongitude": 4.8857306862237815,
+      "latitude": 52.3881620674873,
+      "longitude": 4.885728018087352,
+      "lineName": "Zoutkeetsgracht"
+    }
+  },
+  "BRU0320": {
+    "routeNames": [
+      "Realengracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38691624112015,
+      "sourceLongitude": 4.887257825908888,
+      "latitude": 52.38691582847916,
+      "longitude": 4.887257903284498,
+      "lineName": "Realengracht"
+    }
+  },
+  "BRU0321": {
+    "routeNames": [
+      "Prinseneilandsgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38567096895315,
+      "sourceLongitude": 4.885916871119044,
+      "latitude": 52.38567028365511,
+      "longitude": 4.885940453415258,
+      "lineName": "Prinseneilandsgracht"
+    }
+  },
+  "BRU0324": {
+    "routeNames": [
+      "Kostverlorenvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37540555554503,
+      "sourceLongitude": 4.869828013581333,
+      "latitude": 52.375402829566994,
+      "longitude": 4.869836378573514,
+      "lineName": "Kostverlorenvaart"
+    }
+  },
+  "BRU0327": {
+    "routeNames": [
+      "Entrepotdoksluis"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36739774209508,
+      "sourceLongitude": 4.918729290538417,
+      "latitude": 52.367396661028664,
+      "longitude": 4.918732386096945,
+      "lineName": "Entrepotdoksluis"
+    }
+  },
+  "BRU0340": {
+    "routeNames": [
+      "Ringvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.348496165244995,
+      "sourceLongitude": 4.913086347332919,
+      "latitude": 52.348496727174975,
+      "longitude": 4.913085695371258,
+      "lineName": "Ringvaart"
+    }
+  },
+  "BRU0345": {
+    "routeNames": [
+      "Van Noordtgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.388450170650174,
+      "sourceLongitude": 4.884099318862239,
+      "latitude": 52.3884525944167,
+      "longitude": 4.8841003405489,
+      "lineName": "Van Noordtgracht"
+    }
+  },
+  "BRU0347": {
+    "routeNames": [
+      "Kostverlorenvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.385195794693544,
+      "sourceLongitude": 4.880361976432424,
+      "latitude": 52.38520306794102,
+      "longitude": 4.880351400258229,
+      "lineName": "Kostverlorenvaart"
+    }
+  },
+  "BRU0348": {
+    "routeNames": [
+      "Schinkel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.35094610067269,
+      "sourceLongitude": 4.852369801170893,
+      "latitude": 52.350943135850954,
+      "longitude": 4.852396449794815,
+      "lineName": "Schinkel"
+    }
+  },
+  "BRU0349": {
+    "routeNames": [
+      "Le Mairegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38932157485994,
+      "sourceLongitude": 4.884526354478139,
+      "latitude": 52.389311879996015,
+      "longitude": 4.884521035951664,
+      "lineName": "Le Mairegracht"
+    }
+  },
+  "BRU0350": {
+    "routeNames": [
+      "Amstel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.35890041811514,
+      "sourceLongitude": 4.904799179255252,
+      "latitude": 52.358901206863834,
+      "longitude": 4.904803889448317,
+      "lineName": "Amstel"
+    }
+  },
+  "BRU0353": {
+    "routeNames": [
+      "Nieuwe Vaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.367218838372395,
+      "sourceLongitude": 4.925293634838871,
+      "latitude": 52.36726373762372,
+      "longitude": 4.925324125325438,
+      "lineName": "Nieuwe Vaart"
+    }
+  },
+  "BRU0354": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.366176961673375,
+      "sourceLongitude": 4.926483571090731,
+      "latitude": 52.36617515448979,
+      "longitude": 4.9264865829083195,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU0360": {
+    "routeNames": [
+      "Schinkel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.35477171463077,
+      "sourceLongitude": 4.853543407029369,
+      "latitude": 52.35477054528011,
+      "longitude": 4.853554220768277,
+      "lineName": "Schinkel"
+    }
+  },
+  "BRU0382": {
+    "routeNames": [
+      "Westelijk Marktkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37540802153157,
+      "sourceLongitude": 4.864411930578604,
+      "latitude": 52.37540861621983,
+      "longitude": 4.864415890232914,
+      "lineName": "Westelijk Marktkanaal"
+    }
+  },
+  "BRU0383": {
+    "routeNames": [
+      "De Rijpgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.377601837527614,
+      "sourceLongitude": 4.862616246741419,
+      "latitude": 52.37759947904779,
+      "longitude": 4.862616988174256,
+      "lineName": "De Rijpgracht"
+    }
+  },
+  "BRU0387": {
+    "routeNames": [
+      "Open Havenfront"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37962917120021,
+      "sourceLongitude": 4.8958943854952475,
+      "latitude": 52.37962763064079,
+      "longitude": 4.895892221897757,
+      "lineName": "Open Havenfront"
+    }
+  },
+  "BRU0389": {
+    "routeNames": [
+      "Kattenburgervaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.373727191331284,
+      "sourceLongitude": 4.923214576045039,
+      "latitude": 52.37372206320247,
+      "longitude": 4.923223071581245,
+      "lineName": "Kattenburgervaart"
+    }
+  },
+  "BRU0400": {
+    "routeNames": [
+      "Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.349847092391684,
+      "sourceLongitude": 4.909776746551799,
+      "latitude": 52.349846922238434,
+      "longitude": 4.909776816822695,
+      "lineName": "Amstelkanaal"
+    }
+  },
+  "BRU0401": {
+    "routeNames": [
+      "Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.349068702400494,
+      "sourceLongitude": 4.90419056260135,
+      "latitude": 52.34907239934792,
+      "longitude": 4.904189394192866,
+      "lineName": "Amstelkanaal"
+    }
+  },
+  "BRU0402": {
+    "routeNames": [
+      "Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34845823872132,
+      "sourceLongitude": 4.899805108962449,
+      "latitude": 52.34845824129459,
+      "longitude": 4.899805107975243,
+      "lineName": "Amstelkanaal"
+    }
+  },
+  "BRU0403": {
+    "routeNames": [
+      "Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34801384881184,
+      "sourceLongitude": 4.895261452179771,
+      "latitude": 52.34801045117787,
+      "longitude": 4.895261185911545,
+      "lineName": "Amstelkanaal"
+    }
+  },
+  "BRU0404": {
+    "routeNames": [
+      "Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34821513900536,
+      "sourceLongitude": 4.891275954226094,
+      "latitude": 52.34821623885686,
+      "longitude": 4.891276106638564,
+      "lineName": "Amstelkanaal"
+    }
+  },
+  "BRU0405": {
+    "routeNames": [
+      "Noorder Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34955882626858,
+      "sourceLongitude": 4.884779234723859,
+      "latitude": 52.349561417026486,
+      "longitude": 4.884784246980085,
+      "lineName": "Noorder Amstelkanaal"
+    }
+  },
+  "BRU0406": {
+    "routeNames": [
+      "Boerenwetering"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3497692990981,
+      "sourceLongitude": 4.88644878242542,
+      "latitude": 52.34976929848739,
+      "longitude": 4.8864488026727555,
+      "lineName": "Boerenwetering"
+    }
+  },
+  "BRU0407": {
+    "routeNames": [
+      "Noorder Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.351195137844755,
+      "sourceLongitude": 4.879051791834199,
+      "latitude": 52.35119392520545,
+      "longitude": 4.879051210477084,
+      "lineName": "Noorder Amstelkanaal"
+    }
+  },
+  "BRU0408": {
+    "routeNames": [
+      "Noorder Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.35219258492022,
+      "sourceLongitude": 4.873302859070265,
+      "latitude": 52.35219714274781,
+      "longitude": 4.87330355512594,
+      "lineName": "Noorder Amstelkanaal"
+    }
+  },
+  "BRU0409": {
+    "routeNames": [
+      "Noorder Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.35209069426523,
+      "sourceLongitude": 4.870555250294807,
+      "latitude": 52.352055212798966,
+      "longitude": 4.870570778569476,
+      "lineName": "Noorder Amstelkanaal"
+    }
+  },
+  "BRU0410": {
+    "routeNames": [
+      "Noorder Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.350704357402336,
+      "sourceLongitude": 4.865289669989862,
+      "latitude": 52.350702706690484,
+      "longitude": 4.865290811211974,
+      "lineName": "Noorder Amstelkanaal"
+    }
+  },
+  "BRU0411": {
+    "routeNames": [
+      "Noorder Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34874917725875,
+      "sourceLongitude": 4.86013268205144,
+      "latitude": 52.34874445410781,
+      "longitude": 4.860143898512096,
+      "lineName": "Noorder Amstelkanaal"
+    }
+  },
+  "BRU0413": {
+    "routeNames": [
+      "Zuider Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34228067946636,
+      "sourceLongitude": 4.857495249735071,
+      "latitude": 52.342291092002974,
+      "longitude": 4.857491693470583,
+      "lineName": "Zuider Amstelkanaal"
+    }
+  },
+  "BRU0414": {
+    "routeNames": [
+      "Zuider Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.343336502319055,
+      "sourceLongitude": 4.8654006082984615,
+      "latitude": 52.343339126654,
+      "longitude": 4.865398403794266,
+      "lineName": "Zuider Amstelkanaal"
+    }
+  },
+  "BRU0415": {
+    "routeNames": [
+      "Zuider Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34396545297221,
+      "sourceLongitude": 4.867976681417549,
+      "latitude": 52.34395853892927,
+      "longitude": 4.867979332409647,
+      "lineName": "Zuider Amstelkanaal"
+    }
+  },
+  "BRU0416": {
+    "routeNames": [
+      "Zuider Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34446260947716,
+      "sourceLongitude": 4.8727532778316744,
+      "latitude": 52.344465945735145,
+      "longitude": 4.872752943768716,
+      "lineName": "Zuider Amstelkanaal"
+    }
+  },
+  "BRU0417": {
+    "routeNames": [
+      "Zuider Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.344610275446,
+      "sourceLongitude": 4.876599923954346,
+      "latitude": 52.34461203250696,
+      "longitude": 4.8765997005525685,
+      "lineName": "Zuider Amstelkanaal"
+    }
+  },
+  "BRU0418": {
+    "routeNames": [
+      "Zuider Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34610438974855,
+      "sourceLongitude": 4.881431284776041,
+      "latitude": 52.346091708370324,
+      "longitude": 4.881448621114562,
+      "lineName": "Zuider Amstelkanaal"
+    }
+  },
+  "BRU0419": {
+    "routeNames": [
+      "Zuider Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3476489686761,
+      "sourceLongitude": 4.884528284253143,
+      "latitude": 52.34763304626676,
+      "longitude": 4.884549240280832,
+      "lineName": "Zuider Amstelkanaal"
+    }
+  },
+  "BRU0420": {
+    "routeNames": [
+      "Boerenwetering"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34739605511569,
+      "sourceLongitude": 4.886131379435499,
+      "latitude": 52.34739507756666,
+      "longitude": 4.886156714464267,
+      "lineName": "Boerenwetering"
+    }
+  },
+  "BRU0421": {
+    "routeNames": [
+      "Zuider Amstelkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34253603826525,
+      "sourceLongitude": 4.8604588361776315,
+      "latitude": 52.34254254513664,
+      "longitude": 4.860458822761158,
+      "lineName": "Zuider Amstelkanaal"
+    }
+  },
+  "BRU0422": {
+    "routeNames": [
+      "Boerenwetering"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34449949416587,
+      "sourceLongitude": 4.885736961445042,
+      "latitude": 52.344496930764045,
+      "longitude": 4.885784929663719,
+      "lineName": "Boerenwetering"
+    }
+  },
+  "BRU0423": {
+    "routeNames": [
+      "Amstel"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34733458667405,
+      "sourceLongitude": 4.912701303811087,
+      "latitude": 52.34734128040312,
+      "longitude": 4.912748718189745,
+      "lineName": "Amstel"
+    }
+  },
+  "BRU0429": {
+    "routeNames": [
+      "Weespertrekvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34246988097583,
+      "sourceLongitude": 4.918851717303586,
+      "latitude": 52.3424719619444,
+      "longitude": 4.918850510710774,
+      "lineName": "Weespertrekvaart"
+    }
+  },
+  "BRU0463": {
+    "routeNames": [
+      "Haarlemmertrekvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38546805281092,
+      "sourceLongitude": 4.865466073288484,
+      "latitude": 52.3854665,
+      "longitude": 4.8655822,
+      "lineName": "Haarlemmertrekvaart"
+    }
+  },
+  "BRU0485": {
+    "routeNames": [
+      "Oosterdoksdoorgang"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.377533933237025,
+      "sourceLongitude": 4.910798919538378,
+      "latitude": 52.37755894494141,
+      "longitude": 4.910956089191064,
+      "lineName": "Oosterdoksdoorgang"
+    }
+  },
+  "BRU0487": {
+    "routeNames": [
+      "Schippersgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37103902177625,
+      "sourceLongitude": 4.912802897191531,
+      "latitude": 52.3710556901391,
+      "longitude": 4.912773501175263,
+      "lineName": "Schippersgracht"
+    }
+  },
+  "BRU0497": {
+    "routeNames": [
+      "Boerenwetering"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.342570930979576,
+      "sourceLongitude": 4.885477781514295,
+      "latitude": 52.34256927925496,
+      "longitude": 4.885508797036422,
+      "lineName": "Boerenwetering"
+    }
+  },
+  "BRU0696": {
+    "routeNames": [
+      "Stadiongracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34174968143422,
+      "sourceLongitude": 4.853485626557588,
+      "latitude": 52.34176081366843,
+      "longitude": 4.853481661677284,
+      "lineName": "Stadiongracht"
+    }
+  },
+  "BRU0854": {
+    "routeNames": [
+      "Duivendrechtsevaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3318168298634,
+      "sourceLongitude": 4.917236637197165,
+      "latitude": 52.331828595443554,
+      "longitude": 4.91726447797643,
+      "lineName": "Duivendrechtsevaart"
+    }
+  },
+  "BRU1633": {
+    "routeNames": [
+      "Olympiakanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34490943703714,
+      "sourceLongitude": 4.850940642256605,
+      "latitude": 52.344918734366516,
+      "longitude": 4.8509391294135975,
+      "lineName": "Olympiakanaal"
+    }
+  },
+  "BRU1634": {
+    "routeNames": [
+      "Olympiakanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34330344466302,
+      "sourceLongitude": 4.851440475909687,
+      "latitude": 52.343278707002526,
+      "longitude": 4.851452051983786,
+      "lineName": "Olympiakanaal"
+    }
+  },
+  "BRU1641": {
+    "routeNames": [
+      "Duivendrechtsevaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.33165241624535,
+      "sourceLongitude": 4.917544868384093,
+      "latitude": 52.33161905180164,
+      "longitude": 4.917433626400636,
+      "lineName": "Duivendrechtsevaart"
+    }
+  },
+  "BRU1696": {
+    "routeNames": [
+      "Olympiakanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34492920263787,
+      "sourceLongitude": 4.8508641483060195,
+      "latitude": 52.34491433288714,
+      "longitude": 4.8508665678823775,
+      "lineName": "Olympiakanaal"
+    }
+  },
+  "BRU1697": {
+    "routeNames": [
+      "Olympiakanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34328721656509,
+      "sourceLongitude": 4.851357614381511,
+      "latitude": 52.34326411836587,
+      "longitude": 4.85136842326401,
+      "lineName": "Olympiakanaal"
+    }
+  },
+  "BRU1900": {
+    "routeNames": [
+      "Lijnbaansgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36484054168213,
+      "sourceLongitude": 4.881462506950955,
+      "latitude": 52.3648744,
+      "longitude": 4.8814164,
+      "lineName": "Lijnbaansgracht"
+    }
+  },
+  "BRU1902": {
+    "routeNames": [
+      "Kostverlorenvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38391704654638,
+      "sourceLongitude": 4.878227390018649,
+      "latitude": 52.38392059005703,
+      "longitude": 4.878221451124818,
+      "lineName": "Kostverlorenvaart"
+    }
+  },
+  "BRU1904": {
+    "routeNames": [
+      "Wittenburgervaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37021785169037,
+      "sourceLongitude": 4.922483359145035,
+      "latitude": 52.37021697251887,
+      "longitude": 4.922484846422772,
+      "lineName": "Wittenburgervaart"
+    }
+  },
+  "BRU1907": {
+    "routeNames": [
+      "Entrepotdok"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36861604189812,
+      "sourceLongitude": 4.913801595666012,
+      "latitude": 52.36861223406734,
+      "longitude": 4.913798065378831,
+      "lineName": "Entrepotdok"
+    }
+  },
+  "BRU1908": {
+    "routeNames": [
+      "Le Mairegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38967707916518,
+      "sourceLongitude": 4.881937628886975,
+      "latitude": 52.38967384553082,
+      "longitude": 4.8819366104614765,
+      "lineName": "Le Mairegracht"
+    }
+  },
+  "BRU1909": {
+    "routeNames": [
+      "Le Mairegracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38915731688634,
+      "sourceLongitude": 4.881251846423046,
+      "latitude": 52.38915509951172,
+      "longitude": 4.88127108137511,
+      "lineName": "Le Mairegracht"
+    }
+  },
+  "BRU1910": {
+    "routeNames": [
+      "Van Noordtgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38877020363927,
+      "sourceLongitude": 4.881795353643615,
+      "latitude": 52.388767340242275,
+      "longitude": 4.881794300585802,
+      "lineName": "Van Noordtgracht"
+    }
+  },
+  "BRU1914": {
+    "routeNames": [
+      "Kattenburgervaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37271383560571,
+      "sourceLongitude": 4.921598832359054,
+      "latitude": 52.37270741776093,
+      "longitude": 4.921609522769161,
+      "lineName": "Kattenburgervaart"
+    }
+  },
+  "BRU1922": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.362015520010345,
+      "sourceLongitude": 4.882135509841898,
+      "latitude": 52.36205932030861,
+      "longitude": 4.882167304836571,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU1923": {
+    "routeNames": [
+      "Jacob van Lennepkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36425206404874,
+      "sourceLongitude": 4.868679617961175,
+      "latitude": 52.3642443506284,
+      "longitude": 4.868684684837084,
+      "lineName": "Jacob van Lennepkanaal"
+    }
+  },
+  "BRU1927": {
+    "routeNames": [
+      "IJ"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38356617542718,
+      "sourceLongitude": 4.894090156296054,
+      "latitude": 52.3836,
+      "longitude": 4.894163740357177,
+      "lineName": "IJ"
+    }
+  },
+  "BRU1935": {
+    "routeNames": [
+      "Hugo de Grootgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37185197636412,
+      "sourceLongitude": 4.867733939232311,
+      "latitude": 52.37184961086793,
+      "longitude": 4.867735362042583,
+      "lineName": "Hugo de Grootgracht"
+    }
+  },
+  "BRU1938": {
+    "routeNames": [
+      "Entrepotdok"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36579855316085,
+      "sourceLongitude": 4.92145712889748,
+      "latitude": 52.36579734863085,
+      "longitude": 4.921452741568823,
+      "lineName": "Entrepotdok"
+    }
+  },
+  "BRU1939": {
+    "routeNames": [
+      "Oosterdok"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37483855091529,
+      "sourceLongitude": 4.910856787658273,
+      "latitude": 52.37478422665897,
+      "longitude": 4.9106519209997685,
+      "lineName": "Oosterdok"
+    }
+  },
+  "BRU1957": {
+    "routeNames": [
+      "Singelgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36467815064249,
+      "sourceLongitude": 4.923826620583759,
+      "latitude": 52.36467973345898,
+      "longitude": 4.923824056573464,
+      "lineName": "Singelgracht"
+    }
+  },
+  "BRU1962": {
+    "routeNames": [
+      "Duivendrechtsevaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.33874042888378,
+      "sourceLongitude": 4.912344396998503,
+      "latitude": 52.338551062778365,
+      "longitude": 4.912572632097837,
+      "lineName": "Duivendrechtsevaart"
+    }
+  },
+  "BRU1973": {
+    "routeNames": [
+      "Haarlemmertrekvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3855386022185,
+      "sourceLongitude": 4.869420493354575,
+      "latitude": 52.385528989166396,
+      "longitude": 4.869420732679224,
+      "lineName": "Haarlemmertrekvaart"
+    }
+  },
+  "BRU1984": {
+    "routeNames": [
+      "IJhaven"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.378059672395565,
+      "sourceLongitude": 4.932932779907353,
+      "latitude": 52.378075800797745,
+      "longitude": 4.932932974738255,
+      "lineName": "IJhaven"
+    }
+  },
+  "BRU1988": {
+    "routeNames": [
+      "IJhaven"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37819407737807,
+      "sourceLongitude": 4.929838760919202,
+      "latitude": 52.37817356767842,
+      "longitude": 4.929837023517017,
+      "lineName": "IJhaven"
+    }
+  },
+  "BRU2000": {
+    "routeNames": [
+      "IJhaven"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37792462581162,
+      "sourceLongitude": 4.922515267895818,
+      "latitude": 52.378574953985265,
+      "longitude": 4.922625782250574,
+      "lineName": "IJhaven"
+    }
+  },
+  "BRU2103": {
+    "routeNames": [
+      "Oostenburgerdwarsvaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37030518069613,
+      "sourceLongitude": 4.925114434106123,
+      "latitude": 52.37030968974101,
+      "longitude": 4.925121506211202,
+      "lineName": "Oostenburgerdwarsvaart"
+    }
+  },
+  "BRU2208": {
+    "routeNames": [
+      "way/481375798"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.342446905780776,
+      "sourceLongitude": 4.846258271653673,
+      "latitude": 52.34244233730457,
+      "longitude": 4.846255838438571,
+      "lineName": "way/481375798"
+    }
+  },
+  "BRU2247": {
+    "routeNames": [
+      "Stadiongracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.34449017949329,
+      "sourceLongitude": 4.851532021793577,
+      "latitude": 52.3444904886834,
+      "longitude": 4.851536951429116,
+      "lineName": "Stadiongracht"
+    }
+  },
+  "BRU2270": {
+    "routeNames": [
+      "Oosterdoksdoorgang"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.37629489529799,
+      "sourceLongitude": 4.911241030234342,
+      "latitude": 52.37630022204812,
+      "longitude": 4.911292855230819,
+      "lineName": "Oosterdoksdoorgang"
+    }
+  },
+  "BRU2291": {
+    "routeNames": [
+      "Jacob van Lennepkanaal"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.3650958155845,
+      "sourceLongitude": 4.871765382873754,
+      "latitude": 52.365065149531176,
+      "longitude": 4.87179096269684,
+      "lineName": "Jacob van Lennepkanaal"
+    }
+  },
+  "BRU2358": {
+    "routeNames": [
+      "way/1323622732"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.376566940065565,
+      "sourceLongitude": 4.903436028052978,
+      "latitude": 52.37646688207265,
+      "longitude": 4.9033424262420064,
+      "lineName": "way/1323622732"
+    }
+  },
+  "BRU2361": {
+    "routeNames": [
+      "Dijksgracht"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.376132880571866,
+      "sourceLongitude": 4.914273827369815,
+      "latitude": 52.37608500358747,
+      "longitude": 4.914206947015741,
+      "lineName": "Dijksgracht"
+    }
+  },
+  "BRU2476": {
+    "routeNames": [
+      "IJ"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.38364874299682,
+      "sourceLongitude": 4.903379027297397,
+      "latitude": 52.3836,
+      "longitude": 4.903406007457126,
+      "lineName": "IJ"
+    }
+  },
+  "BRU2106": {
+    "routeNames": [
+      "Oostenburgervaart"
+    ],
+    "networkPosition": {
+      "sourceLatitude": 52.36985714044154,
+      "sourceLongitude": 4.9268646304944586,
+      "latitude": 52.3698576791915,
+      "longitude": 4.926863754336491,
+      "lineName": "Oostenburgervaart"
+    }
+  }
+}

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import { buildCanalRoutingNetwork, generateCanalLoopRoute, planCanalRoute, planCanalRouteVia, reconstructCanalRoute } from './canalRouting.js'
+import { SUPPLEMENTAL_WATERWAY_FEATURES } from './supplementalWaterways.js'
 
 const canals = {
   type: 'FeatureCollection',
@@ -61,6 +62,8 @@ test('plans a manual route over the canal network', () => {
   assert.ok(result.coordinates.length >= 2)
   assert.ok(result.distanceMeters > 100)
   assert.ok(result.durationMinutes > 0)
+  assert.equal(result.speedKmh, 6)
+  assert.equal('speedKnots' in result, false)
 })
 
 test('manual route planning reports points that are too far from water', () => {
@@ -162,7 +165,7 @@ test('generates a loop route that returns to the start within the requested time
   const result = generateCanalLoopRoute(
     { latitude: 52.3700, longitude: 4.9000 },
     network,
-    { targetMinutes: 20, speedKnots: 5.5, seed: 42, attempts: 80 },
+    { targetMinutes: 20, speedKmh: 10.2, seed: 42, attempts: 80 },
   )
 
   assert.equal(result.status, 'ok')
@@ -186,67 +189,56 @@ test('generated loop routes do not use virtual map-gap connectors', () => {
   const result = generateCanalLoopRoute(
     { latitude: 52.3700, longitude: 4.9000 },
     network,
-    { targetMinutes: 10, speedKnots: 5.5, seed: 7, attempts: 40 },
+    { targetMinutes: 10, speedKmh: 10.2, seed: 7, attempts: 40 },
   )
 
   assert.equal(result.status, 'no-loop')
 })
 
-test('manual route ETA increases when live AIS traffic is near the route', () => {
+test('manual route ETA ignores live AIS traffic', () => {
   const network = buildCanalRoutingNetwork(canals, { respectRestrictions: true })
-  const plain = planCanalRoute({ latitude: 52.3700, longitude: 4.9000 }, { latitude: 52.3700, longitude: 4.9020 }, network)
+  const plain = planCanalRoute({ latitude: 52.3700, longitude: 4.9000 }, { latitude: 52.3700, longitude: 4.9020 }, network, { speedKmh: 3.7 })
   const busy = planCanalRoute(
     { latitude: 52.3700, longitude: 4.9000 },
     { latitude: 52.3700, longitude: 4.9020 },
     network,
-    { trafficPoints: Array.from({ length: 8 }, (_, index) => ({ mmsi: String(index), latitude: 52.3700, longitude: 4.9002 + index * 0.0002, receivedAt: new Date().toISOString() })) },
+    { speedKmh: 3.7, trafficPoints: Array.from({ length: 8 }, (_, index) => ({ mmsi: String(index), latitude: 52.3700, longitude: 4.9002 + index * 0.0002, receivedAt: new Date().toISOString() })) },
   )
 
   assert.equal(busy.status, 'ok')
-  assert.ok(busy.trafficFactor > plain.trafficFactor)
-  assert.ok(busy.trafficVesselCount >= 8)
+  assert.equal(busy.durationMinutes, plain.durationMinutes)
+  assert.equal(busy.durationMinutes, busy.baseDurationMinutes)
+  assert.equal('trafficDelayMinutes' in busy, false)
 })
 
-test('route planning includes the IJ as navigable open water', () => {
+test('route planning includes the official IJ fairway as zone 3 water', () => {
   const network = buildCanalRoutingNetwork({ type: 'FeatureCollection', features: [] }, { respectRestrictions: true })
-  const restricted = planCanalRoute(
-    { latitude: 52.3830, longitude: 4.8950 },
-    { latitude: 52.3810, longitude: 4.9110 },
-    network,
-    { snapDistanceMeters: 160 },
-  )
+  const from = { latitude: 52.3826, longitude: 4.8993 }
+  const to = { latitude: 52.3796, longitude: 4.9104 }
+  const restricted = planCanalRoute(from, to, network, { snapDistanceMeters: 30 })
   assert.equal(restricted.status, 'partial')
 
-  const result = planCanalRoute(
-    { latitude: 52.3830, longitude: 4.8950 },
-    { latitude: 52.3810, longitude: 4.9110 },
-    network,
-    { snapDistanceMeters: 160, allowZone3: true },
-  )
-
+  const result = planCanalRoute(from, to, network, { snapDistanceMeters: 30, allowZone3: true })
   assert.equal(result.status, 'ok')
   assert.equal(result.virtualSegmentCount, 0)
   assert.ok(result.steps.some((step) => step.name === 'IJ'))
-  assert.equal(result.segments.some((segment) => segment.name === 'IJ' && (segment.start.latitude < 52.382 || segment.end.latitude < 52.382)), false)
   assert.ok(result.segments.filter((segment) => segment.name === 'IJ').length > 1)
 })
 
-test('zone 3 route can use IJhaven instead of jumping over land', () => {
+test('zone 3 route follows the official IJhaven axis instead of jumping over land', () => {
   const network = buildCanalRoutingNetwork({ type: 'FeatureCollection', features: [] }, { respectRestrictions: true })
   const result = planCanalRoute(
-    { latitude: 52.3811, longitude: 4.9200 },
-    { latitude: 52.3784, longitude: 4.9570 },
+    { latitude: 52.3799, longitude: 4.9131 },
+    { latitude: 52.3755, longitude: 4.9388 },
     network,
-    { snapDistanceMeters: 80, allowZone3: true },
+    { snapDistanceMeters: 30, allowZone3: true },
   )
-
   assert.equal(result.status, 'ok')
   assert.equal(result.virtualSegmentCount, 0)
   assert.ok(result.steps.some((step) => step.name === 'IJhaven'))
-  assert.ok(result.steps.some((step) => step.name === 'IJhaven westelijke toegang'))
 })
 
-test('zone 3 route can cross the IJ between Westerdok and Oosterdok', () => {
+test('zone 3 route connects Westerdok to Oosterdok without virtual land jumps', () => {
   const exportGeoJson = JSON.parse(readFileSync(new URL('../../public/export.geojson', import.meta.url), 'utf8'))
   const network = buildCanalRoutingNetwork(exportGeoJson, { respectRestrictions: true })
   const result = planCanalRoute(
@@ -255,32 +247,38 @@ test('zone 3 route can cross the IJ between Westerdok and Oosterdok', () => {
     network,
     { snapDistanceMeters: 30, allowZone3: true },
   )
-
   assert.equal(result.status, 'ok')
   assert.equal(result.virtualSegmentCount, 0)
   assert.ok(result.steps.some((step) => step.name === 'IJ'))
-  assert.equal(result.segments.some((segment) => segment.name === 'IJ' && (segment.start.latitude < 52.382 || segment.end.latitude < 52.382)), false)
-  assert.ok(result.steps.some((step) => step.name === 'IJ verbinding Westerdoksluis'))
-  assert.ok(result.steps.some((step) => step.name === 'IJ verbinding Oosterdoksdoorgang'))
+  assert.ok(result.steps.some((step) => step.name === 'IJ verbinding Westerdok'))
+  assert.ok(result.steps.some((step) => step.name === 'Voormalige Oosterdoksluis'))
   assert.ok(result.warnings.some((warning) => warning.includes('Zone 3')))
 })
 
-test('zone 3 route can continue from the IJ into the IJhaven mesh', () => {
+test('zone 3 route can continue from the IJ through IJhaven to Ertshaven', () => {
   const exportGeoJson = JSON.parse(readFileSync(new URL('../../public/export.geojson', import.meta.url), 'utf8'))
   const network = buildCanalRoutingNetwork(exportGeoJson, { respectRestrictions: true })
   const result = planCanalRoute(
-    { latitude: 52.3830, longitude: 4.8950 },
-    { latitude: 52.3810, longitude: 4.9600 },
+    { latitude: 52.3826, longitude: 4.8993 },
+    { latitude: 52.3759, longitude: 4.9488 },
     network,
-    { snapDistanceMeters: 180, allowZone3: true },
+    { snapDistanceMeters: 30, allowZone3: true },
   )
-
   assert.equal(result.status, 'ok')
   assert.equal(result.virtualSegmentCount, 0)
   assert.ok(result.steps.some((step) => step.name === 'IJ'))
-  assert.equal(result.segments.some((segment) => segment.name === 'IJ' && (segment.start.latitude < 52.382 || segment.end.latitude < 52.382)), false)
   assert.ok(result.steps.some((step) => step.name === 'IJhaven'))
-  assert.ok(result.steps.some((step) => step.name === 'IJhaven oostelijke toegang'))
+  assert.ok(result.steps.some((step) => step.name === 'Ertshaven'))
+})
+
+test('all supplemental IJ routes cite Rijkswaterstaat and are marked zone 3', () => {
+  assert.ok(SUPPLEMENTAL_WATERWAY_FEATURES.length > 0)
+  for (const feature of SUPPLEMENTAL_WATERWAY_FEATURES) {
+    assert.equal(feature.properties.navigationZone, 'zone3')
+    assert.equal(feature.properties.source, 'Rijkswaterstaat NWB Vaarwegen')
+    assert.match(feature.properties.sourceFeatureId, /^vaarwegvakken\.\d+$/)
+    assert.match(feature.id, /^supplemental\/nwb-vaarwegvakken\/\d+$/)
+  }
 })
 
 test('route planning avoids temporary closure points', () => {
@@ -355,4 +353,28 @@ test('production waterway export includes Blauwburgwal and a real Muntbrug conne
   assert.equal(muntbrug.status, 'ok')
   assert.equal(muntbrug.virtualSegmentCount, 0)
   assert.ok(muntbrug.steps.some((step) => step.name === 'Muntbrug routeverbinding'))
+})
+
+test('Brouwersgracht between Herengracht and Singel only permits travel toward Singel', () => {
+  const data = JSON.parse(readFileSync(new URL('../../public/export.geojson', import.meta.url), 'utf8'))
+  const network = buildCanalRoutingNetwork(data, { respectRestrictions: true })
+  const heren = { latitude: 52.3792362, longitude: 4.8920164 }
+  const singel = { latitude: 52.3787771, longitude: 4.893972 }
+  const forward = planCanalRoute(heren, singel, network)
+  assert.equal(forward.status, 'ok')
+  assert.ok(forward.steps.some(step => step.name === 'Brouwersgracht'))
+  const reverse = planCanalRoute(singel, heren, network)
+  assert.equal(reverse.status, 'ok')
+  assert.ok(reverse.steps.some(step => step.name === 'Blauwburgwal'))
+  for (const id of ['way/1308400519','way/1308400518','way/1308400524','way/1308400517','way/1308400516']) {
+    const feature = data.features.find(f => f.id === id)
+    for (let i = 1; i < feature.geometry.coordinates.length; i++) {
+      const a = feature.geometry.coordinates[i - 1], b = feature.geometry.coordinates[i]
+      const key = p => `${p[1].toFixed(7)},${p[0].toFixed(7)}`
+      assert.ok(network.nodes.get(key(a)).neighbors.has(key(b)))
+      assert.equal(network.nodes.get(key(b)).neighbors.has(key(a)), false)
+    }
+  }
+  const west = data.features.find(f => f.id === 'local/brouwersgracht-west-herengracht')
+  assert.equal(west.properties.oneway, undefined)
 })

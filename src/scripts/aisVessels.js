@@ -3,6 +3,8 @@ import { buildCanalRoutingNetwork, reconstructCanalRoute } from "./canalRouting"
 import { interpolateCoordinate, reconnectDelay } from "./aisMotion";
 
 let configuredRemoveAfterMs = 30 * 24 * 60 * 60 * 1000;
+let configuredNamedRemoveAfterMs = 3 * 60 * 60 * 1000;
+let configuredUnnamedRemoveAfterMs = 60 * 60 * 1000;
 let configuredMovingStaleMs = 15 * 60_000;
 let configuredStationaryStaleMs = 15 * 60_000;
 
@@ -15,7 +17,7 @@ export function showLiveAisVessels(map, options = {}) {
   const historyLayer = L.layerGroup().addTo(map);
   const canalNetwork = buildCanalRoutingNetwork(options.canals);
   let visibleMmsis = null;
-  let companyMmsis = new Set();
+  let companyMmsis = new Set(Array.from(options.companyMmsis || [], String));
   let specialMmsis = { nt: new Set(), police: new Set() };
   let historyRequestController = null;
   let socket = null;
@@ -59,6 +61,8 @@ export function showLiveAisVessels(map, options = {}) {
         configuredMovingStaleMs = Number(message.config.movingStaleMs) || configuredMovingStaleMs;
         configuredStationaryStaleMs = Number(message.config.stationaryStaleMs) || configuredStationaryStaleMs;
         configuredRemoveAfterMs = Number(message.config.removeAfterMs) || configuredRemoveAfterMs;
+        configuredNamedRemoveAfterMs = Number(message.config.namedRemoveAfterMs) || configuredNamedRemoveAfterMs;
+        configuredUnnamedRemoveAfterMs = Number(message.config.unnamedRemoveAfterMs) || configuredUnnamedRemoveAfterMs;
       }
       options.onStatus?.(message);
       return;
@@ -69,6 +73,8 @@ export function showLiveAisVessels(map, options = {}) {
         configuredMovingStaleMs = Number(message.config.movingStaleMs) || configuredMovingStaleMs;
         configuredStationaryStaleMs = Number(message.config.stationaryStaleMs) || configuredStationaryStaleMs;
         configuredRemoveAfterMs = Number(message.config.removeAfterMs) || configuredRemoveAfterMs;
+        configuredNamedRemoveAfterMs = Number(message.config.namedRemoveAfterMs) || configuredNamedRemoveAfterMs;
+        configuredUnnamedRemoveAfterMs = Number(message.config.unnamedRemoveAfterMs) || configuredUnnamedRemoveAfterMs;
       }
       for (const vessel of message.vessels || []) processVesselMessage(vessel);
       emitVesselState();
@@ -85,11 +91,17 @@ export function showLiveAisVessels(map, options = {}) {
       return;
     }
 
+    if (message.type === "ais-batch") {
+      for (const update of message.messages || []) processVesselMessage(update);
+      emitVesselState();
+      return;
+    }
+
     processVesselMessage(message);
     emitVesselState();
   }
 
-  connectSocket();
+  if (options.connectLive !== false) connectSocket();
 
   function processVesselMessage(message) {
     const vessel = vessels.get(message.mmsi) || {
@@ -127,7 +139,7 @@ export function showLiveAisVessels(map, options = {}) {
       vessel.marker.getElement()?.classList.toggle("ais-vessel--offline", age > 24 * 60 * 60 * 1000);
       updateVesselPopup(vessel);
 
-      if (age > configuredRemoveAfterMs) {
+      if (age > removalThreshold(vessel, companyMmsis, specialMmsis)) {
         if (vessel.animationFrame) cancelAnimationFrame(vessel.animationFrame);
         vessel.marker.remove();
         vessels.delete(mmsi);
@@ -136,6 +148,13 @@ export function showLiveAisVessels(map, options = {}) {
     emitVesselState();
   }, 30_000);
   let selectedMmsi = null;
+  // Fleet data includes last-known positions even before the WebSocket snapshot.
+  for (const vessel of options.initialVessels || []) {
+    if (!vessel?.mmsi || !Number.isFinite(vessel.latitude) || !Number.isFinite(vessel.longitude)) continue;
+    if (Date.now() - getMessageTimestamp(vessel.sourceReceivedAt || vessel.receivedAt) > removalThreshold(vessel, companyMmsis, specialMmsis)) continue;
+    processVesselMessage(vessel);
+  }
+  emitVesselState();
 
   function emitVesselState() {
     options.onCount?.(countVisibleVessels(layer, vessels));
@@ -175,7 +194,7 @@ export function showLiveAisVessels(map, options = {}) {
       historyLayer.clearLayers();
       options.onHistory?.({ hours: null, pointCount: 0 });
     },
-    async showHistory(mmsi, hours = 1, range = null) {
+    async showHistory(mmsi, hours = 1, range = null, viewOptions = {}) {
       historyRequestController?.abort();
       historyRequestController = new AbortController();
 
@@ -226,6 +245,17 @@ export function showLiveAisVessels(map, options = {}) {
           })
             .bindTooltip(`Actual AIS report · ${formatReportDateTime(report.receivedAt)}`)
             .addTo(historyLayer);
+        }
+
+        if (viewOptions.fitBounds && historyLayer.getLayers().length) {
+          const bounds = historyLayer.getBounds();
+          if (bounds.isValid()) {
+            map.fitBounds(bounds, {
+              maxZoom: 17,
+              paddingTopLeft: [24, 80],
+              paddingBottomRight: [24, 110],
+            });
+          }
         }
 
         options.onHistory?.({
@@ -305,6 +335,17 @@ function staleThreshold(vessel) {
   return Number(vessel.speed) > 0.5 ? configuredMovingStaleMs : configuredStationaryStaleMs;
 }
 
+function removalThreshold(vessel, companyMmsis, specialMmsis) {
+  const mmsi = String(vessel.mmsi);
+  const hasKnownIdentity = Boolean(String(vessel.name || "").trim())
+    || companyMmsis.has(mmsi)
+    || specialMmsis.nt.has(mmsi)
+    || specialMmsis.police.has(mmsi);
+  return hasKnownIdentity
+    ? Math.min(configuredRemoveAfterMs, configuredNamedRemoveAfterMs)
+    : Math.min(configuredRemoveAfterMs, configuredUnnamedRemoveAfterMs);
+}
+
 function getMessageTimestamp(value) {
   const timestamp = Date.parse(value);
   return Number.isFinite(timestamp) ? timestamp : Date.now();
@@ -331,6 +372,12 @@ function updateVesselMarker(layer, vessel, companyMmsis, specialMmsis) {
     vessel.marker.setIcon(createVesselIcon(rotation, category));
   }
 
+  vessel.marker.setZIndexOffset(companyMmsis.has(String(vessel.mmsi)) ? 200 : 0);
+  if (companyMmsis.has(String(vessel.mmsi))) {
+    const label = `${escapeHtml(vessel.name || vessel.mmsi)} · ${Date.now() - vessel.lastPositionAt > staleThreshold(vessel) ? 'Last known position · ' : ''}${escapeHtml(formatSignalAge(vessel.receivedAt))}`;
+    if (vessel.marker.getTooltip()) vessel.marker.setTooltipContent(label);
+    else vessel.marker.bindTooltip(label, { direction: "top" });
+  }
   updateVesselPopup(vessel);
 }
 
@@ -361,7 +408,7 @@ function animateMarkerTo(vessel, target) {
 
 function createVesselIcon(rotation, category) {
   return L.divIcon({
-    className: "ais-vessel-marker",
+    className: `ais-vessel-marker${category === "company" ? " ais-company-marker" : ""}`,
     html: `<div class="ais-vessel${category ? ` ais-vessel--${category}` : ""}" style="transform:rotate(${rotation}deg)" aria-hidden="true"><span></span></div>`,
     iconSize: [30, 30],
     iconAnchor: [15, 15],
@@ -379,7 +426,7 @@ function getVesselCategory(vessel, companyMmsis, specialMmsis) {
 }
 
 function updateVesselPopup(vessel) {
-  const speed = vessel.speed === null || vessel.speed === undefined ? "Unknown" : `${vessel.speed.toFixed(1)} kn`;
+  const speed = vessel.speed === null || vessel.speed === undefined ? "Unknown" : `${(vessel.speed * 1.852).toFixed(1)} km/u`;
   const course = vessel.course === null || vessel.course === undefined ? "Unknown" : `${Math.round(vessel.course)}°`;
   const received = formatSignalAge(vessel.sourceReceivedAt || vessel.receivedAt);
   const latency = Number.isFinite(Number(vessel.latencyMs)) ? `${(Number(vessel.latencyMs) / 1000).toFixed(1)} s` : "Unknown";

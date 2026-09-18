@@ -4,9 +4,11 @@ import { dirname, extname, join, normalize } from "node:path";
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { backup, DatabaseSync } from "node:sqlite";
 import { WebSocket, WebSocketServer } from "ws";
+import { monitorEventLoopDelay } from "node:perf_hooks";
 import { gunzipSync } from "node:zlib";
 import { createWhatsAppConnector } from "./server/whatsapp.mjs";
-import { analyzePlanningImage } from "./server/planning-upload.mjs";
+import { analyzePlanningImage, getOcrQueueStats } from "./server/planning-ocr-client.mjs";
+import { createDatabaseReadClient } from "./server/database-read-client.mjs";
 import { matchCrewFingerprint, parseStaffingPlanning } from "./server/planning-staff.mjs";
 import { consolidateDayPlanning } from "./server/planning-consolidation.mjs";
 import { deriveTourPerformance } from "./server/tour-performance.mjs";
@@ -14,11 +16,18 @@ import { findPlanningLocationPin } from "./shared/planning-locations.mjs";
 import { reportingPointsGeoJson } from "./server/reporting-points.mjs";
 import { POSITION_MESSAGE_TYPES, feedState, mergeAisState, shouldAcceptPosition, sourceLatencyMs, validAisCoordinates } from "./server/ais-live.mjs";
 
+import { validateReportingRules } from "./shared/reporting-movements.mjs";
+import { loadCurrentClosures } from "./server/navigation-closures.mjs";
+import { isPublicMapRead } from "./server/public-map-access.mjs";
+import { fetchSurinamekadeWaterLevel } from "./server/water-level.mjs";
+import { amsterdamDayBounds, amsterdamRaceDate, calculateFleetDistances, fleetDistanceIncrement } from "./server/fleet-leaderboard.mjs";
+
 loadLocalEnv();
 
 const isProduction = process.env.NODE_ENV === "production";
 const port = Number(process.env.PORT || 5173);
 const host = process.env.HOST?.trim() || "0.0.0.0";
+const authSetupToken = process.env.AUTH_SETUP_TOKEN?.trim();
 const apiKey = process.env.AISSTREAM_API_KEY?.trim();
 const historyDays = Math.min(30, Math.max(1, Number(process.env.AIS_HISTORY_DAYS || 30)));
 const aisHistorySampleMs = Math.max(1_000, Number(process.env.AIS_HISTORY_SAMPLE_MS || 5_000));
@@ -26,12 +35,21 @@ const aisWatchdogMs = Math.max(30_000, Number(process.env.AIS_WATCHDOG_MS || 120
 const aisMovingStaleMs = Math.max(10_000, Number(process.env.AIS_MOVING_STALE_MS || 15 * 60_000));
 const aisStationaryStaleMs = Math.max(30_000, Number(process.env.AIS_STATIONARY_STALE_MS || 15 * 60_000));
 const aisRemoveAfterMs = Math.max(24 * 60 * 60 * 1000, Number(process.env.AIS_REMOVE_AFTER_MS || historyDays * 24 * 60 * 60 * 1000));
+const aisNamedRemoveAfterMs = Math.max(15 * 60_000, Number(process.env.AIS_NAMED_REMOVE_AFTER_MS || 3 * 60 * 60_000));
+const aisUnnamedRemoveAfterMs = Math.max(5 * 60_000, Number(process.env.AIS_UNNAMED_REMOVE_AFTER_MS || 60 * 60_000));
+const aisBatchIntervalMs = Math.min(2_000, Math.max(100, Number(process.env.AIS_BATCH_INTERVAL_MS || 750)));
+const websocketGuestPerIpLimit = Math.max(1, Number(process.env.WEBSOCKET_GUEST_PER_IP_LIMIT || 10));
+const websocketGlobalLimit = Math.max(25, Number(process.env.WEBSOCKET_GLOBAL_LIMIT || 500));
+const websocketMaxBufferedBytes = Math.max(64_000, Number(process.env.WEBSOCKET_MAX_BUFFERED_BYTES || 1_000_000));
 const clients = new Set();
 const latestVessels = new Map();
 const lastStoredPositionAt = new Map();
 const pendingPlanningAnalyses = new Map();
 let bridgeDataCache = null;
 const navigationLayerCache = new Map();
+let pendingClosureLoad;
+let waterLevelCache = null;
+let pendingWaterLevelLoad;
 const geocodeCache = new Map();
 let whatsappRescanStarted = false;
 const whatsappChatRescanAt = new Map();
@@ -60,6 +78,18 @@ let databaseBackupRunning = false;
 const databasePath = process.env.DATABASE_PATH || join(process.cwd(), "data", "ais.sqlite");
 mkdirSync(dirname(databasePath), { recursive: true });
 const database = new DatabaseSync(databasePath);
+const databaseReads = createDatabaseReadClient(databasePath);
+const fleetSummaryCache = new Map();
+const eventLoopDelay = monitorEventLoopDelay({ resolution: 20 });
+eventLoopDelay.enable();
+const serviceMetrics = {
+  startedAt: Date.now(), requests: 0, errors: 0, totalResponseMs: 0,
+  websocketAccepted: 0, websocketRejected: 0, websocketDroppedMessages: 0,
+  aisBatches: 0, aisMessagesBatched: 0,
+};
+const pendingAisBroadcasts = new Map();
+const aisBatchTimer = setInterval(flushAisBroadcasts, aisBatchIntervalMs);
+aisBatchTimer.unref();
 database.exec(`
   PRAGMA journal_mode = WAL;
   PRAGMA synchronous = NORMAL;
@@ -83,6 +113,30 @@ database.exec(`
     received_at INTEGER NOT NULL
   );
   CREATE INDEX IF NOT EXISTS positions_mmsi_time ON positions (mmsi, received_at);
+  CREATE TABLE IF NOT EXISTS fleet_leaderboard_days (
+    race_date TEXT PRIMARY KEY,
+    range_from INTEGER NOT NULL,
+    range_to INTEGER NOT NULL,
+    materialized_at INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS fleet_leaderboard_totals (
+    race_date TEXT NOT NULL,
+    boat_id INTEGER NOT NULL,
+    distance_meters REAL NOT NULL DEFAULT 0,
+    samples INTEGER NOT NULL DEFAULT 0,
+    last_latitude REAL,
+    last_longitude REAL,
+    last_speed REAL,
+    last_received_at INTEGER,
+    updated_at INTEGER NOT NULL,
+    PRIMARY KEY (race_date, boat_id),
+    FOREIGN KEY (boat_id) REFERENCES fleet_boats(id) ON DELETE CASCADE
+  );
+  CREATE TABLE IF NOT EXISTS fleet_leaderboard_coverage (
+    race_date TEXT NOT NULL,
+    slot INTEGER NOT NULL,
+    PRIMARY KEY (race_date, slot)
+  );
   CREATE TABLE IF NOT EXISTS fleet_boats (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -119,6 +173,13 @@ database.exec(`
     updated_at INTEGER NOT NULL,
     PRIMARY KEY (layer, object_key)
   );
+  CREATE TABLE IF NOT EXISTS shared_routes (
+    token TEXT PRIMARY KEY,
+    route_json TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS shared_routes_expiry ON shared_routes (expires_at);
   CREATE TABLE IF NOT EXISTS whatsapp_inbox (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     raw_text TEXT NOT NULL,
@@ -325,10 +386,17 @@ const insertPositionStatement = database.prepare(`
   INSERT INTO positions (mmsi, latitude, longitude, speed, course, heading, received_at)
   VALUES (?, ?, ?, ?, ?, ?, ?)
 `);
+const materializedLeaderboardDays = new Map(database.prepare("SELECT race_date, range_from, range_to FROM fleet_leaderboard_days").all()
+  .map((day) => [day.race_date, day]));
+const leaderboardCoverageSlots = new Set(database.prepare("SELECT race_date, slot FROM fleet_leaderboard_coverage").all()
+  .map((row) => `${row.race_date}:${row.slot}`));
+let fleetLeaderboardBoatIds = new Map();
+let fleetLeaderboardBoatIdsLoadedAt = 0;
 loadLatestVessels();
 pruneHistory();
 
 const whatsapp = createWhatsAppConnector({
+  enabled: process.env.WHATSAPP_ENABLED !== "false",
   isChatEnabled: isWhatsAppChatEnabled,
   onChats: upsertWhatsAppChats,
   onGroupMessage: recordWhatsAppGroupAnchor,
@@ -357,9 +425,19 @@ const vite = isProduction
     );
 
 const server = createServer(async (req, res) => {
+  const requestStartedAt = performance.now();
+  serviceMetrics.requests += 1;
+  res.once("finish", () => {
+    serviceMetrics.totalResponseMs += performance.now() - requestStartedAt;
+    if (res.statusCode >= 500) serviceMetrics.errors += 1;
+  });
   applySecurityHeaders(req, res);
   const requestUrl = new URL(req.url || "/", "http://localhost");
   const apiPath = decodeURIComponent(requestUrl.pathname).replace(/\/+$/, "") || "/";
+  if (req.method === "GET" && apiPath === "/healthz") {
+    sendJson(res, 200, { status: "ok" });
+    return;
+  }
   if (isMutationMethod(req.method) && !isTrustedOrigin(req)) {
     sendJson(res, 403, { error: "Untrusted request origin" });
     return;
@@ -372,16 +450,30 @@ const server = createServer(async (req, res) => {
     await handleAuthApi(req, requestUrl, res);
     return;
   }
+  if (requestUrl.pathname === "/api/shared-routes" || requestUrl.pathname.startsWith("/api/shared-routes/")) {
+    await handleSharedRoutesApi(req, requestUrl, res);
+    return;
+  }
   if (requestUrl.pathname.startsWith("/api/")) {
     const user = getAuthenticatedUser(req);
-    if (!user) {
+    const publicMapRead = isPublicMapRead(req.method, requestUrl.pathname);
+    if (!user && !publicMapRead) {
       sendJson(res, 401, { error: "Authentication required" });
       return;
     }
     req.authUser = user;
   }
+  if (requestUrl.pathname === "/api/admin/metrics") {
+    if (!requireAdmin(req, res)) return;
+    sendJson(res, 200, applicationMetrics());
+    return;
+  }
+  if (requestUrl.pathname === "/api/water-level/surinamekade") {
+    await handleSurinamekadeWaterLevel(res);
+    return;
+  }
   if (requestUrl.pathname.startsWith("/api/ais/")) {
-    handleAisApi(requestUrl, res);
+    await handleAisApi(requestUrl, res);
     return;
   }
   if (requestUrl.pathname.startsWith("/api/boat-duty")) {
@@ -436,6 +528,72 @@ const server = createServer(async (req, res) => {
   serveProductionFile(req, res);
 });
 
+async function handleSharedRoutesApi(req, requestUrl, res) {
+  const routeToken = requestUrl.pathname.match(/^\/api\/shared-routes\/([A-Za-z0-9_-]{20,40})$/)?.[1];
+  const now = Date.now();
+  database.prepare("DELETE FROM shared_routes WHERE expires_at <= ?").run(now);
+  try {
+    if (req.method === "POST" && requestUrl.pathname === "/api/shared-routes") {
+      const body = await readJsonBody(req, 500_000);
+      const route = normalizeSharedRoute(body.route);
+      if (!route) return sendJson(res, 400, { error: "Plan a valid route before sharing" });
+      const token = randomBytes(18).toString("base64url");
+      const expiresAt = now + 7 * DAY_MS;
+      database.prepare("INSERT INTO shared_routes (token, route_json, created_at, expires_at) VALUES (?, ?, ?, ?)")
+        .run(token, JSON.stringify(route), now, expiresAt);
+      sendJson(res, 201, { token, url: `/?route=${token}`, expiresAt: new Date(expiresAt).toISOString() });
+      return;
+    }
+    if (req.method === "GET" && routeToken) {
+      const stored = database.prepare("SELECT route_json, created_at, expires_at FROM shared_routes WHERE token = ? AND expires_at > ?")
+        .get(routeToken, now);
+      if (!stored) return sendJson(res, 404, { error: "This shared route was not found or has expired" });
+      sendJson(res, 200, {
+        route: JSON.parse(stored.route_json),
+        createdAt: new Date(stored.created_at).toISOString(),
+        expiresAt: new Date(stored.expires_at).toISOString(),
+      });
+      return;
+    }
+    sendJson(res, 404, { error: "Shared route not found" });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    console.error("Shared route API error", status < 500 ? error.message : error);
+    sendJson(res, status, { error: status < 500 ? error.message : "Could not share route" });
+  }
+}
+
+function normalizeSharedRoute(input) {
+  if (!input || typeof input !== "object") return null;
+  const points = Array.isArray(input.points) ? input.points.slice(0, 50).map((point) => ({
+    role: ["start", "end", "waypoint"].includes(point?.role) ? point.role : "waypoint",
+    latitude: Number(point?.latitude),
+    longitude: Number(point?.longitude),
+    name: String(point?.name || "").trim().slice(0, 120) || null,
+  })).filter((point) => validSharedCoordinate(point.latitude, point.longitude)) : [];
+  const result = input.result && typeof input.result === "object" ? { ...input.result } : null;
+  if (!result || !Array.isArray(result.coordinates)) return null;
+  result.coordinates = result.coordinates.slice(0, 5_000).map((coordinate) => [Number(coordinate?.[0]), Number(coordinate?.[1])])
+    .filter(([latitude, longitude]) => validSharedCoordinate(latitude, longitude));
+  if (result.coordinates.length < 2 || (!points.length && result.coordinates.length < 2)) return null;
+  result.steps = Array.isArray(result.steps) ? result.steps.slice(0, 500) : [];
+  result.segments = Array.isArray(result.segments) ? result.segments.slice(0, 5_000) : [];
+  result.warnings = Array.isArray(result.warnings) ? result.warnings.slice(0, 50).map((warning) => String(warning).slice(0, 300)) : [];
+  return {
+    name: String(input.name || "Shared route").trim().slice(0, 100) || "Shared route",
+    savedAt: new Date().toISOString(),
+    routeType: input.routeType === "loop" ? "loop" : "manual",
+    points,
+    result,
+    settings: input.settings && typeof input.settings === "object" ? input.settings : {},
+  };
+}
+
+function validSharedCoordinate(latitude, longitude) {
+  return Number.isFinite(latitude) && Number.isFinite(longitude)
+    && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+}
+
 async function handleBridgeDataApi(res) {
   const cachePath = join(process.cwd(), "data", "amsterdam-bridges-v2.json");
   const maxAge = 24 * 60 * 60 * 1000;
@@ -482,7 +640,7 @@ async function handleBridgeDataApi(res) {
       bridgeDataCache = { type: "FeatureCollection", source: "Gemeente Amsterdam Civiele Constructies", fetchedAt: Date.now(), features };
       writeFileSync(cachePath, JSON.stringify(bridgeDataCache));
     }
-    sendJson(res, 200, applyMapObjectOverrides("bridges", bridgeDataCache));
+    sendJson(res, 200, applyMapObjectOverrides("bridges", bridgeDataCache), "public, max-age=60, s-maxage=300, stale-while-revalidate=600");
   } catch (error) {
     console.error("Bridge data API error", error.message);
     sendJson(res, 502, { error: "Could not load Amsterdam bridge data" });
@@ -495,10 +653,35 @@ function finiteNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
+async function handleSurinamekadeWaterLevel(res) {
+  const cacheMaxAgeMs = 5 * 60_000;
+  if (waterLevelCache && Date.now() - waterLevelCache.fetchedAt < cacheMaxAgeMs) {
+    sendJson(res, 200, waterLevelCache.data, "public, max-age=60, s-maxage=300, stale-while-revalidate=900");
+    return;
+  }
+  try {
+    pendingWaterLevelLoad ||= fetchSurinamekadeWaterLevel()
+      .then(data => {
+        waterLevelCache = { data: { ...data, fetchedAt: new Date().toISOString() }, fetchedAt: Date.now() };
+        return waterLevelCache.data;
+      })
+      .finally(() => { pendingWaterLevelLoad = null; });
+    const data = await pendingWaterLevelLoad;
+    sendJson(res, 200, data, "public, max-age=60, s-maxage=300, stale-while-revalidate=900");
+  } catch (error) {
+    console.error("Surinamekade water level API error", error.message);
+    if (waterLevelCache) {
+      sendJson(res, 200, { ...waterLevelCache.data, stale: true }, "public, max-age=30");
+      return;
+    }
+    sendJson(res, 502, { error: "Actuele waterstand Surinamekade kon niet worden geladen" });
+  }
+}
+
 async function handleNavigationLayerApi(requestUrl, res) {
   const layer = requestUrl.searchParams.get("layer");
   const cached = navigationLayerCache.get(layer);
-  if (cached && cached.expiresAt > Date.now()) return sendJson(res, 200, applyMapObjectOverrides(layer, cached.data));
+  if (cached && cached.expiresAt > Date.now()) return sendJson(res, 200, applyMapObjectOverrides(layer, cached.data), "public, max-age=30, s-maxage=60, stale-while-revalidate=300");
   try {
     let data;
     let maxAge = 6 * 60 * 60 * 1000;
@@ -535,34 +718,14 @@ async function handleNavigationLayerApi(requestUrl, res) {
       data = parseNdwBridgeOpenings(xml);
       maxAge = 5 * 60 * 1000;
     } else if (layer === "closures") {
-      const query = new URL("https://geo.rijkswaterstaat.nl/arcgis/rest/services/GDR/staatvandeinfrastructuur_rws/FeatureServer/0/query");
-      query.searchParams.set("where", "sub1_legenda IN ('Beperking voor het scheepvaartverkeer','Beperking voor zowel weg- als scheepvaartverkeer')");
-      query.searchParams.set("geometry", "4.65,52.20,5.15,52.55");
-      query.searchParams.set("geometryType", "esriGeometryEnvelope");
-      query.searchParams.set("inSR", "4326");
-      query.searchParams.set("spatialRel", "esriSpatialRelIntersects");
-      query.searchParams.set("outFields", "*");
-      query.searchParams.set("outSR", "4326");
-      query.searchParams.set("f", "geojson");
-      const response = await fetch(query);
-      if (!response.ok) throw new Error(`RWS restrictions API returned ${response.status}`);
-      const source = await response.json();
-      data = {
-        type: "FeatureCollection",
-        features: (source.features || []).map((feature) => ({
-          type: "Feature",
-          id: feature.id,
-          geometry: feature.geometry,
-          properties: {
-            name: feature.properties?.kunstwerk || feature.properties?.complex || feature.properties?.nws_naam || "Scheepvaartbeperking",
-            type: feature.properties?.sub1_hvwn || feature.properties?.sub1_legenda || "Beperking scheepvaart",
-            network: feature.properties?.netwerk || feature.properties?.nws_naam || null,
-            description: feature.properties?.kw_omschr || feature.properties?.legenda || null,
-            source: "Rijkswaterstaat Staat van de Infrastructuur",
-          },
-        })),
-      };
-      maxAge = 30 * 60 * 1000;
+      pendingClosureLoad ||= loadCurrentClosures().finally(() => { pendingClosureLoad = null; });
+      data = await pendingClosureLoad;
+      maxAge = 60 * 1000;
+      try {
+        writeFileSync(join(process.cwd(), "data", "navigation-closures-v1.json"), JSON.stringify(data));
+      } catch (cacheError) {
+        console.warn("Could not persist closure cache:", cacheError.message);
+      }
     } else if (layer === "moorings") {
       const response = await fetch("https://api.data.amsterdam.nl/v1/varen/v1/opafstapplaats?_format=geojson&page_size=5000");
       if (!response.ok) throw new Error(`Amsterdam public docks API returned ${response.status}`);
@@ -604,9 +767,23 @@ async function handleNavigationLayerApi(requestUrl, res) {
       return sendJson(res, 400, { error: "Unknown navigation layer" });
     }
     navigationLayerCache.set(layer, { data, expiresAt: Date.now() + maxAge });
-    sendJson(res, 200, applyMapObjectOverrides(layer, data));
+    sendJson(res, 200, applyMapObjectOverrides(layer, data), "public, max-age=30, s-maxage=60, stale-while-revalidate=300");
   } catch (error) {
     console.error(`Navigation layer ${layer} failed`, error.message);
+    if (layer === "closures") {
+      let fallback = cached?.data;
+      const cachePath = join(process.cwd(), "data", "navigation-closures-v1.json");
+      if (!fallback && existsSync(cachePath)) {
+        try { fallback = JSON.parse(readFileSync(cachePath, "utf8")); } catch {}
+      }
+      if (!fallback) {
+        const manual = applyMapObjectOverrides(layer, { type: "FeatureCollection", features: [] });
+        if (manual.features.length) fallback = manual;
+      }
+      if (fallback?.type === "FeatureCollection" && Array.isArray(fallback.features)) {
+        return sendJson(res, 200, { ...applyMapObjectOverrides(layer, fallback), stale: true });
+      }
+    }
     sendJson(res, 502, { error: `Could not load ${layer}` });
   }
 }
@@ -642,7 +819,7 @@ function applyMapObjectOverrides(layer, collection) {
 }
 
 async function handleMapObjectsApi(req, requestUrl, res) {
-  const allowedLayers = new Set(["bridges", "bridge-openings", "closures", "water-levels", "locks", "moorings", "markers", "reporting-points"]);
+  const allowedLayers = new Set(["routing-lines", "bridges", "bridge-openings", "closures", "water-levels", "locks", "moorings", "markers", "reporting-points"]);
   const layer = String(requestUrl.searchParams.get("layer") || "");
   if (!allowedLayers.has(layer)) return sendJson(res, 400, { error: "Unknown map layer" });
   if (req.method === "GET") {
@@ -658,6 +835,10 @@ async function handleMapObjectsApi(req, requestUrl, res) {
   } else if (["POST", "PUT", "PATCH"].includes(req.method)) {
     const feature = body.feature;
     if (feature?.type !== "Feature" || !feature.geometry || !feature.properties) return sendJson(res, 400, { error: "A valid GeoJSON feature is required" });
+    if (layer === "reporting-points" && feature.properties.movementRules !== undefined) {
+      const ruleError = validateReportingRules(feature.properties.movementRules);
+      if (ruleError) return sendJson(res, 400, { error: ruleError });
+    }
     feature.properties = { ...feature.properties, _mapObjectKey: objectKey, _mapObjectSource: "admin" };
     database.prepare(`INSERT INTO map_object_overrides (layer, object_key, action, feature_json, updated_by, updated_at) VALUES (?, ?, 'upsert', ?, ?, ?)
       ON CONFLICT(layer, object_key) DO UPDATE SET action='upsert', feature_json=excluded.feature_json, updated_by=excluded.updated_by, updated_at=excluded.updated_at`).run(layer, objectKey, JSON.stringify(feature), req.authUser.id, now);
@@ -689,7 +870,7 @@ async function handleGeocodeApi(requestUrl, res) {
     const response = await fetch(url, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "grachtenkaart-kvb-amsterdam/1.0 route-planner",
+        "User-Agent": "boat-tracker/1.0 route-planner",
       },
     });
     if (!response.ok) throw new Error(`Nominatim returned ${response.status}`);
@@ -757,29 +938,32 @@ server.on("upgrade", (request, socket, head) => {
     return;
   }
   const user = getAuthenticatedUser(request);
-  if (!user) {
-    socket.write("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n");
-    socket.destroy();
-    return;
-  }
-  if ([...clients].filter((client) => client.authUserId === user.id).length >= 5) {
+  const clientIp = getRequestIp(request);
+  const matchingClients = user
+    ? [...clients].filter((client) => client.authUserId === user.id)
+    : [...clients].filter((client) => !client.authUserId && client.clientIp === clientIp);
+  const connectionLimit = user ? 5 : websocketGuestPerIpLimit;
+  if (clients.size >= websocketGlobalLimit || matchingClients.length >= connectionLimit) {
+    serviceMetrics.websocketRejected += 1;
     socket.write("HTTP/1.1 429 Too Many Requests\r\nConnection: close\r\n\r\n");
     socket.destroy();
     return;
   }
 
   localSocketServer.handleUpgrade(request, socket, head, (client) => {
-    client.authUserId = user.id;
+    client.authUserId = user?.id || null;
+    client.clientIp = clientIp;
     localSocketServer.emit("connection", client, request);
   });
 });
 
 localSocketServer.on("connection", (client) => {
   clients.add(client);
+  serviceMetrics.websocketAccepted += 1;
   send(client, {
     type: "snapshot",
     vessels: getActiveVesselSnapshot(),
-    config: { movingStaleMs: aisMovingStaleMs, stationaryStaleMs: aisStationaryStaleMs, removeAfterMs: aisRemoveAfterMs },
+    config: { movingStaleMs: aisMovingStaleMs, stationaryStaleMs: aisStationaryStaleMs, removeAfterMs: aisRemoveAfterMs, namedRemoveAfterMs: aisNamedRemoveAfterMs, unnamedRemoveAfterMs: aisUnnamedRemoveAfterMs },
   });
 
   if (!apiKey) {
@@ -789,7 +973,7 @@ localSocketServer.on("connection", (client) => {
       message: "Set AISSTREAM_API_KEY in .env to receive live AIS positions.",
       reason: "AISStream API key is not configured",
       configured: false,
-      config: { movingStaleMs: aisMovingStaleMs, stationaryStaleMs: aisStationaryStaleMs, removeAfterMs: aisRemoveAfterMs },
+      config: { movingStaleMs: aisMovingStaleMs, stationaryStaleMs: aisStationaryStaleMs, removeAfterMs: aisRemoveAfterMs, namedRemoveAfterMs: aisNamedRemoveAfterMs, unnamedRemoveAfterMs: aisUnnamedRemoveAfterMs },
     });
   } else {
     const state = currentAisFeedState();
@@ -799,7 +983,7 @@ localSocketServer.on("connection", (client) => {
       message: aisStatusMessage(state),
       reason: state.reason,
       configured: true,
-      config: { movingStaleMs: aisMovingStaleMs, stationaryStaleMs: aisStationaryStaleMs, removeAfterMs: aisRemoveAfterMs },
+      config: { movingStaleMs: aisMovingStaleMs, stationaryStaleMs: aisStationaryStaleMs, removeAfterMs: aisRemoveAfterMs, namedRemoveAfterMs: aisNamedRemoveAfterMs, unnamedRemoveAfterMs: aisUnnamedRemoveAfterMs },
     });
   }
 
@@ -875,7 +1059,7 @@ function connectUpstream() {
     const normalizedMessage = normalizeAisMessage(message);
     if (normalizedMessage) {
       if (normalizedMessage.type === "vessel-position") lastPositionMessageAt = Date.now();
-      if (persistAisMessage(normalizedMessage)) broadcast(normalizedMessage);
+      if (persistAisMessage(normalizedMessage)) queueAisBroadcast(normalizedMessage);
     }
   });
 
@@ -974,6 +1158,7 @@ function persistAisMessage(message) {
   try {
     insertPositionStatement.run(message.mmsi, message.latitude, message.longitude, message.speed, message.course, message.heading, receivedAt);
     lastStoredPositionAt.set(message.mmsi, receivedAt);
+    updateMaterializedFleetLeaderboard(message, receivedAt);
   } catch (error) {
     if (error.errcode !== 5) throw error;
     console.warn("AIS history point skipped: database is busy");
@@ -999,8 +1184,12 @@ function loadLatestVessels() {
 }
 
 function getActiveVesselSnapshot() {
-  const cutoff = Date.now() - aisRemoveAfterMs;
-  return Array.from(latestVessels.values()).filter((vessel) => parseAisTime(vessel.receivedAt) >= cutoff);
+  const cutoff = Date.now() - Math.min(aisRemoveAfterMs, aisNamedRemoveAfterMs);
+  const unnamedCutoff = Date.now() - aisUnnamedRemoveAfterMs;
+  return Array.from(latestVessels.values()).filter((vessel) => {
+    const receivedAt = parseAisTime(vessel.receivedAt);
+    return receivedAt >= cutoff && (String(vessel.name || "").trim() || receivedAt >= unnamedCutoff);
+  });
 }
 
 function pruneHistory() {
@@ -1096,7 +1285,7 @@ function removeExpiredDatabaseBackups() {
   }
 }
 
-function handleAisApi(requestUrl, res) {
+async function handleAisApi(requestUrl, res) {
   if (requestUrl.pathname === "/api/ais/health") {
     const now = Date.now();
     const state = currentAisFeedState(now);
@@ -1131,13 +1320,7 @@ function handleAisApi(requestUrl, res) {
   const hours = Math.min(historyDays * 24, Math.max(1, Number(requestUrl.searchParams.get("hours") || 1)));
   const since = hasRange ? requestedFrom : Date.now() - hours * 60 * 60 * 1000;
   const until = hasRange ? Math.min(requestedTo, since + 24 * 60 * 60 * 1000) : Date.now();
-  const rows = database.prepare(`
-    SELECT latitude, longitude, speed, course, heading, received_at AS receivedAt
-    FROM positions
-    WHERE mmsi = ? AND received_at >= ? AND received_at <= ?
-    ORDER BY received_at ASC
-    LIMIT 10000
-  `).all(historyMatch[1], since, until);
+  const rows = await databaseReads.run("history", { mmsi: historyMatch[1], since, until });
 
   const step = Math.max(1, Math.ceil(rows.length / 1500));
   sendJson(res, 200, {
@@ -1149,10 +1332,10 @@ function handleAisApi(requestUrl, res) {
   });
 }
 
-function sendJson(res, statusCode, value) {
+function sendJson(res, statusCode, value, cacheControl = "no-store") {
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Cache-Control", cacheControl);
   res.end(JSON.stringify(value));
 }
 
@@ -1250,7 +1433,7 @@ async function handleAuthApi(req, requestUrl, res) {
     if (req.method === "GET" && path === "/api/auth/status") {
       const user = getAuthenticatedUser(req);
       const needsSetup = database.prepare("SELECT COUNT(*) AS count FROM users").get().count === 0;
-      sendJson(res, 200, { needsSetup, authenticated: Boolean(user), user: user ? publicUser(user) : null });
+      sendJson(res, 200, { needsSetup, setupTokenRequired: needsSetup && Boolean(authSetupToken), authenticated: Boolean(user), user: user ? publicUser(user) : null });
       return;
     }
 
@@ -1355,6 +1538,9 @@ async function handleAuthApi(req, requestUrl, res) {
     if (req.method === "POST" && path === "/api/auth/setup") {
       if (database.prepare("SELECT COUNT(*) AS count FROM users").get().count !== 0) {
         return sendJson(res, 409, { error: "Initial setup has already been completed" });
+      }
+      if (authSetupToken && !safeStringEqual(req.headers["x-setup-token"], authSetupToken)) {
+        return sendJson(res, 403, { error: "The setup token is invalid" });
       }
       const body = await readJsonBody(req);
       if (database.prepare("SELECT COUNT(*) AS count FROM users").get().count !== 0) {
@@ -1520,6 +1706,12 @@ function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
   const derived = scryptSync(password, salt, 64).toString("hex");
   return `scrypt:${salt}:${derived}`;
+}
+
+function safeStringEqual(value, expected) {
+  const actualBuffer = Buffer.from(String(value || ""));
+  const expectedBuffer = Buffer.from(String(expected));
+  return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
 }
 
 function verifyPassword(password, stored) {
@@ -1935,7 +2127,41 @@ async function handleFleetApi(req, requestUrl, res) {
   const path = requestUrl.pathname;
 
   try {
+    if (req.method === "GET" && path === "/api/fleet/leaderboard") {
+      const date = requestUrl.searchParams.get("date") || amsterdamRaceDate();
+      const bounds = amsterdamDayBounds(date);
+      if (!bounds) return sendJson(res, 400, { error: "Use a valid date in YYYY-MM-DD format" });
+      ensureFleetLeaderboardDay(date, bounds);
+      const entries = database.prepare(`
+        SELECT b.id, b.name, b.mmsi,
+               ROUND(COALESCE(t.distance_meters, 0) / 10) / 100 AS distanceKm,
+               COALESCE(t.samples, 0) AS samples
+        FROM fleet_boats b
+        LEFT JOIN fleet_leaderboard_totals t ON t.boat_id = b.id AND t.race_date = ?
+        WHERE b.active = 1
+        ORDER BY distanceKm DESC, b.name COLLATE NOCASE
+      `).all(date);
+      const coverageUntil = Math.min(bounds.to, Date.now());
+      const expectedSlots = Math.max(1, Math.ceil((coverageUntil - bounds.from) / (5 * 60_000)));
+      const coveredSlots = Number(database.prepare("SELECT COUNT(*) AS count FROM fleet_leaderboard_coverage WHERE race_date = ? AND slot < ?")
+        .get(date, expectedSlots)?.count || 0);
+      const coveragePercent = Math.min(100, Math.round(coveredSlots / expectedSlots * 100));
+      sendJson(res, 200, {
+        date, entries, coveragePercent,
+        complete: coveragePercent >= 85,
+        calculatedAt: new Date().toISOString(),
+      }, "public, max-age=30, stale-while-revalidate=60");
+      return;
+    }
+
     if (req.method === "GET" && path === "/api/fleet/summary") {
+      const date = requestUrl.searchParams.get("date") || new Date().toISOString().slice(0, 10);
+      const cacheKey = `guest:${date}`;
+      const cached = !req.authUser ? fleetSummaryCache.get(cacheKey) : null;
+      if (cached?.expiresAt > Date.now()) {
+        sendJson(res, 200, cached.value, "public, max-age=15, s-maxage=15, stale-while-revalidate=30");
+        return;
+      }
       const boats = database.prepare(`
         SELECT b.id, b.name, b.mmsi, b.registration, b.capacity, b.notes, b.active,
                b.license_required, b.open_boat, b.length_m, b.width_m, b.boat_type,
@@ -1945,18 +2171,27 @@ async function handleFleetApi(req, requestUrl, res) {
         LEFT JOIN vessels v ON v.mmsi = b.mmsi
         WHERE b.active = 1
         ORDER BY b.name
-      `).all().map((boat) => ({
-        ...formatFleetBoat(boat),
-      }));
-      const date = requestUrl.searchParams.get("date") || new Date().toISOString().slice(0, 10);
-      const assignments = database.prepare(`
+      `).all().map((boat) => sanitizeFleetBoatForUser(formatFleetBoat(boat), req.authUser));
+      const assignments = req.authUser ? database.prepare(`
         SELECT a.*, b.name AS boat_name, b.mmsi
         FROM fleet_assignments a
         LEFT JOIN fleet_boats b ON b.id = a.boat_id
         WHERE a.service_date = ?
         ORDER BY COALESCE(a.start_time, '99:99'), b.name
-      `).all(date);
-      sendJson(res, 200, { date, boats, assignments });
+      `).all(date) : [];
+      const planning = req.authUser ? database.prepare(`
+        SELECT p.boat_id, p.boat_name, p.start_time, p.end_time, p.person_name,
+               p.role, p.event_type, p.from_location, p.to_location,
+               i.location AS group_location, b.mmsi
+        FROM planning_items p
+        JOIN planning_imports i ON i.id = p.import_id
+        LEFT JOIN fleet_boats b ON b.id = p.boat_id
+        WHERE p.service_date = ?
+        ORDER BY COALESCE(p.start_time, '99:99'), p.id
+      `).all(date) : [];
+      const summary = { date, boats, assignments, planning };
+      if (!req.authUser) fleetSummaryCache.set(cacheKey, { value: summary, expiresAt: Date.now() + 15_000 });
+      sendJson(res, 200, summary, req.authUser ? "no-store" : "public, max-age=15, s-maxage=15, stale-while-revalidate=30");
       return;
     }
 
@@ -1988,6 +2223,36 @@ async function handleFleetApi(req, requestUrl, res) {
         now,
       );
       sendJson(res, 201, getFleetBoat(result.lastInsertRowid));
+      return;
+    }
+
+    const companyMembershipMatch = path.match(/^\/api\/fleet\/company-membership\/(\d{9})$/);
+    if (companyMembershipMatch && req.method === "PUT") {
+      const mmsi = normalizeMmsi(companyMembershipMatch[1]);
+      const body = await readJsonBody(req);
+      const existing = database.prepare("SELECT id, name FROM fleet_boats WHERE mmsi = ?").get(mmsi);
+      const now = Date.now();
+
+      if (!body.included) {
+        if (existing) database.prepare("UPDATE fleet_boats SET active = 0, updated_at = ? WHERE id = ?").run(now, existing.id);
+        sendJson(res, 200, { included: false, mmsi });
+        return;
+      }
+
+      const aisName = cleanOptional(body.name);
+      if (existing) {
+        const nextName = /^AIS \d{9}$/i.test(existing.name) && aisName ? aisName : existing.name;
+        database.prepare("UPDATE fleet_boats SET name = ?, active = 1, updated_at = ? WHERE id = ?")
+          .run(nextName, now, existing.id);
+        sendJson(res, 200, { included: true, boat: getFleetBoat(existing.id) });
+        return;
+      }
+
+      const result = database.prepare(`
+        INSERT INTO fleet_boats (name, mmsi, active, created_at, updated_at)
+        VALUES (?, ?, 1, ?, ?)
+      `).run(aisName || `AIS ${mmsi}`, mmsi, now, now);
+      sendJson(res, 201, { included: true, boat: getFleetBoat(result.lastInsertRowid) });
       return;
     }
 
@@ -2099,6 +2364,88 @@ async function handleFleetApi(req, requestUrl, res) {
     if (!error.statusCode) console.error("Fleet API error", error);
     sendJson(res, error.statusCode || 500, { error: error.statusCode ? error.message : "Fleet request failed" });
   }
+}
+
+function ensureFleetLeaderboardDay(date, bounds) {
+  if (database.prepare("SELECT 1 FROM fleet_leaderboard_days WHERE race_date = ?").get(date)) return;
+  const boats = database.prepare("SELECT id, name, mmsi FROM fleet_boats WHERE active = 1 ORDER BY name").all();
+  const positions = database.prepare(`
+    SELECT p.mmsi, p.latitude, p.longitude, p.speed, p.received_at
+    FROM positions p
+    JOIN fleet_boats b ON b.mmsi = p.mmsi AND b.active = 1
+    WHERE p.received_at >= ? AND p.received_at < ?
+    ORDER BY p.mmsi, p.received_at
+  `).all(bounds.from, bounds.to);
+  const totals = calculateFleetDistances(boats, positions);
+  const lastByMmsi = new Map(positions.map((point) => [String(point.mmsi), point]));
+  const insertTotal = database.prepare(`
+    INSERT INTO fleet_leaderboard_totals
+      (race_date, boat_id, distance_meters, samples, last_latitude, last_longitude, last_speed, last_received_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  database.exec("BEGIN IMMEDIATE");
+  try {
+    database.prepare("DELETE FROM fleet_leaderboard_totals WHERE race_date = ?").run(date);
+    database.prepare("DELETE FROM fleet_leaderboard_coverage WHERE race_date = ?").run(date);
+    const now = Date.now();
+    for (const total of totals) {
+      const last = total.mmsi ? lastByMmsi.get(String(total.mmsi)) : null;
+      insertTotal.run(date, total.id, total.distanceMeters, total.samples, last?.latitude ?? null, last?.longitude ?? null,
+        last?.speed ?? null, last?.received_at ?? null, now);
+    }
+    database.prepare(`
+      INSERT OR IGNORE INTO fleet_leaderboard_coverage (race_date, slot)
+      SELECT ?, CAST((received_at - ?) / 300000 AS INTEGER)
+      FROM positions WHERE received_at >= ? AND received_at < ?
+    `).run(date, bounds.from, bounds.from, bounds.to);
+    database.prepare("INSERT INTO fleet_leaderboard_days (race_date, range_from, range_to, materialized_at) VALUES (?, ?, ?, ?)")
+      .run(date, bounds.from, bounds.to, now);
+    database.exec("COMMIT");
+    materializedLeaderboardDays.set(date, { race_date: date, range_from: bounds.from, range_to: bounds.to });
+    for (const row of database.prepare("SELECT slot FROM fleet_leaderboard_coverage WHERE race_date = ?").all(date)) {
+      leaderboardCoverageSlots.add(`${date}:${row.slot}`);
+    }
+  } catch (error) {
+    database.exec("ROLLBACK");
+    throw error;
+  }
+}
+
+function updateMaterializedFleetLeaderboard(message, receivedAt) {
+  const date = amsterdamRaceDate(receivedAt);
+  const day = materializedLeaderboardDays.get(date);
+  if (!day || receivedAt >= day.range_to) return;
+  const slot = Math.floor((receivedAt - day.range_from) / (5 * 60_000));
+  const coverageKey = `${date}:${slot}`;
+  if (!leaderboardCoverageSlots.has(coverageKey)) {
+    database.prepare("INSERT OR IGNORE INTO fleet_leaderboard_coverage (race_date, slot) VALUES (?, ?)").run(date, slot);
+    leaderboardCoverageSlots.add(coverageKey);
+  }
+  refreshFleetLeaderboardBoatIds();
+  const boatId = fleetLeaderboardBoatIds.get(String(message.mmsi));
+  if (!boatId) return;
+  const current = database.prepare("SELECT * FROM fleet_leaderboard_totals WHERE race_date = ? AND boat_id = ?").get(date, boatId);
+  const point = { latitude: message.latitude, longitude: message.longitude, speed: message.speed, received_at: receivedAt };
+  const increment = current?.last_received_at ? fleetDistanceIncrement({
+    latitude: current.last_latitude, longitude: current.last_longitude, speed: current.last_speed, received_at: current.last_received_at,
+  }, point) : 0;
+  database.prepare(`
+    INSERT INTO fleet_leaderboard_totals
+      (race_date, boat_id, distance_meters, samples, last_latitude, last_longitude, last_speed, last_received_at, updated_at)
+    VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?)
+    ON CONFLICT(race_date, boat_id) DO UPDATE SET
+      distance_meters = fleet_leaderboard_totals.distance_meters + excluded.distance_meters,
+      samples = fleet_leaderboard_totals.samples + 1,
+      last_latitude = excluded.last_latitude, last_longitude = excluded.last_longitude,
+      last_speed = excluded.last_speed, last_received_at = excluded.last_received_at, updated_at = excluded.updated_at
+  `).run(date, boatId, increment, point.latitude, point.longitude, point.speed, receivedAt, Date.now());
+}
+
+function refreshFleetLeaderboardBoatIds() {
+  if (Date.now() - fleetLeaderboardBoatIdsLoadedAt < 60_000) return;
+  fleetLeaderboardBoatIds = new Map(database.prepare("SELECT id, mmsi FROM fleet_boats WHERE active = 1 AND mmsi IS NOT NULL").all()
+    .map((boat) => [String(boat.mmsi), boat.id]));
+  fleetLeaderboardBoatIdsLoadedAt = Date.now();
 }
 
 async function handlePlanningApi(req, requestUrl, res) {
@@ -3219,6 +3566,14 @@ function formatFleetBoat(boat) {
   };
 }
 
+function sanitizeFleetBoatForUser(boat, user) {
+  if (user) return boat;
+  return {
+    ...boat,
+    notes: null,
+  };
+}
+
 function normalizePositiveDecimal(value) {
   if (value === "" || value === null || value === undefined) return null;
   const number = Number(value);
@@ -3471,11 +3826,75 @@ function normalizePositiveNumber(value) {
 }
 
 function broadcast(message) {
-  for (const client of clients) send(client, message);
+  const authenticatedOnly = message?.type === "boat-duty-update" || message?.type === "inventory-update";
+  const serialized = JSON.stringify(message);
+  for (const client of clients) {
+    if (authenticatedOnly && !client.authUserId) continue;
+    sendSerialized(client, serialized);
+  }
 }
 
 function send(client, message) {
-  if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify(message));
+  sendSerialized(client, JSON.stringify(message));
+}
+
+function sendSerialized(client, serialized) {
+  if (client.readyState !== WebSocket.OPEN) return;
+  if (client.bufferedAmount > websocketMaxBufferedBytes) {
+    serviceMetrics.websocketDroppedMessages += 1;
+    return;
+  }
+  client.send(serialized);
+}
+
+function queueAisBroadcast(message) {
+  pendingAisBroadcasts.set(`${message.type}:${message.mmsi}`, message);
+}
+
+function flushAisBroadcasts() {
+  if (!pendingAisBroadcasts.size) return;
+  const messages = [...pendingAisBroadcasts.values()];
+  pendingAisBroadcasts.clear();
+  serviceMetrics.aisBatches += 1;
+  serviceMetrics.aisMessagesBatched += messages.length;
+  broadcast({ type: "ais-batch", messages });
+}
+
+function getRequestIp(request) {
+  const cloudflareIp = String(request.headers["cf-connecting-ip"] || "").trim();
+  if (cloudflareIp) return cloudflareIp;
+  const forwarded = String(request.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  return forwarded || request.socket.remoteAddress || "unknown";
+}
+
+function applicationMetrics() {
+  const uptimeSeconds = Math.round((Date.now() - serviceMetrics.startedAt) / 1000);
+  return {
+    uptimeSeconds,
+    requests: serviceMetrics.requests,
+    serverErrors: serviceMetrics.errors,
+    averageResponseMs: serviceMetrics.requests ? Math.round(serviceMetrics.totalResponseMs / serviceMetrics.requests) : 0,
+    eventLoopDelayMs: {
+      mean: Number((eventLoopDelay.mean / 1e6).toFixed(1)),
+      maximum: Number((eventLoopDelay.max / 1e6).toFixed(1)),
+      p99: Number((eventLoopDelay.percentile(99) / 1e6).toFixed(1)),
+    },
+    memory: process.memoryUsage(),
+    websocket: {
+      active: clients.size,
+      globalLimit: websocketGlobalLimit,
+      guestPerIpLimit: websocketGuestPerIpLimit,
+      accepted: serviceMetrics.websocketAccepted,
+      rejected: serviceMetrics.websocketRejected,
+      droppedMessages: serviceMetrics.websocketDroppedMessages,
+    },
+    ais: {
+      batches: serviceMetrics.aisBatches,
+      messagesBatched: serviceMetrics.aisMessagesBatched,
+      pendingMessages: pendingAisBroadcasts.size,
+    },
+    ocr: getOcrQueueStats(),
+  };
 }
 
 function loadLocalEnv() {
@@ -3506,5 +3925,8 @@ function serveProductionFile(req, res) {
   }
 
   res.setHeader("Content-Type", mimeTypes[extname(filePath)] || "application/octet-stream");
+  res.setHeader("Cache-Control", relativePath.startsWith("assets/")
+    ? "public, max-age=31536000, immutable"
+    : "no-cache");
   createReadStream(filePath).pipe(res);
 }

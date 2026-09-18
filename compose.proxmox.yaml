@@ -1,0 +1,38 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: ${ENV_FILE:-.env.production}
+    expose:
+      - "5173"
+    volumes:
+      - boat-tracker-data:/app/data
+    networks:
+      - internal
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      BETA_DOMAIN: ${BETA_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - internal
+
+networks:
+  internal:
+
+volumes:
+  boat-tracker-data:
+  caddy-data:
+  caddy-config:

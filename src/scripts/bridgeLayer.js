@@ -11,16 +11,18 @@ export async function loadAmsterdamBridges() {
 export function createBridgeLayer(map, data, options = {}) {
   const group = L.layerGroup()
   const labels = L.layerGroup()
+  const heightMarkers = []
   const shapes = L.geoJSON(data, {
     pane: 'navigation-pane',
     style(feature) {
       const properties = feature.properties || {}
+      const unlinked = options.isLinked?.(properties) === false
       const known = hasHeight(properties)
       const waterkaartInfo = waterkaartInfoForBridge(properties)
       return {
-        color: waterkaartInfo ? '#0ea5e9' : known ? '#f59e0b' : '#64748b',
+        color: unlinked ? '#ef4444' : waterkaartInfo ? '#0ea5e9' : known ? '#f59e0b' : '#64748b',
         weight: waterkaartInfo ? 3 : 2,
-        fillColor: waterkaartInfo ? '#38bdf8' : known ? '#fbbf24' : '#94a3b8',
+        fillColor: unlinked ? '#ef4444' : waterkaartInfo ? '#38bdf8' : known ? '#fbbf24' : '#94a3b8',
         fillOpacity: waterkaartInfo ? 0.28 : known ? 0.22 : 0.12,
       }
     },
@@ -33,12 +35,12 @@ export function createBridgeLayer(map, data, options = {}) {
       layer.bindPopup(() => bridgePopup(properties, `${options.routeLinkPopupHtml?.(properties, routeLinkPoint) || ''}${options.adminObjectHtml?.(feature, routeLinkPoint) || ''}`), { maxWidth: 380 })
       layer.bindTooltip(`${bridgeTitle(properties)} · ${displayHeight(properties)}${waterkaartInfo?.vhfChannel ? ` · VHF ${waterkaartInfo.vhfChannel}` : ''}`, { sticky: true })
       if (!markerPoint || !hasHeight(properties)) return
-      L.marker(markerPoint, {
+      const marker = L.marker(markerPoint, {
         pane: 'navigation-pane',
         interactive: true,
         draggable: Boolean(options.draggablePositions),
         icon: L.divIcon({
-          className: `bridge-height-marker${waterkaartInfo ? ' bridge-height-marker--waterkaart' : ''}`,
+          className: `bridge-height-marker${waterkaartInfo ? ' bridge-height-marker--waterkaart' : ''}${options.isLinked?.(properties) === false ? ' bridge-height-marker--unlinked' : ''}`,
           html: `<span>${escapeHtml(displayHeight(properties))}${waterkaartInfo?.vhfChannel ? `<small>VHF ${escapeHtml(waterkaartInfo.vhfChannel)}</small>` : ''}</span>`,
           iconSize: waterkaartInfo ? [64, 34] : [48, 22],
           iconAnchor: waterkaartInfo ? [32, 17] : [24, 11],
@@ -47,6 +49,7 @@ export function createBridgeLayer(map, data, options = {}) {
         .on('dragend', (event) => options.onPositionDragEnd?.(properties, event.target.getLatLng()))
         .bindPopup(() => bridgePopup(properties, `${options.routeLinkPopupHtml?.(properties, markerLatLngToPoint(markerPoint)) || ''}${options.adminObjectHtml?.(feature, markerLatLngToPoint(markerPoint)) || ''}`), { maxWidth: 380 })
         .addTo(labels)
+      heightMarkers.push({ marker, properties })
     },
   }).addTo(group)
 
@@ -61,6 +64,17 @@ export function createBridgeLayer(map, data, options = {}) {
   return {
     layer: group,
     count: data.features?.length || 0,
+    refreshLinkStyles() {
+      shapes.setStyle(shapes.options.style)
+      for (const { marker, properties } of heightMarkers) {
+        const icon = marker.options.icon
+        const className = icon.options.className.replace(' bridge-height-marker--unlinked', '')
+        marker.setIcon(L.divIcon({
+          ...icon.options,
+          className: className + (options.isLinked?.(properties) === false ? ' bridge-height-marker--unlinked' : ''),
+        }))
+      }
+    },
     destroy() {
       map.off('zoomend', updateLabels)
       group.removeLayer(shapes)

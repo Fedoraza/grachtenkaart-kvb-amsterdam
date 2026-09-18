@@ -213,13 +213,11 @@ export function showUserLocation(map, options = {}) {
   let marker = null;
   let accuracyCircle = null;
   let hasCenteredOnLocation = false;
-
-  map.locate({
-    watch: true,
-    enableHighAccuracy: true,
-  });
+  let latestLatLng = null;
+  let watchId = null;
 
   const handleLocationFound = (e) => {
+    latestLatLng = e.latlng;
     if (!marker) {
       marker = L.marker(e.latlng, {
         icon: USER_LOCATION_ICON,
@@ -260,18 +258,48 @@ export function showUserLocation(map, options = {}) {
     options.onError?.(e);
   };
 
-  map.on("locationfound", handleLocationFound);
-  map.on("locationerror", handleLocationError);
+  const requestLocation = () => {
+    if (!globalThis.navigator?.geolocation) {
+      handleLocationError({ code: 0, message: "Geolocation is not supported" });
+      return false;
+    }
+
+    const locationOptions = { enableHighAccuracy: true, maximumAge: 5_000, timeout: 15_000 };
+    const onPosition = (position) => handleLocationFound({
+      latlng: L.latLng(position.coords.latitude, position.coords.longitude),
+      accuracy: position.coords.accuracy,
+      timestamp: position.timestamp,
+    });
+    const onPositionError = (error) => handleLocationError(error);
+
+    globalThis.navigator.geolocation.getCurrentPosition((position) => {
+      onPosition(position);
+      if (watchId === null) {
+        watchId = globalThis.navigator.geolocation.watchPosition(onPosition, onPositionError, locationOptions);
+      }
+    }, onPositionError, locationOptions);
+    return true;
+  };
+
+  requestLocation();
 
   return {
+    center() {
+      if (latestLatLng) {
+        map.setView(latestLatLng, Math.max(map.getZoom(), 16));
+        marker?.openPopup();
+        return true;
+      }
+      return requestLocation();
+    },
     stop() {
-      map.stopLocate();
-      map.off("locationfound", handleLocationFound);
-      map.off("locationerror", handleLocationError);
+      if (watchId !== null) globalThis.navigator?.geolocation?.clearWatch(watchId);
+      watchId = null;
       marker?.remove();
       accuracyCircle?.remove();
       marker = null;
       accuracyCircle = null;
+      latestLatLng = null;
     },
   };
 }
@@ -326,7 +354,7 @@ export async function addCanals(map, canalsData) {
 
 function loadSavedMapView() {
   try {
-    const value = JSON.parse(sessionStorage.getItem("grachtenkaart-map-view") || "null");
+    const value = JSON.parse(sessionStorage.getItem("boat-tracker-map-view") || sessionStorage.getItem("grachtenkaart-map-view") || "null");
     if (
       Array.isArray(value?.center) &&
       value.center.length === 2 &&
@@ -346,7 +374,7 @@ function persistMapView(map) {
   map.on("moveend", () => {
     const center = map.getCenter();
     sessionStorage.setItem(
-      "grachtenkaart-map-view",
+      "boat-tracker-map-view",
       JSON.stringify({
         center: [center.lat, center.lng],
         zoom: map.getZoom(),
@@ -602,8 +630,15 @@ function addOnewayDirectionArrows(map, canalsLayer) {
     if (!(featureLayer instanceof L.Polyline)) return;
     if (!isOnewayWaterway(featureLayer.feature?.properties)) return;
     if (isForbiddenWaterway(featureLayer.feature)) return;
+    if (featureLayer.feature?.properties?.closed === true) return;
 
-    onewayCanalLines.push(featureLayer);
+    if (String(featureLayer.feature?.properties?.oneway) === "-1") {
+      for (const line of getFeatureLines(featureLayer.feature)) {
+        onewayCanalLines.push([...line].reverse().map(([lon, lat]) => L.latLng(lat, lon)));
+      }
+    } else {
+      onewayCanalLines.push(featureLayer);
+    }
   });
 
   if (onewayCanalLines.length === 0) return null;
@@ -688,6 +723,7 @@ function getFeatureSegmentMidpoint(feature) {
 }
 
 function getCanalStyle(feature) {
+  if (feature?.properties?.closed === true) return { color: "#ef4444", weight: 5, opacity: 0.9, dashArray: "8 6" };
   const props = feature?.properties || {};
   const baseColor = isForbiddenWaterway(feature)
     ? WATERWAY_FORBIDDEN_COLOR
@@ -866,8 +902,9 @@ function isForbiddenWaterway(feature) {
 
 function isOnewayWaterway(properties) {
   const name = properties?.name;
-
-  // return properties?.oneway === "yes";
+  if (properties?.oneway !== undefined) {
+    return /^(?:yes|1|true|-1)$/i.test(String(properties.oneway));
+  }
 
   if (name === "Singelgracht") {
     return properties?.oneway === "yes";

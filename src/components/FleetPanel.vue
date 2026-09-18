@@ -15,6 +15,29 @@
 
       <div class="overflow-auto p-4">
         <WhatsAppSetup v-if="isAdmin" class="mb-4" />
+        <section class="mb-4 overflow-hidden rounded-2xl border border-amber-300/20 bg-amber-300/[0.06]">
+          <div class="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2.5">
+            <div><p class="m-0 text-[10px] font-bold uppercase tracking-widest text-amber-300">Dagklassement</p><strong class="text-sm">Meeste kilometers gevaren</strong></div>
+            <input v-model="leaderboardDate" type="date" class="fleet-input max-w-36" :max="todayAmsterdam" aria-label="Datum klassement" @change="loadLeaderboard" />
+          </div>
+          <div v-if="leaderboardLoading" class="px-3 py-4 text-center text-xs text-slate-400">Afstanden berekenen…</div>
+          <ol v-else-if="leaderboard.length" class="m-0 divide-y divide-white/10 p-0">
+            <li v-for="(entry, index) in leaderboard" :key="entry.id" class="grid grid-cols-[2rem_1fr_auto] items-center gap-2 px-3 py-2 text-sm">
+              <span class="flex h-6 w-6 items-center justify-center rounded-full text-xs font-black" :class="leaderboardRankStyle(index)">{{ index + 1 }}</span>
+              <span class="min-w-0 truncate font-semibold">{{ entry.name }}</span>
+              <strong class="tabular-nums text-amber-100">{{ formatLeaderboardDistance(entry.distanceKm) }}</strong>
+            </li>
+          </ol>
+          <p v-else class="m-0 px-3 py-4 text-center text-xs text-slate-400">Geen AIS-afstand voor deze dag gevonden.</p>
+          <div v-if="leaderboardCoverage !== null" class="flex items-center justify-between gap-2 border-t border-white/10 px-3 py-2 text-[11px]">
+            <span :class="leaderboardComplete ? 'text-emerald-300' : 'text-amber-200'">{{ leaderboardComplete ? 'Volledige AIS-dag' : 'Onvolledige AIS-meting' }}</span>
+            <strong class="tabular-nums" :class="leaderboardComplete ? 'text-emerald-200' : 'text-amber-100'">{{ leaderboardCoverage }}% dekking</strong>
+          </div>
+          <p v-if="leaderboardCoverage !== null && !leaderboardComplete" class="m-0 border-t border-amber-300/15 bg-amber-300/[0.06] px-3 py-2 text-[10px] leading-relaxed text-amber-100">Deze kilometerstanden zijn te laag doordat delen van de AIS-ontvangst ontbreken. Ze gelden alleen voor de gemeten perioden.</p>
+          <p v-if="leaderboardError" class="m-0 border-t border-red-300/15 px-3 py-2 text-xs text-red-200">{{ leaderboardError }}</p>
+          <p class="m-0 border-t border-white/10 px-3 py-2 text-[10px] leading-relaxed text-slate-500">Berekend uit geldige AIS-verplaatsingen en vaarsnelheid; onrealistische GPS-sprongen tellen niet mee.</p>
+          <a href="/km-leaderboard" class="block border-t border-amber-300/15 bg-amber-300/10 px-3 py-2.5 text-center text-xs font-black text-amber-200 hover:bg-amber-300/15">Open het volledige kilometertoernooi →</a>
+        </section>
         <div class="flex items-center gap-2">
           <input v-model="boatSearch" class="fleet-input flex-1" placeholder="Search by boat name, MMSI or type" />
           <button v-if="isAdmin" type="button" class="rounded-xl px-3 py-2 text-sm font-semibold" :class="fleetSettingsOpen ? 'bg-sky-500 text-white' : 'bg-white/10 text-slate-200'" @click="fleetSettingsOpen = !fleetSettingsOpen">⚙ Settings</button>
@@ -22,7 +45,18 @@
 
         <div v-if="isAdmin && fleetSettingsOpen" class="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-sky-300/20 bg-sky-400/5 p-3"><div class="min-w-0 flex-1"><strong class="block text-xs">Fleet settings</strong><span class="text-[10px] text-slate-400">Adding a boat is only needed when the fleet changes.</span></div><button type="button" class="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold hover:bg-sky-400" @click="startNewBoat">Add boat</button></div>
 
-        <div class="mt-2 grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-white/5 p-2 sm:grid-cols-5">
+        <button
+          type="button"
+          class="mt-2 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-left text-sm font-bold text-slate-100 sm:hidden"
+          :aria-expanded="filtersOpen"
+          aria-controls="fleet-filters"
+          @click="filtersOpen = !filtersOpen"
+        >
+          <span>Filters<span v-if="activeFilterCount" class="ml-2 rounded-full bg-sky-400/20 px-2 py-0.5 text-xs text-sky-200">{{ activeFilterCount }}</span></span>
+          <span aria-hidden="true" class="text-slate-400">{{ filtersOpen ? '−' : '+' }}</span>
+        </button>
+
+        <div id="fleet-filters" class="mt-2 grid-cols-2 gap-2 rounded-xl border border-white/10 bg-white/5 p-2 sm:grid sm:grid-cols-5" :class="filtersOpen ? 'grid' : 'hidden'">
           <input v-model="filters.capacity" class="fleet-input" inputmode="numeric" placeholder="Min. capacity" />
           <select v-model="filters.licence" class="fleet-input">
             <option value="">Any licence</option>
@@ -80,6 +114,11 @@
                   <span class="font-semibold" :class="aisStatusStyle(boat).text">{{ aisStatusStyle(boat).label }}</span>
                 </div>
                 <p class="m-0 mt-1 text-[10px] text-slate-500">{{ aisLastSeenLabel(boat) }}</p>
+                <dl class="mt-3 grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-black/20 p-2 text-[11px]">
+                  <div><dt class="text-slate-400">Driver</dt><dd v-if="auth.user" class="mt-0.5 font-semibold text-slate-100">{{ boatPlanningDetails(boat).driver }}</dd><dd v-else><button type="button" class="mt-0.5 text-left font-semibold text-sky-300" @click="requestPlanningLogin">Sign in to see</button></dd></div>
+                  <div><dt class="text-slate-400">Shift</dt><dd v-if="auth.user" class="mt-0.5 font-semibold text-slate-100">{{ boatPlanningDetails(boat).shift }}</dd><dd v-else><button type="button" class="mt-0.5 text-left font-semibold text-sky-300" @click="requestPlanningLogin">Sign in to see</button></dd></div>
+                  <div><dt class="text-slate-400">Location</dt><dd v-if="auth.user" class="mt-0.5 font-semibold text-slate-100">{{ boatPlanningDetails(boat).location }}</dd><dd v-else><button type="button" class="mt-0.5 text-left font-semibold text-sky-300" @click="requestPlanningLogin">Sign in to see</button></dd></div>
+                </dl>
                 <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
                   <div><dt>Type</dt><dd>{{ boat.boat_type || (boat.open_boat ? 'Open boat' : 'Covered boat') }}</dd></div>
                   <div><dt>Licence</dt><dd>{{ boat.license_required || 'Not specified' }}</dd></div>
@@ -102,7 +141,7 @@
 </template>
 
 <script setup>
-import { computed, inject, reactive, ref } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import BoatEditor from './BoatEditor.vue'
 import WhatsAppSetup from './WhatsAppSetup.vue'
 
@@ -114,13 +153,29 @@ const open = ref(false)
 const boatSearch = ref('')
 const creatingBoat = ref(false)
 const fleetSettingsOpen = ref(false)
+const filtersOpen = ref(false)
 const editingBoatId = ref(null)
-const summary = reactive({ boats: [] })
+const summary = reactive({ boats: [], planning: [] })
 const error = ref('')
+const todayAmsterdam = currentRaceDate()
+const leaderboardDate = ref(todayAmsterdam)
+const leaderboard = ref([])
+const leaderboardLoading = ref(false)
+const leaderboardError = ref('')
+const leaderboardCoverage = ref(null)
+const leaderboardComplete = ref(false)
 const filters = reactive({ capacity: '', licence: '', toilet: '', rating: '', availability: '' })
+
+function refreshFleetDirectory() {
+  loadBoats()
+}
+
+onMounted(() => window.addEventListener('fleet-directory-updated', refreshFleetDirectory))
+onBeforeUnmount(() => window.removeEventListener('fleet-directory-updated', refreshFleetDirectory))
 
 const availableLicences = computed(() => [...new Set(summary.boats.map((boat) => boat.license_required).filter(Boolean))].sort())
 const hasActiveFilters = computed(() => Object.values(filters).some(Boolean))
+const activeFilterCount = computed(() => Object.values(filters).filter(Boolean).length)
 
 const filteredBoats = computed(() => {
   const query = boatSearch.value.trim().toLowerCase()
@@ -152,14 +207,70 @@ async function loadBoats() {
   try {
     const data = await request('/api/fleet/summary')
     summary.boats = data.boats
+    summary.planning = Array.isArray(data.planning) ? data.planning : []
   } catch (requestError) {
     error.value = requestError.message
   }
 }
 
+async function loadLeaderboard() {
+  leaderboardLoading.value = true
+  leaderboardError.value = ''
+  leaderboardCoverage.value = null
+  try {
+    const data = await request(`/api/fleet/leaderboard?date=${encodeURIComponent(leaderboardDate.value)}`)
+    leaderboard.value = Array.isArray(data.entries) ? data.entries.filter((entry) => Number(entry.distanceKm) > 0) : []
+    leaderboardCoverage.value = Number.isFinite(Number(data.coveragePercent)) ? Number(data.coveragePercent) : null
+    leaderboardComplete.value = Boolean(data.complete)
+  } catch (requestError) {
+    leaderboardError.value = requestError.message
+  } finally {
+    leaderboardLoading.value = false
+  }
+}
+
+function requestPlanningLogin() {
+  auth.requireLogin('Sign in to see drivers, shifts and locations.')
+}
+
+function boatPlanningDetails(boat) {
+  const rows = summary.planning.filter((item) => Number(item.boat_id) === Number(boat.id)
+    || (boat.mmsi && String(item.mmsi || '') === String(boat.mmsi)))
+  const drivers = [...new Set(rows.filter((item) => ['driver', 'skipper'].includes(String(item.role || '').toLowerCase())).map((item) => item.person_name).filter(Boolean))]
+  const starts = rows.map((item) => item.start_time).filter(Boolean).sort()
+  const ends = rows.map((item) => item.end_time).filter(Boolean).sort()
+  const locations = [...new Set(rows.flatMap((item) => [item.group_location, item.from_location, item.to_location]).filter(Boolean))]
+  return {
+    driver: drivers.join(', ') || 'Not assigned',
+    shift: starts.length ? `${starts[0]}${ends.length ? `–${ends.at(-1)}` : ''}` : 'Not scheduled',
+    location: locations.join(' → ') || 'Not set',
+  }
+}
+
 async function openPanel() {
   open.value = true
-  await loadBoats()
+  await Promise.all([loadBoats(), loadLeaderboard()])
+}
+
+function formatLeaderboardDistance(distanceKm) {
+  return `${Number(distanceKm || 0).toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} km`
+}
+
+function leaderboardRankStyle(index) {
+  if (index === 0) return 'bg-amber-300 text-amber-950'
+  if (index === 1) return 'bg-slate-300 text-slate-900'
+  if (index === 2) return 'bg-orange-700 text-orange-100'
+  return 'bg-white/10 text-slate-300'
+}
+
+function currentRaceDate() {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' }).formatToParts(new Date())
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  const date = `${values.year}-${values.month}-${values.day}`
+  if (Number(values.hour) >= 2) return date
+  const previous = new Date(`${date}T12:00:00Z`)
+  previous.setUTCDate(previous.getUTCDate() - 1)
+  return previous.toISOString().slice(0, 10)
 }
 
 function startNewBoat() {

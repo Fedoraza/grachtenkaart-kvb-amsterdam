@@ -1,55 +1,84 @@
 <template>
-  <div class="map-shell" :class="mobileMapInteractionActive && 'map-interaction-active'">
-    <AccountMenu />
-    <BoatDutyPanel />
-    <InventoryPanel />
-    <PlanningPanel @show-boat="focusPlanningBoatOnMap" @show-tour-route="showPlanningTourRoute" @schedule-updated="loadTodayPlanning" />
+  <div class="map-shell" :class="{ 'map-shell--guest': !auth.user, 'map-interaction-active': mobileMapInteractionActive, 'route-placement-active': Boolean(routeMode) }">
+    <div v-if="!auth.user" class="guest-sign-in-control mobile-nav-item mobile-nav-account pointer-events-none absolute bottom-3 left-3 z-[1600]">
+      <button type="button" class="mobile-nav-button pointer-events-auto rounded-2xl border border-white/20 bg-slate-950/90 px-4 py-3 text-sm font-bold text-white shadow-xl" @click="auth.requireLogin('Sign in to access your account.')">Sign in</button>
+    </div>
+    <AccountMenu v-if="auth.user" />
+    <BoatDutyPanel v-if="auth.user" />
+    <InventoryPanel v-if="auth.user" />
+    <PlanningPanel v-if="auth.user" @show-boat="focusPlanningBoatOnMap" @show-tour-route="showPlanningTourRoute" @schedule-updated="loadTodayPlanning" />
     <FleetPanel @show-on-map="focusFleetBoatOnMap" />
     <div v-if="isAdmin && mapObjectEditor" class="map-editor-panel pointer-events-none absolute right-3 top-3 z-[1260] w-[min(23rem,calc(100vw-1.5rem))] sm:right-4 sm:top-4">
       <form class="pointer-events-auto grid max-h-[88vh] gap-2 overflow-auto rounded-2xl border border-emerald-300/35 bg-slate-950/95 p-3 text-xs text-white shadow-2xl" @submit.prevent="saveMapObject">
-        <div class="flex items-start justify-between"><div><span class="text-[10px] font-black uppercase tracking-wider text-emerald-300">Kaartobject beheren</span><strong class="block text-sm">{{ navigationFilterName(mapObjectEditor.layer) }}</strong></div><button type="button" class="rounded bg-white/10 px-2 py-1 text-lg" @click="closeMapObjectEditor">×</button></div>
-        <div class="grid gap-2" :class="mapObjectEditor.reportingLocation ? '' : 'grid-cols-2'"><label class="grid gap-1 text-[10px] text-slate-400">Naam<input v-model.trim="mapObjectEditor.name" class="rounded bg-slate-900 px-2 py-2 text-white" /></label><label v-if="!mapObjectEditor.reportingLocation" class="grid gap-1 text-[10px] text-slate-400">Nummer / code<input v-model.trim="mapObjectEditor.number" class="rounded bg-slate-900 px-2 py-2 text-white" /></label></div>
-        <label v-if="!mapObjectEditor.reportingLocation" class="grid gap-1 text-[10px] text-slate-400">Type<input v-model.trim="mapObjectEditor.type" class="rounded bg-slate-900 px-2 py-2 text-white" /></label>
-        <label v-if="!mapObjectEditor.reportingLocation" class="grid gap-1 text-[10px] text-slate-400">Omschrijving / melding<textarea v-model.trim="mapObjectEditor.description" class="min-h-20 rounded bg-slate-900 px-2 py-2 text-white"></textarea></label>
-        <label v-if="mapObjectEditor.layer === 'reporting-points' && !mapObjectEditor.reportingLocation" class="grid gap-1 text-[10px] text-slate-400">Aanvaarrichting<select v-model.number="mapObjectEditor.bearing" class="rounded bg-slate-900 px-2 py-2 text-white"><option v-for="bearing in [0,45,90,135,180,225,270,315]" :key="bearing" :value="bearing">{{ compassDirection(bearing) }} · {{ bearing }}°</option></select></label>
-        <div class="grid grid-cols-2 gap-2"><label class="grid gap-1 text-[10px] text-slate-400">Latitude<input v-model.trim="mapObjectEditor.latitude" type="text" inputmode="decimal" class="rounded bg-slate-900 px-2 py-2 text-white" placeholder="52.370216" /></label><label class="grid gap-1 text-[10px] text-slate-400">Longitude<input v-model.trim="mapObjectEditor.longitude" type="text" inputmode="decimal" class="rounded bg-slate-900 px-2 py-2 text-white" placeholder="4.895168" /></label></div>
-        <button type="button" class="rounded-lg bg-sky-400/20 px-3 py-2 font-bold text-sky-100" @click="startMapObjectPlacement">Kies positie op kaart</button>
+        <div class="flex items-start justify-between"><div><span class="text-[10px] font-black uppercase tracking-wider text-emerald-300">{{ mapObjectEditor.layer === 'reporting-points' ? 'Marifoonpunt instellen' : 'Kaartobject beheren' }}</span><strong class="block text-sm">{{ navigationFilterName(mapObjectEditor.layer) }}</strong></div><button type="button" class="rounded bg-white/10 px-2 py-1 text-lg" @click="closeMapObjectEditor">×</button></div>
+        <p v-if="mapObjectEditor.layer === 'reporting-points' && !mapObjectEditor.reportingLocation" class="m-0 rounded-lg bg-sky-400/10 p-2 text-sky-100"><strong class="block">Stap 1 · Plaats het punt</strong>Kies de kruising of bocht op de kaart. Na opslaan teken je per aankomstrichting rechtdoor of een afslag.</p>
+        <div class="grid gap-2" :class="mapObjectEditor.reportingLocation ? '' : 'grid-cols-2'"><label class="grid gap-1 text-[10px] text-slate-400">{{ mapObjectEditor.layer === 'reporting-points' ? 'Locatie / kruising' : 'Naam' }}<input v-model.trim="mapObjectEditor.name" class="rounded bg-slate-900 px-2 py-2 text-white" :placeholder="mapObjectEditor.layer === 'reporting-points' ? 'Bijv. Herengracht / Reguliersgracht' : ''" /></label><label v-if="!mapObjectEditor.reportingLocation" class="grid gap-1 text-[10px] text-slate-400">{{ mapObjectEditor.layer === 'reporting-points' ? 'Uniek nummer' : 'Nummer / code' }}<input v-model.trim="mapObjectEditor.number" class="rounded bg-slate-900 px-2 py-2 text-white" /></label></div>
+        <label v-if="!mapObjectEditor.reportingLocation && mapObjectEditor.layer !== 'reporting-points'" class="grid gap-1 text-[10px] text-slate-400">Type<input v-model.trim="mapObjectEditor.type" class="rounded bg-slate-900 px-2 py-2 text-white" /></label>
+        <label v-if="!mapObjectEditor.reportingLocation && mapObjectEditor.layer !== 'reporting-points'" class="grid gap-1 text-[10px] text-slate-400">Omschrijving / melding<textarea v-model.trim="mapObjectEditor.description" class="min-h-20 rounded bg-slate-900 px-2 py-2 text-white"></textarea></label>
+        <div v-if="mapObjectEditor.layer !== 'routing-lines'" class="grid grid-cols-2 gap-2"><label class="grid gap-1 text-[10px] text-slate-400">Latitude<input v-model.trim="mapObjectEditor.latitude" type="text" inputmode="decimal" class="rounded bg-slate-900 px-2 py-2 text-white" placeholder="52.370216" /></label><label class="grid gap-1 text-[10px] text-slate-400">Longitude<input v-model.trim="mapObjectEditor.longitude" type="text" inputmode="decimal" class="rounded bg-slate-900 px-2 py-2 text-white" placeholder="4.895168" /></label></div>
+        <button v-if="!['routing-lines', 'closures'].includes(mapObjectEditor.layer) || !mapObjectEditor.feature?.geometry || mapObjectEditor.feature.geometry.type === 'Point'" type="button" class="rounded-lg bg-sky-400/20 px-3 py-2 font-bold text-sky-100" @click="startMapObjectPlacement">{{ mapObjectEditor.layer === 'reporting-points' ? 'Punt op de kaart plaatsen' : 'Kies positie op kaart' }}</button>
         <p v-if="mapObjectPlacement" class="m-0 rounded bg-sky-950 px-2 py-2 text-sky-100">Klik nu de nieuwe positie op de kaart.</p>
-        <div class="grid grid-cols-2 gap-2"><button type="submit" class="rounded-lg bg-emerald-500 px-3 py-2 font-black">Opslaan voor iedereen</button><button v-if="mapObjectEditor.objectKey || mapObjectEditor.reportingLocation" type="button" class="rounded-lg bg-red-500/20 px-3 py-2 font-bold text-red-100" @click="deleteMapObject">{{ mapObjectEditor.reportingLocation ? 'Punt en meldingen verwijderen' : 'Verwijderen' }}</button></div>
+        <div v-if="mapObjectEditor.layer === 'routing-lines'" class="grid gap-2 rounded-lg bg-white/5 p-2">
+          <label class="flex items-center gap-2"><input v-model="mapObjectEditor.closed" type="checkbox" /> Blijvend afgesloten · niet gebruiken voor routes</label>
+          <label class="grid gap-1">Maximumsnelheid (km/u)<input v-model.number="mapObjectEditor.maxspeed" type="number" min="1" max="100" class="rounded bg-slate-900 p-2" /></label>
+          <label class="grid gap-1">Vaarrichting<select v-model="mapObjectEditor.oneway" class="rounded bg-slate-900 p-2"><option value="no">Beide richtingen</option><option value="yes">Alleen met de getekende lijn mee</option><option value="-1">Alleen tegen de getekende lijn in</option></select></label>
+          <button type="button" class="rounded bg-sky-500/20 p-2" @click="editWaterwayGeometry">Ligging aanpassen: sleep de punten op de kaart</button>
+          <button type="button" class="rounded bg-rose-500/20 p-2" @click="addClosureForWaterway(mapObjectEditor.feature)">Tijdelijke stremming op deze lijn toevoegen</button>
+        </div>
+        <div v-if="mapObjectEditor.layer === 'closures'" class="grid gap-2 rounded-lg bg-rose-500/10 p-2">
+          <p class="m-0">Deze stremming wordt door de routeplanner vermeden. Zonder eindtijd blijft hij actief totdat je hem verwijdert.</p>
+          <label class="grid gap-1">Begint (lokale tijd)<input v-model="mapObjectEditor.start" type="datetime-local" class="rounded bg-slate-900 p-2" /></label>
+          <label class="grid gap-1">Eindigt (optioneel)<input v-model="mapObjectEditor.end" type="datetime-local" class="rounded bg-slate-900 p-2" /></label>
+          <p v-if="mapObjectEditor.feature?.geometry?.type === 'LineString'" class="m-0">Geldt voor de hele geselecteerde lijn.</p>
+        </div>
+        <div v-if="mapObjectEditor.reportingLocation" class="grid gap-2 rounded-lg border border-rose-300/20 bg-rose-400/10 p-2">
+          <div class="flex items-center justify-between gap-2"><div><strong class="block text-rose-100">Meldingsnummers op dit punt</strong><span class="text-[10px] text-slate-300">Ieder nummer kan eigen vaarbewegingen en meldteksten hebben.</span></div><button type="button" class="rounded-lg bg-rose-500 px-2 py-2 font-bold" @click="addReportingCallToEditor">+ Nummer</button></div>
+          <div v-for="(call, index) in mapObjectEditor.calls" :key="call._editorId || call._mapObjectKey || index" class="grid grid-cols-[1fr_auto] items-end gap-2 rounded-lg bg-slate-950/60 p-2">
+            <label class="grid gap-1 text-[10px] text-slate-400">Meldingsnummer<input v-model.trim="call.number" class="rounded bg-slate-900 px-2 py-2 text-white" /></label>
+            <button type="button" class="min-h-10 rounded bg-red-500/20 px-2 text-red-100" @click="removeReportingCallFromEditor(index)">Verwijder</button>
+            <span class="col-span-2 text-[10px] text-slate-400">{{ call.movementRules?.length || 0 }} ingestelde vaarbewegingen</span>
+          </div>
+          <p v-if="!mapObjectEditor.calls.length" class="m-0 rounded bg-amber-400/10 p-2 text-amber-100">Voeg minimaal één meldingsnummer toe.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-2"><button type="submit" class="rounded-lg bg-emerald-500 px-3 py-2 font-black">Opslaan voor iedereen</button><button v-if="mapObjectEditor.layer !== 'routing-lines' && (mapObjectEditor.objectKey || mapObjectEditor.reportingLocation)" type="button" class="rounded-lg bg-red-500/20 px-3 py-2 font-bold text-red-100" @click="deleteMapObject">{{ mapObjectEditor.reportingLocation ? 'Punt en meldingen verwijderen' : 'Verwijderen' }}</button></div>
         <p v-if="mapObjectError" class="m-0 rounded bg-red-950 px-2 py-2 text-red-100">{{ mapObjectError }}</p>
       </form>
     </div>
-    <div v-if="isAdmin && selectedRouteLinkItem" class="route-link-editor-panel pointer-events-none absolute right-3 top-3 z-[1250] w-[min(22rem,calc(100vw-1.5rem))] sm:right-4 sm:top-4">
-      <div class="pointer-events-auto grid gap-3 rounded-2xl border border-sky-300/40 bg-slate-950/95 p-3 text-xs text-white shadow-2xl backdrop-blur-md">
+    <div v-if="isAdmin && selectedRouteLinkItem" v-show="!reportingPassagePick" class="route-link-editor-panel pointer-events-none absolute right-3 top-3 z-[1250] w-[min(22rem,calc(100vw-1.5rem))] sm:right-4 sm:top-4">
+      <div class="pointer-events-auto grid max-h-[85dvh] gap-3 overflow-y-auto rounded-2xl border border-sky-300/40 bg-slate-950/95 p-3 text-xs text-white shadow-2xl backdrop-blur-md">
         <div class="flex items-start justify-between gap-3">
           <div><span class="block text-[10px] font-black uppercase tracking-wider text-sky-300">{{ selectedRouteLinkItem.kind === 'bridge' ? 'Brug koppelen' : 'Marifoonpunt koppelen' }}</span><strong class="mt-1 block text-sm">{{ routeLinkItemLabel(selectedRouteLinkItem) }}</strong><span class="mt-0.5 block text-[11px] text-slate-400">{{ selectedRouteLinkItem.linkedNames || 'Nog niet aan een blauwe vaarlijn gekoppeld' }}</span></div>
           <button type="button" class="rounded-lg bg-white/10 px-2 py-1 text-lg leading-none hover:bg-white/20" aria-label="Koppelvenster sluiten" @click="cancelRouteLinkSelection">×</button>
         </div>
-        <p class="m-0 rounded-lg bg-sky-400/10 px-2 py-2 text-[11px] text-sky-100">Het punt blijft op zijn vaste plek staan. Kies hoe je het met het blauwe vaarwegnetwerk wilt verbinden.</p>
-        <div class="grid grid-cols-2 gap-2">
+        <p v-if="selectedRouteLinkItem.kind === 'bridge'" class="m-0 rounded-lg bg-sky-400/10 px-2 py-2 text-[11px] text-sky-100">Het punt blijft op zijn vaste plek staan. Kies hoe je het met het blauwe vaarwegnetwerk wilt verbinden.</p>
+        <div v-if="selectedRouteLinkItem.kind === 'bridge'" class="grid grid-cols-2 gap-2">
           <button type="button" class="rounded-xl bg-sky-500 px-3 py-2.5 font-black text-white hover:bg-sky-400" @click="startSelectedRouteLinkPick">Klik blauwe lijn</button>
           <button type="button" class="rounded-xl bg-amber-400/20 px-3 py-2.5 font-black text-amber-100 hover:bg-amber-400/30" @click="startSelectedRouteLinkDrag">Sleep naar lijn</button>
         </div>
         <div v-if="selectedRouteLinkItem.kind === 'reporting'" class="grid gap-2 rounded-xl border border-rose-300/20 bg-rose-400/10 p-2">
-          <strong class="text-[10px] uppercase tracking-wider text-rose-200">Melding per aanvaarrichting</strong>
-          <label class="grid gap-1 text-[10px] text-slate-300">Vaarrichting bij het meldpunt
-            <select v-model.number="selectedRouteLinkItem.bearing" class="rounded-lg bg-slate-900 px-2 py-2 text-xs text-white">
-              <option :value="0">Noord (0°)</option><option :value="45">Noordoost (45°)</option><option :value="90">Oost (90°)</option><option :value="135">Zuidoost (135°)</option><option :value="180">Zuid (180°)</option><option :value="225">Zuidwest (225°)</option><option :value="270">West (270°)</option><option :value="315">Noordwest (315°)</option>
-            </select>
-          </label>
-          <label class="grid gap-1 text-[10px] text-slate-300">Wat moet de schipper zeggen?
-            <textarea v-model.trim="selectedRouteLinkItem.call" class="min-h-16 rounded-lg bg-slate-900 px-2 py-2 text-xs text-white" placeholder="Bijvoorbeeld: Grachtenboot richting oost, verzoek doorvaart"></textarea>
-          </label>
-          <p class="m-0 text-[10px] text-slate-300">Deze melding wordt gebruikt wanneer de route binnen 45° van deze vaarrichting langs het punt loopt.</p>
-          <button type="button" class="rounded-lg bg-white/10 px-3 py-2 font-bold text-rose-100 hover:bg-white/15" :class="reportingBearingPlacement ? 'ring-2 ring-rose-300' : ''" @click="startReportingBearingPlacement">{{ reportingBearingPlacement ? 'Klik nu de richting op de kaart…' : 'Kies richting met pijl op kaart' }}</button>
-          <button type="button" class="rounded-lg bg-rose-500 px-3 py-2 font-black text-white hover:bg-rose-400" @click="saveReportingDirectionSettings">Richting en melding opslaan</button>
+          <strong class="text-[10px] uppercase tracking-wider text-rose-200">Van welke kant komt de boot?</strong>
+          <p class="m-0 text-xs text-slate-300">Kies twee plekken op de blauwe lijnen: vóór en na het meldpunt. Ook twee kanten van dezelfde gracht krijgen zo hun eigen melding.</p>
+          <p v-if="!selectedRouteLinkItem.movementRules?.length" class="m-0 rounded-lg bg-white/5 p-2">Nog geen vaarbeweging ingesteld. Voeg er één toe en wijs beide kanten aan op de kaart.</p>
+          <div v-for="(rule, index) in selectedRouteLinkItem.movementRules" :key="index" class="grid gap-2 rounded-lg border bg-slate-950/60 p-2" :class="reportingPreviewIndex === index ? 'border-sky-300' : 'border-white/15'">
+            <div class="flex items-center justify-between"><button type="button" class="font-bold text-sky-200" @click="previewReportingMovement(index)">Vaarbeweging {{ index + 1 }} · {{ reportingManeuverLabel(rule) }}</button><button type="button" class="rounded bg-red-500/20 px-2 py-1 text-red-200" @click="removeReportingMovementRule(index)">Verwijderen</button></div>
+            <p v-if="rule.kind !== 'map-passage'" class="m-0 text-amber-200">Oude instelling. Wijs beide kanten op de kaart aan om deze om te zetten.</p>
+            <button type="button" class="min-h-11 rounded-lg border border-emerald-300/30 bg-emerald-400/10 p-2 text-left" @click="startReportingPassagePick(index, 'from')"><strong class="block text-emerald-200">1 · Boot komt vanaf</strong><span>{{ rule.from?.lineName || 'Klik deze kant op de kaart' }}</span></button>
+            <button type="button" class="min-h-11 rounded-lg border border-sky-300/30 bg-sky-400/10 p-2 text-left" @click="startReportingPassagePick(index, 'to')"><strong class="block text-sky-200">2 · Boot vaart naar</strong><span>{{ rule.to?.lineName || 'Klik de vervolglijn of de overkant' }}</span></button>
+            <label class="grid gap-1">3 · Soort beweging<select v-model="rule.maneuver" class="rounded bg-slate-900 p-2"><option value="straight">Rechtdoor / kruisen</option><option value="left">Linksaf</option><option value="right">Rechtsaf</option><option value="uturn">Keren</option></select></label>
+            <label class="grid gap-1">4 · Wat meldt de schipper?<textarea v-model.trim="rule.call" class="min-h-16 rounded bg-slate-900 p-2" placeholder="Bijv. Herengracht, linksaf de Reguliersgracht op"></textarea></label>
+            <div class="grid grid-cols-2 gap-1.5"><button type="button" class="rounded bg-sky-400/10 px-2 py-2 text-left disabled:opacity-40" :disabled="!rule.from" @click="addReportingAlternative(index)">+ Afslag vanaf deze kant</button><button type="button" class="rounded bg-white/10 px-2 py-2 text-left disabled:opacity-40" :disabled="!rule.from || !rule.to" @click="reverseReportingMovement(index)">+ Tegengestelde richting</button></div>
+          </div>
+          <button type="button" class="rounded-lg bg-white/10 px-3 py-2 font-bold" @click="addReportingMovementRule">+ Vaarbeweging op kaart toevoegen</button>
+          <button type="button" class="rounded-lg bg-rose-500 px-3 py-2 font-black disabled:opacity-40" :disabled="reportingRulesSaving || Boolean(reportingPassagePick)" @click="saveReportingMovementRules">{{ reportingRulesSaving ? 'Opslaan…' : 'Vaarbewegingen en meldingen opslaan' }}</button>
+          <p class="m-0 text-[10px] text-slate-300">Groen is de aankomstkant, blauw is de vervolgrichting. De route moet ze in deze volgorde passeren. Sleep de labels om de plekken te wijzigen.</p>
         </div>
         <button v-if="selectedRouteLinkHasOverride" type="button" class="rounded-lg bg-white/10 px-3 py-2 text-left font-bold text-slate-200 hover:bg-white/15" @click="resetSelectedRouteLink">Verwijder koppeling</button>
         <p v-if="routeLinkMapStatus" class="m-0 rounded-lg bg-slate-900 px-2 py-2 text-[11px] text-sky-100">{{ routeLinkMapStatus }}</p>
       </div>
     </div>
-    <div class="mobile-map-tools pointer-events-none absolute bottom-24 left-3 z-[1180] sm:left-4">
-      <div class="mobile-map-tools-inner pointer-events-auto grid w-72 gap-2 text-white" :class="{ 'mobile-map-tools-expanded': routePlannerOpen || navigationLayersOpen, 'route-tools-open': routePlannerOpen, 'map-filters-open': navigationLayersOpen }">
+    <WaterLevelCard v-if="!mobileMapInteractionActive" />
+    <div v-if="!selectedVessel && selectedRouteLinkItem?.kind !== 'reporting'" class="mobile-map-tools pointer-events-none absolute bottom-24 left-3 z-[1180] sm:left-4">
+      <div class="mobile-map-tools-inner pointer-events-none grid w-72 gap-2 text-white" :class="{ 'mobile-map-tools-expanded': routePlannerOpen || navigationLayersOpen, 'route-tools-open': routePlannerOpen, 'map-filters-open': navigationLayersOpen }">
       <div class="route-tools-panel rounded-2xl border border-white/15 bg-slate-950/90 p-2 shadow-xl backdrop-blur-md">
         <button type="button" class="flex w-full items-center justify-between rounded-xl px-2 py-2 text-xs font-black hover:bg-white/10" @click="routePlannerOpen = !routePlannerOpen"><span>Route plannen</span><span>{{ routePlannerOpen ? '−' : '+' }}</span></button>
         <div v-if="routePlannerOpen" class="mt-1 max-h-[58vh] overflow-auto border-t border-white/10 pt-2 text-xs">
@@ -78,11 +107,12 @@
             <button type="button" class="rounded-lg border border-white/10 px-2 py-1.5 font-bold hover:bg-white/10" :class="routeMode === 'waypoint' ? 'bg-cyan-400/25 text-cyan-100' : 'bg-white/5'" @click="setRouteMode('waypoint')">+ Punt</button>
             <button type="button" class="rounded-lg border border-white/10 px-2 py-1.5 font-bold hover:bg-white/10" :class="routeMode === 'end' ? 'bg-cyan-400/25 text-cyan-100' : 'bg-white/5'" @click="setRouteMode('end')">Klik eind</button>
           </div>
+          <p v-if="routeMode" role="status" class="mt-2 rounded-lg bg-cyan-400/15 p-2 text-cyan-100">Klik op de kaart voor {{ routeMode === 'start' ? 'het startpunt' : 'het nieuwe eindpunt' }}. <button type="button" class="underline" @click="routeMode = null">Annuleren</button></p>
           <div class="mt-2 grid grid-cols-2 gap-1.5">
             <button type="button" class="rounded-lg bg-emerald-400/15 px-2 py-1.5 font-bold text-emerald-100 hover:bg-emerald-400/25" @click="setRouteStartFromUserLocation">Start mijn locatie</button>
-            <button type="button" class="rounded-lg bg-orange-400/15 px-2 py-1.5 font-bold text-orange-100 hover:bg-orange-400/25 disabled:cursor-not-allowed disabled:opacity-40" :disabled="!routeStartVessel" @click="setRouteStartFromSelectedVessel">{{ routeStartVessel ? `Start ${routeStartVesselLabel}` : 'Klik eerst AIS boot' }}</button>
+            <button v-if="auth.user" type="button" class="rounded-lg bg-orange-400/15 px-2 py-1.5 font-bold text-orange-100 hover:bg-orange-400/25 disabled:cursor-not-allowed disabled:opacity-40" :disabled="!routeStartVessel" @click="setRouteStartFromSelectedVessel">{{ routeStartVessel ? `Start ${routeStartVesselLabel}` : 'Klik eerst AIS boot' }}</button>
           </div>
-          <p class="m-0 mt-1 text-[10px] text-slate-400">Voor AIS-start: klik een boot op de kaart. Daarna blijft die boot hier beschikbaar als startpunt.</p>
+          <p v-if="auth.user" class="m-0 mt-1 text-[10px] text-slate-400">Voor AIS-start: klik een boot op de kaart. Daarna blijft die boot hier beschikbaar als startpunt.</p>
           <div class="mt-2 grid grid-cols-[1fr_auto] gap-1.5 rounded-xl bg-cyan-400/10 p-2">
             <label class="flex items-center justify-between gap-2 text-[11px] text-cyan-100">Rondje binnen
               <select v-model.number="routeLoopMinutes" class="rounded bg-slate-900 px-1.5 py-1 text-xs text-white">
@@ -103,13 +133,7 @@
               <button type="button" class="rounded px-1 text-red-200 hover:bg-red-400/20" @click="removeRoutePoint(index)">×</button>
             </div>
             <p v-if="!routePoints.length" class="m-0 text-[11px] text-slate-400">Zoek een adres of klik start/eind op de kaart.</p>
-            <div class="grid grid-cols-[1fr_auto] items-end gap-1.5">
-              <label class="grid gap-1 text-[10px] text-slate-400">Snelheid<input v-model.number="routeSpeedValue" class="rounded bg-slate-900 px-1.5 py-1 text-xs text-white" type="number" min="0.5" step="0.1" /></label>
-              <select v-model="routeSpeedUnit" class="rounded bg-slate-900 px-1.5 py-1 text-xs text-white">
-                <option value="kmh">km/u</option>
-                <option value="knots">knopen</option>
-              </select>
-            </div>
+            <label class="grid gap-1 text-[10px] text-slate-400">Snelheid (km/u)<input v-model.number="routeSpeedValue" class="rounded bg-slate-900 px-1.5 py-1 text-xs text-white" type="number" min="1" step="0.1" /></label>
             <div class="grid grid-cols-3 gap-1.5">
               <label class="grid gap-1 text-[10px] text-slate-400">Hoogte m<input v-model.number="routeBoatProfile.heightMeters" class="rounded bg-slate-900 px-1.5 py-1 text-xs text-white" type="number" min="0" step="0.05" placeholder="bv 1.65" /></label>
               <label class="grid gap-1 text-[10px] text-slate-400">Breedte m<input v-model.number="routeBoatProfile.widthMeters" class="rounded bg-slate-900 px-1.5 py-1 text-xs text-white" type="number" min="0" step="0.05" placeholder="bv 2.2" /></label>
@@ -125,8 +149,7 @@
           <div v-if="['ok', 'partial'].includes(routeResult?.status)" class="mt-2 grid grid-cols-2 gap-1.5">
             <div class="rounded-lg bg-white/5 p-2"><span class="block text-[10px] uppercase text-slate-400">Afstand</span><strong>{{ formatRouteDistance(routeResult.distanceMeters) }}</strong></div>
             <div class="rounded-lg bg-white/5 p-2"><span class="block text-[10px] uppercase text-slate-400">Vaartijd</span><strong>{{ formatRouteDuration(routeResult.durationMinutes) }}</strong></div>
-            <div class="rounded-lg bg-white/5 p-2"><span class="block text-[10px] uppercase text-slate-400">Snelheid</span><strong>{{ formatRouteSpeed(routeResult.speedKnots) }}</strong></div>
-            <div class="rounded-lg bg-white/5 p-2"><span class="block text-[10px] uppercase text-slate-400">Drukte</span><strong>{{ routeResult.trafficLevel }}<span v-if="routeResult.trafficDelayMinutes"> +{{ routeResult.trafficDelayMinutes }} min</span></strong></div>
+            <div class="rounded-lg bg-white/5 p-2"><span class="block text-[10px] uppercase text-slate-400">Snelheid</span><strong>{{ formatRouteSpeed(routeResult.speedKmh) }}</strong></div>
           </div>
           <p v-if="routeResult?.status === 'partial'" class="m-0 mt-1.5 rounded-lg bg-amber-400/10 px-2 py-1.5 text-[10px] text-amber-100">Laatste stuk naar bestemming: {{ formatRouteDistance(routeResult.partialRoute.distanceToTargetMeters) }} buiten verbonden vaarwater.</p>
           <div v-if="routeResult?.warnings?.length" class="mt-2 rounded-xl bg-amber-400/10 p-2 text-[10px] text-amber-100">
@@ -165,7 +188,7 @@
             <ol v-else class="m-0 mt-1 grid max-h-40 gap-1 overflow-auto p-0">
               <li v-for="point in routeReportingItems.slice(0, 12)" :key="`${point.number}-${point.name}`" class="grid grid-cols-[auto_1fr] gap-2 rounded bg-white/5 px-2 py-1">
                 <span class="text-slate-400">{{ point.number }}</span>
-                <span class="min-w-0 truncate"><span v-if="point.direction" class="text-slate-400">{{ point.direction }} · </span>{{ point.call }}</span>
+                <span class="min-w-0 truncate">{{ point.call }}</span>
               </li>
               <li v-if="!routeReportingLoading && !routeReportingItems.length" class="rounded bg-white/5 px-2 py-1 text-[10px] text-slate-400">Geen meldpunten in deze vaarrichting gevonden.</li>
             </ol>
@@ -195,15 +218,19 @@
               </div>
             </div>
           </div>
-          <p v-if="routeResult?.trafficVesselCount" class="m-0 mt-1.5 text-[10px] text-cyan-100">Drukte voorspelling gebruikt {{ routeResult.trafficVesselCount }} live AIS boot{{ routeResult.trafficVesselCount === 1 ? '' : 'en' }} dicht bij de route.</p>
           <p v-if="routeResult?.virtualSegmentCount" class="m-0 mt-1.5 text-[10px] text-amber-200">{{ routeResult.virtualSegmentCount }} korte netwerkverbinding{{ routeResult.virtualSegmentCount === 1 ? '' : 'en' }} gebruikt bij ontbrekende kaartdata.</p>
-          <p v-if="routeClosurePoints.length" class="m-0 mt-1.5 text-[10px] text-amber-200">Routeplanning vermijdt {{ routeClosurePoints.length }} scheepvaartbeperking{{ routeClosurePoints.length === 1 ? '' : 'en' }}.</p>
+          <p v-if="waterwayLoadError" role="status" class="m-0 mt-2 text-xs text-amber-200">{{ waterwayLoadError }}</p>
+          <p v-if="routeClosureLoading" class="m-0 mt-2 text-xs text-sky-200">Stremmingen controleren… De route wordt daarna opnieuw berekend.</p>
+          <p v-else-if="routeClosureError" role="status" class="m-0 mt-2 rounded bg-amber-400/15 p-2 text-xs text-amber-200">{{ routeClosureError }} <button type="button" class="underline" @click="loadRouteClosures">Opnieuw proberen</button></p>
+          <p v-else-if="routeClosureData" class="m-0 mt-2 text-xs text-emerald-200">Actuele stremmingen gecontroleerd.</p>
+          <p v-if="routeClosurePoints.length" class="m-0 mt-1.5 text-[10px] text-amber-200">Routeplanning vermijdt {{ new Set(routeClosurePoints.map(point => point.name)).size }} scheepvaartbeperking{{ routeClosurePoints.length === 1 ? '' : 'en' }}.</p>
           <div class="mt-2 rounded-xl bg-black/20 p-2">
             <strong class="text-[10px] uppercase tracking-wide text-slate-300">Opgeslagen routes</strong>
-            <div class="mt-1 grid grid-cols-[1fr_auto] gap-1.5">
+            <div v-if="auth.user" class="mt-1 grid grid-cols-[1fr_auto] gap-1.5">
               <input v-model.trim="routeSaveName" class="rounded bg-slate-900 px-2 py-1.5 text-xs text-white placeholder:text-slate-500" placeholder="Naam voor deze route" />
               <button type="button" class="rounded-lg bg-emerald-400/15 px-2 py-1.5 font-bold text-emerald-100 hover:bg-emerald-400/25 disabled:cursor-not-allowed disabled:opacity-40" :disabled="!canSaveCurrentRoute" @click="saveCurrentRoute">Bewaar</button>
             </div>
+            <button v-else type="button" class="mt-1 w-full rounded-lg bg-emerald-400/15 px-3 py-2 text-xs font-bold text-emerald-100 hover:bg-emerald-400/25" @click="auth.requireLogin('Sign in to save routes.')">Sign in to save this route</button>
             <div v-if="savedRoutes.length" class="mt-1 grid max-h-32 gap-1 overflow-auto">
               <div v-for="route in savedRoutes" :key="route.id" class="grid grid-cols-[1fr_auto_auto] items-center gap-1 rounded bg-white/5 px-2 py-1">
                 <button type="button" class="min-w-0 truncate text-left text-sky-100 hover:text-sky-200" @click="loadSavedRoute(route)">{{ route.name }}</button>
@@ -214,11 +241,13 @@
             <p v-else class="m-0 mt-1 text-[10px] text-slate-400">Nog geen routes opgeslagen.</p>
           </div>
           <p v-if="routeExportError" class="m-0 mt-1.5 rounded-lg bg-red-400/10 px-2 py-1.5 text-[10px] text-red-100">{{ routeExportError }}</p>
-          <div class="mt-2 grid grid-cols-5 gap-1.5">
+          <p v-if="routeShareMessage" class="m-0 mt-1.5 rounded-lg bg-sky-400/10 px-2 py-1.5 text-[10px] text-sky-100">{{ routeShareMessage }} <a v-if="routeShareUrl" :href="routeShareUrl" class="font-bold underline" target="_blank" rel="noopener">Open link</a></p>
+          <div class="mt-2 grid grid-cols-3 gap-1.5 sm:grid-cols-6">
             <button type="button" class="rounded-lg bg-white/10 px-2 py-1.5 font-bold hover:bg-white/20" @click="swapRoutePoints">Wissel</button>
             <button type="button" class="rounded-lg bg-white/10 px-2 py-1.5 font-bold hover:bg-white/20" @click="fitPlannedRoute">Zoom</button>
             <button type="button" class="rounded-lg bg-cyan-400/15 px-2 py-1.5 font-bold text-cyan-100 hover:bg-cyan-400/25 disabled:cursor-not-allowed disabled:opacity-40" :disabled="routeExportLoading || !['ok', 'partial'].includes(routeResult?.status)" @click="exportPlannedRoute('html')">{{ routeExportLoading ? '...' : 'HTML' }}</button>
             <button type="button" class="rounded-lg bg-cyan-400/15 px-2 py-1.5 font-bold text-cyan-100 hover:bg-cyan-400/25 disabled:cursor-not-allowed disabled:opacity-40" :disabled="routeExportLoading || !['ok', 'partial'].includes(routeResult?.status)" @click="exportPlannedRoute('pdf')">PDF</button>
+            <button type="button" class="rounded-lg bg-violet-400/15 px-2 py-1.5 font-bold text-violet-100 hover:bg-violet-400/25 disabled:cursor-not-allowed disabled:opacity-40" :disabled="routeShareLoading || !canSaveCurrentRoute" @click="sharePlannedRoute">{{ routeShareLoading ? '...' : 'Delen' }}</button>
             <button type="button" class="rounded-lg bg-red-400/15 px-2 py-1.5 font-bold text-red-100 hover:bg-red-400/25" @click="clearPlannedRoute">Clear</button>
           </div>
           <p class="m-0 mt-2 text-[10px] leading-snug text-slate-400">Route gebruikt mapped waterwegen, verboden grachten en oneway-tags. Controleer altijd actuele stremmingen/bruggen.</p>
@@ -227,10 +256,21 @@
       <div class="map-filters-panel flex max-h-[calc(100dvh-8rem)] flex-col overflow-hidden rounded-2xl border border-white/15 bg-slate-950/90 p-2 shadow-xl backdrop-blur-md">
         <button type="button" class="sticky top-0 z-10 flex w-full shrink-0 items-center justify-between rounded-xl bg-slate-950/95 px-2 py-2 text-xs font-black hover:bg-white/10" @click="navigationLayersOpen = !navigationLayersOpen"><span>Vaarkaartfilters</span><span>{{ navigationLayersOpen ? '−' : '+' }}</span></button>
         <div v-if="navigationLayersOpen" class="mt-1 grid min-h-0 gap-1 overflow-y-auto overscroll-contain border-t border-white/10 pt-2 pr-1">
+          <div v-if="isAdmin" class="mb-2 grid grid-cols-2 gap-2"><button type="button" class="rounded-lg bg-rose-500/20 p-2 text-left text-xs font-bold text-rose-100" @click="startNewMapObject('closures')">+ Eigen stremming</button><button type="button" class="rounded-lg bg-sky-500/20 p-2 text-left text-xs font-bold text-sky-100" @click="startNewReportingPoint">+ Marifoonpunt op kaart</button></div>
+          <p v-if="isAdmin" class="m-0 mb-2 text-xs text-slate-300">Klik een blauwe lijn voor blijvend afsluiten, ligging aanpassen of een tijdelijke stremming.</p>
           <label v-for="filter in navigationFilters" :key="filter.id" class="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-white/10">
             <input type="checkbox" :checked="activeNavigationLayers.includes(filter.id)" :disabled="loadingNavigationLayers.includes(filter.id)" @change="toggleNavigationLayer(filter.id)" />
-            <i class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: filter.color }"></i><span class="min-w-0 flex-1">{{ filter.name }}</span><span v-if="navigationLayerCounts[filter.id] !== undefined" class="text-slate-400">{{ navigationLayerCounts[filter.id] }}</span><button v-if="isAdmin" type="button" class="rounded bg-white/10 px-1.5 py-1 text-[9px] font-bold" @click.prevent.stop="startNewMapObject(filter.id)">Nieuw</button>
+            <i class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: filter.color }"></i><span class="min-w-0 flex-1">{{ filter.name }}</span><span v-if="navigationLayerCounts[filter.id] !== undefined" class="text-slate-400">{{ navigationLayerCounts[filter.id] }}</span><button v-if="isAdmin" type="button" class="rounded bg-white/10 px-1.5 py-1 text-[9px] font-bold" @click.prevent.stop="filter.id === 'reporting-points' ? startNewReportingPoint() : startNewMapObject(filter.id)">{{ filter.id === 'reporting-points' ? '+ Punt' : 'Nieuw' }}</button>
           </label>
+          <div v-if="activeNavigationLayers.includes('closures') && routeClosureData" class="mt-1 rounded-xl border border-white/10 bg-white/5 p-2 text-[10px]">
+            <div class="flex items-center justify-between gap-2"><strong class="uppercase tracking-wider text-rose-200">Vaarweginformatie</strong><span class="text-slate-400">{{ closureSummary.updated }}</span></div>
+            <div class="mt-2 grid grid-cols-3 gap-1 text-center">
+              <div class="rounded-lg bg-red-500/15 p-1.5"><strong class="block text-sm text-red-200">{{ closureSummary.blocked }}</strong><span>stremming</span></div>
+              <div class="rounded-lg bg-amber-500/15 p-1.5"><strong class="block text-sm text-amber-200">{{ closureSummary.active }}</strong><span>actueel</span></div>
+              <div class="rounded-lg bg-sky-500/15 p-1.5"><strong class="block text-sm text-sky-200">{{ closureSummary.upcoming }}</strong><span>gepland</span></div>
+            </div>
+            <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-slate-300"><span><i class="mr-1 inline-block h-2 w-2 rounded-full bg-red-600"></i>Afgesloten</span><span><i class="mr-1 inline-block h-2 w-2 rounded-full bg-orange-500"></i>Beperkt</span><span><i class="mr-1 inline-block h-2 w-2 rounded-full bg-yellow-500"></i>Waarschuwing</span><span>Gestreept = gepland</span></div>
+          </div>
           <p v-if="navigationLayerError" class="m-0 rounded-lg bg-red-950/80 px-2 py-1 text-[10px] text-red-200">{{ navigationLayerError }}</p>
           <div v-if="isAdmin" class="mt-1 grid gap-1.5 border-t border-white/10 pt-2">
             <strong class="text-[10px] uppercase tracking-wider text-sky-200">Eigen routeringslijnen</strong>
@@ -268,7 +308,7 @@
       <div class="combined-toolbar pointer-events-auto overflow-auto rounded-2xl border border-white/20 bg-slate-950/80 p-1 text-slate-50 shadow-[0_18px_50px_rgba(0,0,0,0.30)] backdrop-blur-md sm:p-2">
     <div class="search-control">
       <div>
-        <div v-if="!isSearchOpen">
+        <div v-if="!isSearchOpen" class="flex items-center gap-1.5">
           <button
             type="button"
             class="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 text-[14px] font-semibold text-inherit transition hover:bg-white/15 focus:outline focus:outline-1 focus:outline-offset-1 focus:outline-sky-300/70"
@@ -279,14 +319,24 @@
             <span>Search</span>
             <span v-if="searchQuery" class="max-w-32 truncate text-slate-200/70">{{ searchQuery }}</span>
           </button>
+          <button
+            type="button"
+            class="hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 text-inherit transition hover:bg-white/15 focus:outline focus:outline-1 focus:outline-offset-1 focus:outline-sky-300/70 sm:flex"
+            :class="isUserLocationActive ? 'bg-sky-500/30 text-sky-100' : 'bg-white/10'"
+            :aria-label="locationButtonLabel"
+            :title="locationButtonLabel"
+            @click="activateUserLocation"
+          >
+            <Crosshair class="h-5 w-5" aria-hidden="true" />
+          </button>
         </div>
 
         <div id="canal-search-panel" :class="isSearchOpen ? 'block' : 'hidden'">
           <div class="mb-2 flex items-center justify-between gap-3">
             <label class="block text-[0.68rem] font-bold uppercase tracking-[0.12em] text-slate-200/70 sm:text-[0.72rem]" for="canal-search-input">Search canals and boats</label>
             <div class="flex gap-2">
-              <button type="button" class="rounded-xl border border-white/10 px-3 py-2 text-inherit transition hover:bg-white/15 focus:outline focus:outline-1 focus:outline-offset-1 focus:outline-sky-300/70" :class="isUserLocationActive ? 'bg-white/30' : 'bg-white/10'" :aria-label="locationButtonLabel" :title="locationButtonLabel" @click="activateUserLocation">
-                <component :is="isUserLocationActive ? LocateFixed : Locate" class="h-5 w-5" aria-hidden="true" />
+              <button type="button" class="hidden rounded-xl border border-white/10 px-3 py-2 text-inherit transition hover:bg-white/15 focus:outline focus:outline-1 focus:outline-offset-1 focus:outline-sky-300/70 sm:block" :class="isUserLocationActive ? 'bg-white/30' : 'bg-white/10'" :aria-label="locationButtonLabel" :title="locationButtonLabel" @click="activateUserLocation">
+                <Crosshair class="h-5 w-5" aria-hidden="true" />
               </button>
               <button type="button" class="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-[13px] font-medium text-inherit transition hover:bg-white/15 focus:outline focus:outline-1 focus:outline-offset-1 focus:outline-sky-300/70" @click="collapseSearch">Hide</button>
             </div>
@@ -334,14 +384,6 @@
           <span class="ais-counts tabular-nums text-slate-200/80">{{ aisRecentVesselCount }} live · {{ aisDelayedVesselCount }} last known</span>
           <button
             type="button"
-            class="rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-xs hover:bg-white/20"
-            title="Zoom to AIS vessels"
-            @click="fitAisVessels"
-          >
-            Find
-          </button>
-          <button
-            type="button"
             class="ml-auto rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-xs hover:bg-white/20"
             @click="isGroupsOpen = !isGroupsOpen"
           >
@@ -374,12 +416,13 @@
             </label>
             <div v-for="group in vesselGroups" :key="group.id" class="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-white/10">
               <input type="checkbox" :checked="activeVesselFilters.includes(`group:${group.id}`)" @change="toggleVesselFilter(`group:${group.id}`)" />
-              <button type="button" class="min-w-0 flex-1 truncate text-left" :disabled="!isAdmin" @click="isAdmin && (editingGroupId = group.id)">{{ group.name }}</button>
+              <button v-if="auth.user" type="button" class="min-w-0 flex-1 truncate text-left" @click="editingGroupId = group.id">{{ group.name }}</button>
+              <span v-else class="min-w-0 flex-1 truncate">{{ group.name }}</span>
               <span class="text-slate-400">{{ group.mmsis.length }}</span>
-              <button v-if="isAdmin" type="button" class="text-sky-300" @click="editingGroupId = group.id">Edit</button>
+              <button v-if="auth.user" type="button" class="text-sky-300" @click="editingGroupId = group.id">Edit</button>
             </div>
           </div>
-          <form v-if="isAdmin" class="mt-3 flex gap-2" @submit.prevent="createVesselGroup">
+          <form v-if="auth.user" class="mt-3 flex gap-2" @submit.prevent="createVesselGroup">
             <input
               v-model="newGroupName"
               class="min-w-0 flex-1 rounded-lg border border-white/15 bg-white/5 px-2 py-2 text-sm outline-none placeholder:text-slate-400"
@@ -389,7 +432,7 @@
             <button class="rounded-lg bg-sky-500 px-3 text-sm font-semibold hover:bg-sky-400" type="submit">Add</button>
           </form>
 
-          <div v-if="isAdmin && activeGroup" class="mt-3">
+          <div v-if="auth.user && activeGroup" class="mt-3">
             <div class="flex items-center justify-between gap-2">
               <strong class="truncate text-sm">{{ activeGroup.name }}</strong>
               <button type="button" class="text-xs text-red-300 hover:text-red-200" @click="deleteActiveGroup">Delete group</button>
@@ -452,7 +495,7 @@
 
     <aside
       v-if="selectedVessel"
-      class="vessel-details absolute z-[1150] w-[calc(100vw-1.5rem)] max-w-sm overflow-hidden rounded-2xl border border-white/20 bg-slate-950/90 text-slate-50 shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-xl"
+      class="vessel-details absolute z-[1300] w-[calc(100vw-1.5rem)] max-w-sm overflow-hidden rounded-2xl border border-white/20 bg-slate-950/90 text-slate-50 shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-xl"
       :class="vesselDetailsCollapsed && 'vessel-details--collapsed'"
     >
       <div v-if="selectedVessel.fleet?.photoUrl && !vesselDetailsCollapsed" class="aspect-[16/7] bg-slate-900">
@@ -475,7 +518,29 @@
         </div>
       </header>
 
-      <div v-show="!vesselDetailsCollapsed" class="max-h-[58vh] overflow-auto p-4">
+      <div v-show="!vesselDetailsCollapsed" class="vessel-details-body min-h-0 overflow-auto p-4">
+        <section v-if="auth.user" class="mb-4 rounded-xl border border-sky-300/25 bg-sky-400/10 p-3">
+          <button type="button" class="flex min-h-11 w-full items-center justify-between gap-2 text-left text-sm font-bold text-sky-200" :aria-expanded="vesselGroupPickerOpen" aria-controls="vessel-group-picker" @click="vesselGroupPickerOpen = !vesselGroupPickerOpen">
+            <span>Add to groups<span v-if="selectedVesselGroups.length" class="mt-1 block text-xs font-normal text-slate-300">{{ selectedVesselGroups.map(group => group.name).join(', ') }}</span></span>
+            <span aria-hidden="true">{{ vesselGroupPickerOpen ? '−' : '+' }}</span>
+          </button>
+          <div v-if="vesselGroupPickerOpen" id="vessel-group-picker" class="mt-2">
+            <p class="m-0 mb-2 text-xs text-slate-300">Flagship updates the Fleet Directory. Custom groups save in this browser.</p>
+            <div class="max-h-44 overflow-auto">
+              <label v-for="group in availableVesselGroups" :key="group.id" class="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-white/10">
+                <input type="checkbox" :checked="group.mmsis.includes(String(selectedVessel.mmsi))" @change="setSelectedVesselGroup(group.id, $event.target.checked)" />
+                <span class="min-w-0 flex-1 break-words">{{ group.name }}</span>
+                <span class="text-xs text-slate-400">{{ group.mmsis.length }}</span>
+              </label>
+
+            </div>
+            <form class="mt-3 flex gap-2" @submit.prevent="createGroupWithSelectedVessel">
+              <input v-model="vesselGroupDraftName" aria-label="New vessel group name" maxlength="40" placeholder="New group name" class="min-w-0 flex-1 rounded-lg border border-white/15 bg-slate-950 px-2 py-2 text-sm" />
+              <button type="submit" :disabled="!vesselGroupDraftName.trim()" class="min-h-11 rounded-lg bg-sky-500 px-3 text-xs font-bold text-white hover:bg-sky-400 disabled:opacity-40">Create &amp; add</button>
+            </form>
+            <p v-if="vesselGroupMessage" role="status" class="m-0 mt-2 text-xs text-sky-100">{{ vesselGroupMessage }}</p>
+          </div>
+        </section>
         <div class="grid grid-cols-3 gap-2">
           <div v-for="metric in vesselMetrics" :key="metric.label" class="rounded-xl bg-white/5 p-2.5">
             <span class="block text-[10px] uppercase tracking-wide text-slate-400">{{ metric.label }}</span>
@@ -486,7 +551,7 @@
         <section v-for="section in vesselDetailSections" :key="section.title" class="mt-4">
           <h3 class="m-0 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{{ section.title }}</h3>
           <dl class="vessel-data-list mt-2">
-            <div v-for="row in section.rows" :key="row.label"><dt>{{ row.label }}</dt><dd>{{ row.value }}</dd></div>
+            <div v-for="row in section.rows" :key="row.label"><dt>{{ row.label }}</dt><dd><button v-if="row.locked" type="button" class="font-semibold text-sky-300 hover:text-sky-200" @click="auth.requireLogin('Sign in to see drivers, shifts and locations.')">Sign in to see</button><template v-else>{{ row.value }}</template></dd></div>
           </dl>
         </section>
 
@@ -521,6 +586,8 @@
               {{ hours === 168 ? '7 days' : `${hours}h` }}
             </button>
           </div>
+          <p v-if="historyLoading" class="m-0 mt-2 text-xs text-sky-200">Loading route history…</p>
+          <p v-else-if="historyError" class="m-0 mt-2 text-xs text-amber-300">{{ historyError }}</p>
           <p class="m-0 mt-1.5 text-[10px] text-slate-400">History is recorded by this server from the moment it is running.</p>
           <p v-if="historyOmittedCount" class="m-0 mt-1 text-[10px] text-amber-300">{{ historyOmittedCount }} unreliable segment{{ historyOmittedCount === 1 ? '' : 's' }} omitted.</p>
           <div class="mt-2 flex flex-wrap gap-3 text-[10px] text-slate-300">
@@ -530,21 +597,28 @@
           </div>
         </section>
 
-        <button
-          v-if="isAdmin && activeGroup"
-          type="button"
-          class="mt-3 w-full rounded-xl border border-sky-300/25 bg-sky-400/10 px-3 py-2 text-sm font-semibold text-sky-200 hover:bg-sky-400/20"
-          @click="toggleVesselInActiveGroup(selectedVessel.mmsi)"
-        >
-          {{ activeGroup.mmsis.includes(selectedVessel.mmsi) ? `Remove from ${activeGroup.name}` : `Add to ${activeGroup.name}` }}
-        </button>
+
       </div>
     </aside>
 
+    <div v-if="reportingPassagePick" class="absolute bottom-24 left-1/2 z-[1800] hidden w-[min(32rem,90vw)] -translate-x-1/2 items-center gap-3 rounded-2xl border border-sky-300/40 bg-slate-950/95 p-4 text-sm text-white shadow-xl sm:flex"><span class="flex-1">{{ routeLinkMapStatus }}</span><button type="button" class="rounded-lg bg-white/10 p-2" @click="cancelMobileMapInteraction">Annuleren</button></div>
     <div v-if="mobileMapInteractionActive" class="mobile-map-interaction-bar">
       <div class="min-w-0 flex-1"><strong class="block text-sm">{{ mobileMapInteractionTitle }}</strong><span class="block truncate text-xs text-slate-300">{{ mobileMapInteractionMessage }}</span></div>
       <button v-if="mobileMapInteractionCanFinish" type="button" class="mobile-map-interaction-done" @click="finishMobileMapInteraction">Done</button>
       <button type="button" class="mobile-map-interaction-cancel" @click="cancelMobileMapInteraction">Cancel</button>
+    </div>
+    <div class="mobile-location-control" :class="{ 'mobile-location-control--guest': !auth.user }">
+      <button
+        type="button"
+        :class="isUserLocationActive ? 'mobile-location-control--active' : ''"
+        :aria-label="locationButtonLabel"
+        :title="locationButtonLabel"
+        @pointerdown.stop
+        @click.stop="activateUserLocation"
+      >
+        <Crosshair aria-hidden="true" />
+      </button>
+      <span v-if="userLocationError" role="status">{{ userLocationError }}</span>
     </div>
     <div ref="mapEl" class="map"></div>
   </div>
@@ -552,7 +626,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { Locate, LocateFixed } from '@lucide/vue'
+import { Crosshair } from '@lucide/vue'
 import L from 'leaflet'
 import 'leaflet-polylinedecorator'
 import {
@@ -569,6 +643,11 @@ import {
   showUserLocation,
 } from '../scripts/leafletMap'
 import { showLiveAisVessels } from '../scripts/aisVessels'
+import { applyWaterwayEdits, waterwayKey } from '../../shared/waterway-edits.mjs'
+import { withSupplementalWaterways } from '../scripts/supplementalWaterways.js'
+import { activeClosurePoints } from '../../shared/route-closures.mjs'
+import { deriveReportingManeuver, matchReportingMovements, nextReportingNumber, validateReportingRules } from '../../shared/reporting-movements.mjs'
+import automaticBridgeLinks from '../scripts/automaticBridgeLinks.json'
 import { createBridgeLayer, loadAmsterdamBridges } from '../scripts/bridgeLayer'
 import { createNavigationLayer, createRestrictionLayer, loadNavigationLayer } from '../scripts/navigationLayers'
 import { buildCanalRoutingNetwork, generateCanalLoopRoute, planCanalRouteVia } from '../scripts/canalRouting'
@@ -577,6 +656,7 @@ import AccountMenu from './AccountMenu.vue'
 import BoatDutyPanel from './BoatDutyPanel.vue'
 import InventoryPanel from './InventoryPanel.vue'
 import PlanningPanel from './PlanningPanel.vue'
+import WaterLevelCard from './WaterLevelCard.vue'
 import { PLANNING_LOCATION_PINS } from '../../shared/planning-locations.mjs'
 
 const auth = inject('auth')
@@ -590,6 +670,7 @@ const canalsLayer = ref(null)
 const canalSearchIndex = ref(null)
 const selectedResult = ref(null)
 const isUserLocationActive = ref(false)
+const userLocationError = ref('')
 const bridgeLayerVisible = ref(false)
 const bridgeLayerLoading = ref(false)
 const bridgeLayerError = ref('')
@@ -616,7 +697,11 @@ const customReportingPoints = ref(loadCustomReportingPoints())
 const customReportingPlacement = ref(false)
 const customReportingDraft = ref({ number: '', name: '', call: '', bearing: 0 })
 const customReportingStatus = ref('')
-const reportingBearingPlacement = ref(false)
+const reportingRulesSaving = ref(false)
+const reportingPassagePick = ref(null)
+const reportingPreviewIndex = ref(null)
+let reportingMovementPreview = null
+
 const routePlannerOpen = ref(false)
 const routeMode = ref(null)
 const routePoints = ref([])
@@ -636,11 +721,17 @@ const selectedRouteLinkItem = ref(null)
 const routeLinkChanges = ref([])
 const routeExportLoading = ref(false)
 const routeExportError = ref('')
+const routeShareLoading = ref(false)
+const routeShareMessage = ref('')
+const routeShareUrl = ref('')
 const routeSpeedValue = ref(6)
-const routeSpeedUnit = ref('kmh')
 const routeLoopMinutes = ref(60)
 const routeAllowZone3 = ref(false)
 const routeClosurePoints = ref([])
+const routeClosureData = ref(null)
+const routeClosureLoading = ref(false)
+const routeClosureError = ref('')
+let routeClosureLoad = null
 const routeBoatProfile = ref({ heightMeters: null, widthMeters: null, draftMeters: null })
 const routeAddressInputs = ref({ start: '', end: '' })
 const routeAddressLoading = ref(null)
@@ -648,25 +739,28 @@ const routeSuggestions = ref({ start: [], end: [] })
 const savedRoutes = ref(loadSavedRoutes())
 const routeSaveName = ref('')
 const mobileMapInteractionActive = computed(() => Boolean(
-  routeMode.value || mapObjectPlacement.value || reportingBearingPlacement.value || customReportingPlacement.value
+  reportingPassagePick.value || routeMode.value || mapObjectPlacement.value || customReportingPlacement.value
   || customRouteDrawing.value || routeLinkPendingItem.value?.networkPick || routeLinkMapMode.value,
 ))
 const mobileMapInteractionCanFinish = computed(() => customRouteDrawing.value || routeLinkMapMode.value)
 const mobileMapInteractionTitle = computed(() => {
+  if (reportingPassagePick.value) return reportingPassagePick.value.side === 'from' ? 'Kies de aankomstkant' : 'Kies waar de boot naartoe vaart'
   if (routeMode.value === 'start') return 'Choose starting point'
   if (routeMode.value === 'end') return 'Choose destination'
   if (routeMode.value === 'waypoint') return 'Choose route point'
-  if (mapObjectPlacement.value) return 'Choose map position'
-  if (reportingBearingPlacement.value) return 'Choose sailing direction'
+  if (mapObjectPlacement.value) return mapObjectEditor.value?.layer === 'reporting-points' ? 'Plaats het marifoonpunt' : 'Kies een positie op de kaart'
   if (customReportingPlacement.value) return 'Place reporting point'
   if (customRouteDrawing.value) return 'Draw sailing line'
   if (routeLinkMapMode.value || routeLinkPendingItem.value?.networkPick) return 'Choose sailing line'
   return 'Tap the map'
 })
 const mobileMapInteractionMessage = computed(() => {
+  if (reportingPassagePick.value) return routeLinkMapStatus.value
   if (routeMode.value) return routeMessage.value
-  if (mapObjectPlacement.value) return 'Tap the desired position anywhere on the map.'
-  if (reportingBearingPlacement.value || routeLinkPendingItem.value?.networkPick || routeLinkMapMode.value) return routeLinkMapStatus.value
+  if (mapObjectPlacement.value) return mapObjectEditor.value?.layer === 'reporting-points'
+    ? 'Tik op de kruising of bocht waar de melding hoort.'
+    : 'Tik op de gewenste positie op de kaart.'
+  if (routeLinkPendingItem.value?.networkPick || routeLinkMapMode.value) return routeLinkMapStatus.value
   if (customReportingPlacement.value) return customReportingStatus.value
   if (customRouteDrawing.value) return customRouteStatus.value
   return 'Tap the desired position on the map.'
@@ -680,25 +774,46 @@ const aisDelayedVesselCount = ref(0)
 const liveVessels = ref([])
 const vesselGroups = ref(loadVesselGroups())
 const activeVesselFilters = ref(['company', 'nt', 'police'])
-const companyMmsis = ref([])
+const companyBaseMmsis = ref([])
+const builtInGroupOverrides = ref(loadBuiltInGroupOverrides())
+const companyMmsis = computed(() => effectiveGroupMmsis('company', companyBaseMmsis.value))
 const companyFleetBoats = ref([])
 const todayPlanningItems = ref([])
-const ntMmsis = ['244035980', '244146144', '244750576', '244374235']
-const policeMmsis = ['244615809', '244129388', '244034521', '244044753']
+const ntMmsis = computed(() => effectiveGroupMmsis('nt', ['244035980', '244146144', '244750576', '244374235']))
+const policeMmsis = computed(() => effectiveGroupMmsis('police', ['244615809', '244129388', '244034521', '244044753']))
 const editingGroupId = ref(null)
 const isGroupsOpen = ref(false)
 const newGroupName = ref('')
 const manualMmsi = ref('')
 const vesselFilterQuery = ref('')
 const selectedVessel = ref(null)
+const vesselGroupPickerOpen = ref(false)
+const vesselGroupDraftName = ref('')
+const vesselGroupMessage = ref('')
+const availableVesselGroups = computed(() => [
+  { id: 'company', name: 'Flagship / Company fleet', mmsis: companyMmsis.value },
+  { id: 'nt', name: 'Nautical supervision / NT', mmsis: ntMmsis.value },
+  { id: 'police', name: 'Police vessels', mmsis: policeMmsis.value },
+  ...vesselGroups.value,
+])
+const selectedVesselGroups = computed(() => availableVesselGroups.value.filter(group => group.mmsis.includes(String(selectedVessel.value?.mmsi))))
+
+watch(() => selectedVessel.value?.mmsi, () => {
+  vesselGroupPickerOpen.value = false
+  vesselGroupDraftName.value = ''
+  vesselGroupMessage.value = ''
+})
 const vesselDetailsCollapsed = ref(false)
 const routeStartVessel = ref(null)
 const latestUserLocation = ref(null)
 const historyHours = ref(1)
 const historyPointCount = ref(0)
 const historyOmittedCount = ref(0)
+const historyLoading = ref(false)
+const historyError = ref('')
 let map = null
 let userLocationController = null
+let userLocationErrorTimer = null
 let aisController = null
 let planningRefreshTimer = null
 let routeClosureRefreshTimer = null
@@ -706,12 +821,16 @@ let placementPointerStart = null
 let lastPointerPlacementAt = 0
 let bridgeLayerController = null
 let canalsGeoJson = null
+let originalCanalsGeoJson = null
+let waterwayEditsJson = ''
+const waterwayLoadError = ref('')
+let waterwayEditMarkers = null
+let waterwayEditPreview = null
 let canalRouteNetwork = null
 let customRouteLayer = null
 let customRouteDraftLayer = null
 let selectedRouteLinkLayer = null
 let customReportingLayer = null
-let reportingBearingLayer = null
 let routeLayer = null
 let routeLinkLayer = null
 let routeLinkDragMarker = null
@@ -731,6 +850,29 @@ const navigationFilters = [
   { id: 'reporting-points', name: 'Marifoonmeldpunten', color: '#e11d48' },
   { id: 'restrictions', name: 'Snelheid en vaarbeperkingen', color: '#f97316' },
 ]
+
+const closureSummary = computed(() => {
+  const now = Date.now()
+  const unique = new Map()
+  for (const feature of routeClosureData.value?.features || []) {
+    const properties = feature.properties || {}
+    const key = `${properties.noticeNumber || feature.id}:${properties.name}:${properties.limitationCode}`
+    const active = (!properties.start || Date.parse(properties.start) <= now) && (!properties.end || Date.parse(properties.end) > now)
+    const current = unique.get(key)
+    if (!current || active) unique.set(key, { ...properties, active })
+  }
+  const items = [...unique.values()]
+  const fetchedAt = routeClosureData.value?.fetchedAt
+  return {
+    total: items.length,
+    active: items.filter(item => item.active).length,
+    upcoming: items.filter(item => !item.active).length,
+    blocked: items.filter(item => item.active && item.blocksRouting).length,
+    updated: fetchedAt && Number.isFinite(Date.parse(fetchedAt))
+      ? `bijgewerkt ${new Date(fetchedAt).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`
+      : '',
+  }
+})
 
 const aisStatusDotClass = computed(() => ({
   'bg-emerald-400 shadow-[0_0_10px_rgb(52_211_153/0.8)]': aisStatus.value === 'live',
@@ -754,9 +896,9 @@ const selectedRouteLinkHasOverride = computed(() => {
 })
 
 const builtInVesselFilters = computed(() => [
-  { id: 'company', name: 'Company fleet', count: companyMmsis.value.length, color: 'bg-orange-400' },
-  { id: 'nt', name: 'Nautical supervision / NT', count: ntMmsis.length, color: 'bg-purple-500' },
-  { id: 'police', name: 'Police vessels', count: policeMmsis.length, color: 'bg-blue-500' },
+  { id: 'company', name: 'Flagship / Company fleet', count: companyMmsis.value.length, color: 'bg-orange-400' },
+  { id: 'nt', name: 'Nautical supervision / NT', count: ntMmsis.value.length, color: 'bg-purple-500' },
+  { id: 'police', name: 'Police vessels', count: policeMmsis.value.length, color: 'bg-blue-500' },
 ])
 const filteredLiveVessels = computed(() => {
   const query = vesselFilterQuery.value.trim().toLowerCase()
@@ -770,10 +912,9 @@ const offlineGroupMmsis = computed(() => {
   const liveMmsis = new Set(liveVessels.value.map((vessel) => vessel.mmsi))
   return activeGroup.value.mmsis.filter((mmsi) => !liveMmsis.has(mmsi))
 })
-const routeSpeedKnots = computed(() => {
+const routeSpeedKmh = computed(() => {
   const value = Number(routeSpeedValue.value)
-  const speed = Number.isFinite(value) && value > 0 ? value : 6
-  return routeSpeedUnit.value === 'knots' ? speed : speed / 1.852
+  return Number.isFinite(value) && value > 0 ? value : 6
 })
 const vesselMapsUrl = computed(() => {
   if (!selectedVessel.value) return '#'
@@ -788,7 +929,7 @@ const vesselMetrics = computed(() => {
   const vessel = selectedVessel.value
   if (!vessel) return []
   return [
-    { label: 'Speed', value: Number.isFinite(vessel.speed) ? `${vessel.speed.toFixed(1)} kn` : '—' },
+    { label: 'Speed', value: Number.isFinite(vessel.speed) ? `${(vessel.speed * 1.852).toFixed(1)} km/u` : '—' },
     { label: 'Course', value: formatDegrees(vessel.course) },
     { label: 'Heading', value: formatDegrees(vessel.heading) },
   ]
@@ -834,21 +975,32 @@ const vesselDetailSections = computed(() => {
         { label: 'Registration', value: vessel.fleet.registration || 'Not set' },
       ],
     })
-    const planning = planningForVessel(vessel)
-    const drivers = uniquePeople(planning, ['skipper'])
-    const hosts = uniquePeople(planning, ['host'])
-    const shifts = planning.filter((item) => item.event_type === 'shift' && item.start_time)
-      .map((item) => `${item.start_time}${item.end_time ? `–${item.end_time}` : ''}`)
-    const locations = [...new Set(planning.flatMap((item) => [item.from_location, item.to_location]).filter(Boolean))]
-    sections.unshift({
-      title: "Today's schedule",
-      rows: [
-        { label: 'Driver', value: drivers.length ? drivers.join(', ') : 'Not scheduled / not recognized' },
-        { label: 'Host', value: hosts.length ? hosts.join(', ') : 'Not scheduled' },
-        { label: 'Shift', value: shifts.length ? [...new Set(shifts)].join(', ') : 'No shift time' },
-        { label: 'Location', value: locations.length ? locations.join(' → ') : 'Not specified' },
-      ],
-    })
+    if (auth.user) {
+      const planning = planningForVessel(vessel)
+      const drivers = uniquePeople(planning, ['driver', 'skipper'])
+      const hosts = uniquePeople(planning, ['host'])
+      const shifts = planning.filter((item) => item.event_type === 'shift' && item.start_time)
+        .map((item) => `${item.start_time}${item.end_time ? `–${item.end_time}` : ''}`)
+      const locations = [...new Set(planning.flatMap((item) => [item.group_location, item.from_location, item.to_location]).filter(Boolean))]
+      sections.unshift({
+        title: "Today's schedule",
+        rows: [
+          { label: 'Driver', value: drivers.length ? drivers.join(', ') : 'Not scheduled / not recognized' },
+          { label: 'Host', value: hosts.length ? hosts.join(', ') : 'Not scheduled' },
+          { label: 'Shift', value: shifts.length ? [...new Set(shifts)].join(', ') : 'No shift time' },
+          { label: 'Location', value: locations.length ? locations.join(' → ') : 'Not specified' },
+        ],
+      })
+    } else {
+      sections.unshift({
+        title: "Today's schedule",
+        rows: [
+          { label: 'Driver', locked: true },
+          { label: 'Shift', locked: true },
+          { label: 'Location', locked: true },
+        ],
+      })
+    }
   }
 
   return sections
@@ -896,10 +1048,10 @@ const searchResults = computed(() => {
 
 const locationButtonLabel = computed(() => {
   if (isUserLocationActive.value) {
-    return 'Hide live location'
+    return 'Go to my current location'
   }
 
-  return 'Show live location'
+  return 'Find my current location'
 })
 
 const canSaveCurrentRoute = computed(() => (
@@ -915,6 +1067,7 @@ function clearSearch() {
 }
 
 function loadVesselGroups() {
+  if (!auth.user) return []
   try {
     const groups = JSON.parse(localStorage.getItem('ais-vessel-groups') || '[]')
     return Array.isArray(groups) ? groups : []
@@ -928,6 +1081,7 @@ function saveVesselGroups() {
 }
 
 function loadSavedRoutes() {
+  if (!auth.user) return []
   try {
     const routes = JSON.parse(localStorage.getItem('saved-planned-routes-v1') || '[]')
     return Array.isArray(routes)
@@ -949,6 +1103,7 @@ function saveSavedRoutes() {
 }
 
 function saveCurrentRoute() {
+  if (!auth.requireLogin()) return
   if (!canSaveCurrentRoute.value) {
     routeMessage.value = 'Plan of genereer eerst een route voordat je hem bewaart.'
     return
@@ -970,7 +1125,7 @@ function saveCurrentRoute() {
     result: savedRouteResultSnapshot(routeResult.value),
     settings: {
       speedValue: routeSpeedValue.value,
-      speedUnit: routeSpeedUnit.value,
+      speedUnit: 'kmh',
       loopMinutes: routeLoopMinutes.value,
       allowZone3: routeAllowZone3.value,
       boatProfile: { ...routeBoatProfile.value },
@@ -986,8 +1141,10 @@ function saveCurrentRoute() {
 function loadSavedRoute(route) {
   if (!route?.points?.length && !route?.result?.coordinates?.length) return
   const settings = route.settings || {}
-  routeSpeedValue.value = Number(settings.speedValue) || routeSpeedValue.value
-  routeSpeedUnit.value = settings.speedUnit === 'knots' ? 'knots' : 'kmh'
+  const savedSpeed = Number(settings.speedValue)
+  routeSpeedValue.value = Number.isFinite(savedSpeed) && savedSpeed > 0
+    ? (settings.speedUnit === 'knots' ? Number((savedSpeed * 1.852).toFixed(1)) : savedSpeed)
+    : routeSpeedValue.value
   routeLoopMinutes.value = Number(settings.loopMinutes) || routeLoopMinutes.value
   routeAllowZone3.value = Boolean(settings.allowZone3)
   routeBoatProfile.value = { ...routeBoatProfile.value, ...(settings.boatProfile || {}) }
@@ -1018,6 +1175,7 @@ function loadSavedRoute(route) {
 }
 
 function deleteSavedRoute(id) {
+  if (!auth.requireLogin()) return
   savedRoutes.value = savedRoutes.value.filter((route) => route.id !== id)
   saveSavedRoutes()
 }
@@ -1039,12 +1197,7 @@ function savedRouteResultSnapshot(result) {
     distanceMeters: Number(result.distanceMeters) || 0,
     baseDurationMinutes: Number(result.baseDurationMinutes) || null,
     durationMinutes: Number(result.durationMinutes) || null,
-    speedKnots: Number(result.speedKnots) || routeSpeedKnots.value,
-    speedKmh: Number(result.speedKmh) || routeSpeedKnots.value * 1.852,
-    trafficFactor: Number(result.trafficFactor) || 1,
-    trafficLevel: result.trafficLevel || 'onbekend',
-    trafficVesselCount: Number(result.trafficVesselCount) || 0,
-    trafficDelayMinutes: Number(result.trafficDelayMinutes) || 0,
+    speedKmh: Number(result.speedKmh) || (Number(result.speedKnots) ? Number(result.speedKnots) * 1.852 : routeSpeedKmh.value),
     targetDurationMinutes: Number(result.targetDurationMinutes) || null,
     steps: Array.isArray(result.steps) ? result.steps.map((step) => ({ name: step.name || '', distanceMeters: Number(step.distanceMeters) || 0 })) : [],
     segments: Array.isArray(result.segments) ? result.segments.map(savedRouteSegmentSnapshot).filter(Boolean) : [],
@@ -1081,6 +1234,8 @@ function restoreSavedRouteResult(snapshot) {
     ...snapshot,
     status: ['ok', 'partial'].includes(snapshot.status) ? snapshot.status : 'ok',
     coordinates,
+    speedKmh: Number(snapshot.speedKmh) || (Number(snapshot.speedKnots) ? Number(snapshot.speedKnots) * 1.852 : 6),
+    speedKnots: undefined,
     steps: Array.isArray(snapshot.steps) ? snapshot.steps : [],
     segments: Array.isArray(snapshot.segments) ? snapshot.segments : [],
     warnings: Array.isArray(snapshot.warnings) ? snapshot.warnings : [],
@@ -1092,18 +1247,21 @@ function createLocalId() {
 }
 
 function loadRouteLinkOverrides() {
+  const defaults = () => ({ bridges: structuredClone(automaticBridgeLinks), reporting: {} })
+  if (!auth.user) return defaults()
   try {
     const overrides = JSON.parse(localStorage.getItem('route-link-overrides-v1') || '{}')
     return {
-      bridges: overrides?.bridges && typeof overrides.bridges === 'object' ? overrides.bridges : {},
+      bridges: { ...structuredClone(automaticBridgeLinks), ...(overrides?.bridges && typeof overrides.bridges === 'object' ? overrides.bridges : {}) },
       reporting: overrides?.reporting && typeof overrides.reporting === 'object' ? overrides.reporting : {},
     }
   } catch {
-    return { bridges: {}, reporting: {} }
+    return defaults()
   }
 }
 
 function saveRouteLinkOverrides() {
+  bridgeLayerController?.refreshLinkStyles()
   localStorage.setItem('route-link-overrides-v1', JSON.stringify(routeLinkOverrides.value))
 }
 
@@ -1178,7 +1336,7 @@ function createRouteLinkMapMarker(kind, item) {
   const id = normalizeRouteLinkId(item.number || item.id || item.name || item.call)
   const linkedNames = routeLinkDisplayNames(kind, item)
   const linkedSegments = routeLinkDisplaySegments(kind, item)
-  const color = kind === 'bridge' ? '#f59e0b' : '#e11d48'
+  const color = kind === 'bridge' ? (linkedNames || linkedSegments ? '#f59e0b' : '#ef4444') : '#e11d48'
   const prefix = kind === 'bridge' ? 'B' : 'M'
   const label = `${prefix}${id ? ` ${id}` : ''}`
   const marker = L.marker([routePosition.point.latitude, routePosition.point.longitude], {
@@ -1273,6 +1431,7 @@ function saveDraggedRouteLink(kind, item, latlng) {
 }
 
 function saveRouteLinkPatch(kind, id, patch, action = 'Koppeling bijgewerkt') {
+  if (!auth.requireLogin()) return
   const bucket = routeLinkBucket(kind)
   const key = normalizeRouteLinkId(id)
   if (!key) return
@@ -1321,15 +1480,16 @@ function routeLinkItemLabel(item) {
 }
 
 function cancelRouteLinkSelection() {
+  reportingPassagePick.value = null
+  reportingPreviewIndex.value = null
+  reportingMovementPreview?.remove()
+  reportingMovementPreview = null
   selectedRouteLinkItem.value = null
   routeLinkPendingItem.value = null
   routeLinkMapStatus.value = ''
   clearRouteLinkDragMarker()
   selectedRouteLinkLayer?.remove()
   selectedRouteLinkLayer = null
-  reportingBearingPlacement.value = false
-  reportingBearingLayer?.remove()
-  reportingBearingLayer = null
   drawPlannedRoute(routeResult.value)
 }
 
@@ -1341,7 +1501,7 @@ function drawSelectedRouteLinkItem() {
   selectedRouteLinkLayer = L.circleMarker([item.point.latitude, item.point.longitude], {
     pane: 'navigation-pane', radius: 12, color: '#fff', weight: 4, fillColor: item.kind === 'bridge' ? '#f59e0b' : '#e11d48', fillOpacity: 0.95,
   }).bindTooltip(`${escapeHtml(routeLinkItemLabel(item))} · geselecteerd`, { permanent: true, direction: 'top', offset: [0, -12] }).addTo(map)
-  if (item.kind === 'reporting') drawReportingBearingArrow(item.bearing)
+  if (item.kind === 'reporting') previewReportingMovement(0)
 }
 
 function startSelectedRouteLinkPick() {
@@ -1365,6 +1525,7 @@ function startSelectedRouteLinkDrag() {
 }
 
 function resetSelectedRouteLink() {
+  if (!auth.requireLogin()) return
   const item = selectedRouteLinkItem.value
   if (!item) return
   const existing = routeLinkOverride(item.kind, item.id)
@@ -1378,21 +1539,148 @@ function resetSelectedRouteLink() {
   routeLinkMapStatus.value = `${routeLinkItemLabel(item)} gebruikt weer de oorspronkelijke gegevens.`
 }
 
-function saveReportingDirectionSettings() {
+function addReportingMovementRule() {
   const item = selectedRouteLinkItem.value
   if (!item || item.kind !== 'reporting') return
-  const bearing = Number(item.bearing)
-  if (!Number.isFinite(bearing)) {
-    routeLinkMapStatus.value = 'Kies een geldige vaarrichting.'
-    return
+  item.movementRules ||= []
+  item.movementRules.push({ kind: 'map-passage', from: null, to: null, maneuver: 'straight', call: '' })
+  startReportingPassagePick(item.movementRules.length - 1, 'from')
+}
+
+function addReportingAlternative(index) {
+  const item = selectedRouteLinkItem.value
+  const source = item?.movementRules?.[index]
+  if (!source?.from) return
+  item.movementRules.push({ kind: 'map-passage', from: { ...source.from }, to: null, maneuver: 'left', call: '' })
+  const nextIndex = item.movementRules.length - 1
+  startReportingPassagePick(nextIndex, 'to')
+  routeLinkMapStatus.value = 'Aankomstrichting overgenomen. Klik nu de andere afslag of vervolgrichting.'
+}
+
+function reportingManeuverLabel(rule) {
+  return ({ straight: 'rechtdoor', left: 'linksaf', right: 'rechtsaf', uturn: 'keren' })[rule?.maneuver] || 'richting kiezen'
+}
+
+function removeReportingMovementRule(index) {
+  reportingPassagePick.value = null
+  selectedRouteLinkItem.value.movementRules.splice(index, 1)
+  previewReportingMovement(Math.max(0, index - 1))
+}
+
+function reverseReportingMovement(index) {
+  const item = selectedRouteLinkItem.value
+  const rule = item?.movementRules?.[index]
+  if (!rule?.from || !rule?.to) return
+  item.movementRules.push({
+    kind: 'map-passage', from: { ...rule.to }, to: { ...rule.from }, call: '',
+    maneuver: deriveReportingManeuver(item.point, rule.to, rule.from) || rule.maneuver || 'straight',
+  })
+  previewReportingMovement(item.movementRules.length - 1)
+  routeLinkMapStatus.value = 'Omgekeerde vaarbeweging toegevoegd. Vul hiervoor de andere melding in.'
+}
+
+function startReportingPassagePick(index, side) {
+  if (!isAdmin.value || !selectedRouteLinkItem.value?.point) return
+  cancelMobileMapInteraction()
+  reportingPassagePick.value = { index, side }
+  previewReportingMovement(index)
+  routeLinkMapStatus.value = side === 'from'
+    ? 'Klik op de blauwe lijn aan de kant waar de boot vandaan komt, vóór het meldpunt.'
+    : 'Klik op de blauwe lijn waar de boot na het meldpunt naartoe vaart.'
+}
+
+function placeReportingPassageAnchor(latlng, selection = reportingPassagePick.value) {
+  const item = selectedRouteLinkItem.value
+  const rule = item?.movementRules?.[selection?.index]
+  if (!rule || !item.point) return false
+  const position = nearestRoutingNetworkPosition({ latitude: latlng.lat, longitude: latlng.lng }, 18, true)
+  const distance = position && routeDistanceMeters(item.point, position.point)
+  if (!position || distance < 15 || distance > 250) {
+    routeLinkMapStatus.value = 'Klik op een blauwe lijn iets vóór of na het meldpunt (15 tot 250 meter).'
+    return false
   }
-  saveRouteLinkPatch('reporting', item.id, {
-    bearing: ((bearing % 360) + 360) % 360,
-    call: item.call?.trim() || undefined,
-  }, 'Richting en marifoonmelding opgeslagen')
-  refreshRouteLinkedItems()
-  drawReportingBearingArrow(bearing)
-  routeLinkMapStatus.value = `${routeLinkItemLabel(item)} gebruikt nu de melding voor vaarrichting ${compassDirection(bearing)} (${Math.round(bearing)}°).`
+  rule.kind = 'map-passage'
+  rule[selection.side] = { ...position.point, lineName: position.lineName }
+  if (rule.from && rule.to) rule.maneuver = deriveReportingManeuver(item.point, rule.from, rule.to) || rule.maneuver || 'straight'
+  previewReportingMovement(selection.index)
+  if (selection === reportingPassagePick.value) {
+    if (selection.side === 'from' && !rule.to) {
+      reportingPassagePick.value = { index: selection.index, side: 'to' }
+      routeLinkMapStatus.value = 'Aankomstkant gekozen. Klik nu waar de boot na het meldpunt naartoe vaart.'
+    } else {
+      reportingPassagePick.value = null
+      routeLinkMapStatus.value = 'Vaarbeweging gekozen. Controleer de gekleurde plekken en vul de melding in.'
+    }
+  }
+  return true
+}
+
+function previewReportingMovement(index) {
+  reportingMovementPreview?.remove()
+  reportingMovementPreview = null
+  reportingPreviewIndex.value = index
+  const item = selectedRouteLinkItem.value
+  const rule = item?.movementRules?.[index]
+  if (!map || !item?.point || !rule) return
+  const layers = []
+  for (const [side, label, color] of [['from', 'Vanaf hier', '#10b981'], ['to', 'Naar hier', '#0ea5e9']]) {
+    const anchor = rule[side]
+    if (!anchor) continue
+    const a = [anchor.latitude, anchor.longitude], center = [item.point.latitude, item.point.longitude]
+    const path = side === 'from' ? [a, center] : [center, a]
+    // These dashed arrows show the selected sides, not a navigable route.
+    const line = L.polyline(path, { pane: 'navigation-pane', color, weight: 4, dashArray: '6 6', interactive: false })
+    layers.push(line, L.polylineDecorator(line, { patterns: [{ offset: '65%', symbol: L.Symbol.arrowHead({ pixelSize: 12, polygon: true, pathOptions: { color, fillColor: color, fillOpacity: 1, interactive: false } }) }] }))
+    const marker = L.marker(a, {
+      draggable: true, zIndexOffset: 1500,
+      icon: L.divIcon({ className: '', html: `<span style="display:block;white-space:nowrap;background:${color};color:white;border:2px solid white;border-radius:10px;padding:6px 10px;font-weight:bold">${label}</span>`, iconSize: [100, 34], iconAnchor: [50, 17] }),
+    }).bindTooltip(escapeHtml(anchor.lineName))
+    marker.on('dragend', event => {
+      if (!placeReportingPassageAnchor(event.target.getLatLng(), { index, side })) previewReportingMovement(index)
+    })
+    layers.push(marker)
+  }
+  reportingMovementPreview = L.layerGroup(layers).addTo(map)
+}
+
+async function saveReportingMovementRules() {
+  if (!auth.requireLogin() || !isAdmin.value || reportingRulesSaving.value) return
+  const item = selectedRouteLinkItem.value
+  if (!item || item.kind !== 'reporting') return
+  const rules = JSON.parse(JSON.stringify(item.movementRules || []))
+  const error = rules.some(rule => rule.kind !== 'map-passage') ? 'Wijs voor iedere oude instelling eerst beide kanten op de kaart aan.' : validateReportingRules(rules)
+  if (error) { routeLinkMapStatus.value = error; return }
+  reportingRulesSaving.value = true
+  try {
+    const collection = await loadNavigationLayer('reporting-points')
+    const feature = collection.features.find(feature => item.objectKey && feature.properties._mapObjectKey === item.objectKey)
+      || collection.features.find(feature => String(feature.properties.number) === String(item.id))
+    if (feature) {
+      const response = await fetch('/api/map/objects?layer=reporting-points', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          objectKey: feature.properties._mapObjectKey,
+          feature: { ...feature, properties: { ...feature.properties, movementRules: rules } },
+        }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Opslaan faalde.')
+      const verification = await loadNavigationLayer('reporting-points')
+      const savedFeature = verification.features.find(candidate => candidate.properties._mapObjectKey === feature.properties._mapObjectKey)
+      const savedRules = savedFeature?.properties?.movementRules
+      if (!Array.isArray(savedRules) || JSON.stringify(savedRules) !== JSON.stringify(rules)) {
+        throw new Error('De server kon de aangepaste meldregels niet bevestigen. Probeer opnieuw.')
+      }
+      item.movementRules = JSON.parse(JSON.stringify(savedRules))
+      await reloadManagedMapLayer('reporting-points')
+      routeLinkMapStatus.value = 'Meldregels opgeslagen voor iedereen.'
+    } else {
+      saveRouteLinkPatch('reporting', item.id, { movementRules: rules }, 'Meldregels opgeslagen')
+      refreshRouteLinkedItems()
+      routeLinkMapStatus.value = 'Meldregels voor dit eigen punt opgeslagen in deze browser.'
+    }
+  } catch (error) { routeLinkMapStatus.value = error.message || 'Opslaan faalde.' }
+  finally { reportingRulesSaving.value = false }
 }
 
 function addReportingMessageFromFeature(feature) {
@@ -1409,51 +1697,23 @@ function addReportingMessageFromFeature(feature) {
   mapObjectError.value = ''
 }
 
-function startReportingBearingPlacement() {
-  const item = selectedRouteLinkItem.value
-  if (!item || item.kind !== 'reporting' || !item.point) return
-  reportingBearingPlacement.value = !reportingBearingPlacement.value
-  routeMode.value = null
-  customRouteDrawing.value = false
-  customReportingPlacement.value = false
-  routeLinkMapStatus.value = reportingBearingPlacement.value
-    ? 'Klik vanaf het marifoonpunt in de richting waarin de boot vaart. De pijl wijst de aanvaarrichting aan.'
-    : 'Richting kiezen geannuleerd.'
-}
-
-function setReportingBearingFromMap(latlng) {
-  const item = selectedRouteLinkItem.value
-  if (!item?.point) return
-  const exactBearing = routeBearingDegrees(
-    [item.point.latitude, item.point.longitude],
-    [latlng.lat, latlng.lng],
-  )
-  const snappedBearing = (Math.round(exactBearing / 45) * 45) % 360
-  item.bearing = snappedBearing
-  reportingBearingPlacement.value = false
-  drawReportingBearingArrow(snappedBearing)
-  saveReportingDirectionSettings()
-}
-
-function reportingBearingEndpoint(point, bearing, distanceMeters = 115) {
-  const radians = Number(bearing) * Math.PI / 180
-  const latitude = point.latitude + (Math.cos(radians) * distanceMeters) / 111_320
-  const longitude = point.longitude + (Math.sin(radians) * distanceMeters) / (111_320 * Math.cos(point.latitude * Math.PI / 180))
-  return { latitude, longitude }
-}
-
-function drawReportingBearingArrow(bearing) {
-  reportingBearingLayer?.remove()
-  reportingBearingLayer = null
-  const item = selectedRouteLinkItem.value
-  if (!map || item?.kind !== 'reporting' || !item.point || !Number.isFinite(Number(bearing))) return
-  const end = reportingBearingEndpoint(item.point, bearing)
-  const line = L.polyline([[item.point.latitude, item.point.longitude], [end.latitude, end.longitude]], {
-    pane: 'navigation-pane', color: '#e11d48', weight: 6, opacity: 0.95, lineCap: 'round',
-  })
-  const arrow = L.polylineDecorator(line, { patterns: [{ offset: '100%', symbol: L.Symbol.arrowHead({ pixelSize: 16, polygon: true, pathOptions: { pane: 'navigation-pane', color: '#fff', fillColor: '#e11d48', fillOpacity: 1, weight: 2 } }) }] })
-  reportingBearingLayer = L.layerGroup([line, arrow]).addTo(map)
-  line.bindTooltip(`${compassDirection(Number(bearing))} · ${Math.round(Number(bearing))}°`, { permanent: true, direction: 'right' }).openTooltip()
+function addReportingMovementToLocation(feature) {
+  const properties = feature?.properties || {}
+  const point = averageRoutePoint(geometryRoutePoints(feature?.geometry))
+  const calls = Array.isArray(properties.calls) ? properties.calls : []
+  const call = calls.find(candidate => Array.isArray(candidate.movementRules) && candidate.movementRules.length) || calls[0]
+  if (!point || !call?.number) {
+    mapObjectError.value = 'Dit marifoonpunt bevat geen bestaande melding om uit te breiden.'
+    return
+  }
+  selectedRouteLinkItem.value = {
+    kind: 'reporting', id: String(call.number), objectKey: call._mapObjectKey || '',
+    name: properties.locationName || properties.name || call.locationName || call.name || '',
+    point, call: '', movementRules: JSON.parse(JSON.stringify(call.movementRules || [])),
+  }
+  drawSelectedRouteLinkItem()
+  addReportingMovementRule()
+  routeLinkMapStatus.value = 'Nieuwe vaarbeweging voor dit bestaande marifoonpunt: kies waar de boot vandaan komt.'
 }
 
 function routeLinkPopupHtml(kind, item, point = null) {
@@ -1471,7 +1731,7 @@ function routeLinkPopupHtml(kind, item, point = null) {
   return `
       <div class="route-link-popup">
       <div><span>Routekoppeling</span><b>${escapeHtml(linkedSegments || linkedNames || 'niet gekoppeld')}</b></div>
-      <button type="button" data-route-link-action="select" data-route-link-kind="${escapeHtml(kind)}" data-route-link-id="${escapeHtml(id)}" data-route-link-name="${escapeHtml(item.name || item.locationName || item.call || '')}" data-route-link-names="${escapeHtml(linkedSegments || linkedNames)}" data-route-link-bearing="${escapeHtml(Number.isFinite(bearing) ? bearing : '')}" data-route-link-call="${escapeHtml(call)}" data-route-link-lat="${escapeHtml(canUsePoint ? latitude : '')}" data-route-link-lng="${escapeHtml(canUsePoint ? longitude : '')}">Selecteer</button>
+      <button type="button" data-route-link-action="select" data-route-link-kind="${escapeHtml(kind)}" data-route-link-id="${escapeHtml(id)}" data-route-link-object-key="${escapeHtml(item._mapObjectKey || '')}" data-route-link-name="${escapeHtml(item.name || item.locationName || item.call || '')}" data-route-link-names="${escapeHtml(linkedSegments || linkedNames)}" data-route-link-bearing="${escapeHtml(Number.isFinite(bearing) ? bearing : '')}" data-route-link-call="${escapeHtml(call)}" data-route-link-rules="${escapeHtml(encodeURIComponent(JSON.stringify(item.movementRules ?? override.movementRules ?? [])))}" data-route-link-lat="${escapeHtml(canUsePoint ? latitude : '')}" data-route-link-lng="${escapeHtml(canUsePoint ? longitude : '')}">${kind === 'reporting' ? 'Vaarbewegingen op kaart aanpassen' : 'Selecteer'}</button>
     </div>
   `
 }
@@ -1486,7 +1746,7 @@ function mapAdminObjectHtml(layer, feature, fallbackPoint = null) {
 function mapAdminReportingLocationHtml(feature) {
   if (!isAdmin.value) return ''
   const payload = escapeHtml(encodeURIComponent(JSON.stringify(feature)))
-  return `<div class="map-admin-popup map-admin-popup--location"><button type="button" data-map-admin-action="edit-reporting-location" data-map-admin-layer="reporting-points" data-map-admin-feature="${payload}">Marifoonpunt beheren</button><button type="button" data-map-admin-action="add-reporting" data-map-admin-layer="reporting-points" data-map-admin-feature="${payload}">+ Extra melding op dit punt</button></div>`
+  return `<div class="map-admin-popup map-admin-popup--location"><button type="button" data-map-admin-action="edit-reporting-location" data-map-admin-layer="reporting-points" data-map-admin-feature="${payload}">Punt en meldingsnummers beheren</button><button type="button" data-map-admin-action="add-reporting-movement" data-map-admin-layer="reporting-points" data-map-admin-feature="${payload}">+ Vaarbeweging aan dit punt</button></div>`
 }
 
 function navigationFilterName(layer) {
@@ -1494,8 +1754,22 @@ function navigationFilterName(layer) {
 }
 
 function startNewMapObject(layer) {
-  mapObjectEditor.value = { layer, objectKey: '', feature: null, positionChanged: true, name: '', number: '', type: '', description: '', bearing: 0, latitude: null, longitude: null }
+  mapObjectEditor.value = { layer, objectKey: '', feature: null, positionChanged: true, name: '', number: '', type: layer === 'closures' ? 'Stremming' : '', description: '', start: '', end: '', bearing: 0, latitude: null, longitude: null }
   mapObjectError.value = ''
+}
+
+async function startNewReportingPoint() {
+  navigationLayerError.value = ''
+  try {
+    const collection = await loadNavigationLayer('reporting-points')
+    startNewMapObject('reporting-points')
+    mapObjectEditor.value.number = String(nextReportingNumber(collection.features))
+    mapObjectEditor.value.type = 'Marifoonmeldpunt'
+    navigationLayersOpen.value = false
+    startMapObjectPlacement()
+  } catch (error) {
+    navigationLayerError.value = error?.message || 'Het volgende meldingsnummer kon niet worden bepaald.'
+  }
 }
 
 function editMapObject(layer, feature) {
@@ -1503,7 +1777,9 @@ function editMapObject(layer, feature) {
   const points = geometryRoutePoints(feature.geometry)
   const point = averageRoutePoint(points)
   mapObjectEditor.value = {
-    layer, objectKey: properties._mapObjectKey || '', feature, positionChanged: false,
+    layer, objectKey: layer === 'routing-lines' ? waterwayKey(feature) : properties._mapObjectKey || '', feature: JSON.parse(JSON.stringify(feature)), positionChanged: false,
+    closed: properties.closed === true, maxspeed: Number(properties.maxspeed) || 6, oneway: properties.oneway || 'no',
+    start: localDateTimeInput(properties.start), end: localDateTimeInput(properties.end),
     name: properties.name || properties.locationName || properties.obj_naam || '',
     number: properties.number || properties.code || '',
     type: properties.type || properties.category || '',
@@ -1521,12 +1797,48 @@ function editReportingLocation(feature) {
     layer: 'reporting-points', objectKey: '', feature, reportingLocation: true, positionChanged: false,
     name: properties.locationName || properties.name || 'Marifoonmeldpunt', number: '', type: 'Marifoonmeldpunt', description: '', bearing: 0,
     latitude: point?.latitude ?? null, longitude: point?.longitude ?? null,
-    calls: Array.isArray(properties.calls) ? properties.calls : [],
+    calls: JSON.parse(JSON.stringify(Array.isArray(properties.calls) ? properties.calls : [])),
+    deletedCallKeys: [],
   }
   mapObjectError.value = ''
 }
 
+async function addReportingCallToEditor() {
+  const editor = mapObjectEditor.value
+  if (!editor?.reportingLocation) return
+  try {
+    const collection = await loadNavigationLayer('reporting-points')
+    const number = nextReportingNumber([
+      ...(collection.features || []),
+      ...editor.calls.map(call => ({ properties: { number: call.number } })),
+    ])
+    editor.calls.push({
+      _editorId: `new-${Date.now()}`, number: String(number), name: editor.name,
+      locationName: editor.name, type: 'Aanbevolen marifoonmelding', call: '', movementRules: [],
+      instruction: 'Noem eerst de scheepsnaam en daarna de vaarrichting.',
+      obligation: 'Melden geeft geen voorrang.', source: 'Eigen kaart',
+    })
+  } catch (error) {
+    mapObjectError.value = error?.message || 'Een nieuw meldingsnummer kon niet worden bepaald.'
+  }
+}
+
+function removeReportingCallFromEditor(index) {
+  const editor = mapObjectEditor.value
+  if (!editor?.reportingLocation) return
+  const [call] = editor.calls.splice(index, 1)
+  if (call?._mapObjectKey) editor.deletedCallKeys.push(call._mapObjectKey)
+}
+
+function localDateTimeInput(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  return Number.isFinite(date.getTime()) ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''
+}
+
 function closeMapObjectEditor() {
+  waterwayEditMarkers?.remove()
+  waterwayEditPreview?.remove()
   mapObjectEditor.value = null
   mapObjectPlacement.value = false
   mapObjectError.value = ''
@@ -1549,8 +1861,15 @@ function mapObjectFeatureFromEditor(editor) {
     properties.locationName = editor.name || properties.locationName
     properties.call = editor.description
     properties.instruction = editor.description
-    properties.bearing = Number(editor.bearing) || 0
+    if (!editor.feature) properties.movementRules = []
   } else properties.description = editor.description
+  if (editor.layer === 'routing-lines') Object.assign(properties, { closed: editor.closed, maxspeed: editor.maxspeed, oneway: editor.oneway })
+  if (editor.layer === 'closures') Object.assign(properties, {
+    type: 'Stremming', blocksRouting: true, source: 'Eigen stremming',
+    start: editor.start ? new Date(editor.start).toISOString() : null,
+    end: editor.end ? new Date(editor.end).toISOString() : null,
+    waterway: properties.waterway || '',
+  })
   const latitude = roundMapCoordinate(editor.latitude)
   const longitude = roundMapCoordinate(editor.longitude)
   const hasPoint = Number.isFinite(latitude) && Number.isFinite(longitude)
@@ -1571,6 +1890,14 @@ async function saveMapObject() {
     mapObjectError.value = 'Vul een uniek meldingsnummer in.'
     return
   }
+  if (editor.layer === 'reporting-points' && !editor.reportingLocation && !editor.objectKey) {
+    const collection = await loadNavigationLayer('reporting-points')
+    const duplicate = collection.features.find(candidate => String(candidate.properties?.number || '').trim().toLowerCase() === String(editor.number).trim().toLowerCase())
+    if (duplicate) {
+      mapObjectError.value = `Meldingsnummer ${editor.number} bestaat al bij ${duplicate.properties.locationName || duplicate.properties.name || 'een ander marifoonpunt'}. Voeg daar een vaarbeweging toe of kies een uniek nummer.`
+      return
+    }
+  }
   const latitude = roundMapCoordinate(editor.latitude)
   const longitude = roundMapCoordinate(editor.longitude)
   if ((editor.positionChanged || !editor.feature?.geometry) && (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180)) {
@@ -1589,6 +1916,10 @@ async function saveMapObject() {
     }
     return
   }
+  if (editor.layer === 'closures' && editor.end && (!Number.isFinite(Date.parse(editor.end)) || (editor.start && Date.parse(editor.end) <= Date.parse(editor.start)))) {
+    mapObjectError.value = 'Kies een eindtijd na de begintijd.'
+    return
+  }
   const feature = mapObjectFeatureFromEditor(editor)
   if (!feature.geometry) {
     mapObjectError.value = 'Kies eerst een positie op de kaart.'
@@ -1600,6 +1931,16 @@ async function saveMapObject() {
     if (!response.ok) { mapObjectError.value = data.error || 'Opslaan faalde.'; return }
     closeMapObjectEditor()
     await reloadManagedMapLayer(editor.layer)
+    if (editor.layer === 'reporting-points') {
+      selectedRouteLinkItem.value = {
+        kind: 'reporting', id: String(feature.properties.number), objectKey: data.objectKey || '', name: feature.properties.name,
+        point: { latitude, longitude }, call: feature.properties.call || '',
+        movementRules: JSON.parse(JSON.stringify(feature.properties.movementRules || [])),
+      }
+      drawSelectedRouteLinkItem()
+      routeLinkMapStatus.value = 'Meldpunt opgeslagen. Wijs nu de aankomstkant en vervolgrichting aan op de kaart.'
+      addReportingMovementRule()
+    }
   } catch (error) {
     mapObjectError.value = error?.message || 'Opslaan faalde door een verbindingsfout.'
   }
@@ -1607,11 +1948,30 @@ async function saveMapObject() {
 
 async function saveReportingLocation(editor, latitude, longitude) {
   if (!editor.calls?.length) throw new Error('Dit marifoonpunt bevat geen meldingen.')
+  const normalizedNumbers = editor.calls.map(call => String(call.number || '').trim().toLowerCase())
+  if (normalizedNumbers.some(number => !number)) throw new Error('Vul voor iedere melding een nummer in.')
+  if (new Set(normalizedNumbers).size !== normalizedNumbers.length) throw new Error('Ieder meldingsnummer op dit punt moet uniek zijn.')
+  const collection = await loadNavigationLayer('reporting-points')
+  const ownKeys = new Set(editor.calls.map(call => call._mapObjectKey).filter(Boolean))
+  const duplicate = collection.features.find(feature => {
+    const key = feature.properties?._mapObjectKey
+    return !ownKeys.has(key) && !editor.deletedCallKeys?.includes(key)
+      && normalizedNumbers.includes(String(feature.properties?.number || '').trim().toLowerCase())
+  })
+  if (duplicate) throw new Error(`Meldingsnummer ${duplicate.properties.number} bestaat al bij ${duplicate.properties.locationName || duplicate.properties.name || 'een ander marifoonpunt'}.`)
+  for (const objectKey of editor.deletedCallKeys || []) {
+    const response = await fetch('/api/map/objects?layer=reporting-points', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ objectKey }),
+    })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error || 'Meldingsnummer verwijderen faalde.')
+  }
   const responses = await Promise.all(editor.calls.map(async (call) => {
     const objectKey = call._mapObjectKey || ''
     const properties = { ...call, locationName: editor.name || call.locationName || call.name || 'Marifoonmeldpunt' }
     delete properties._mapObjectKey
     delete properties._mapObjectSource
+    delete properties._editorId
     const feature = { type: 'Feature', geometry: { type: 'Point', coordinates: [longitude, latitude] }, properties }
     const response = await fetch('/api/map/objects?layer=reporting-points', {
       method: objectKey ? 'PUT' : 'POST',
@@ -1653,6 +2013,7 @@ async function deleteMapObject() {
 }
 
 async function reloadManagedMapLayer(layer) {
+  if (layer === 'routing-lines') { await loadWaterwayEdits(); return }
   if (layer === 'bridges') {
     bridgeLayerController?.destroy()
     bridgeLayerController = null
@@ -1664,6 +2025,7 @@ async function reloadManagedMapLayer(layer) {
   }
   await toggleNavigationLayer(layer)
   if (layer === 'bridges') loadBridgeSearchItems()
+  if (layer === 'closures') await loadRouteClosures()
   if (routeResult.value) {
     updateRouteBridgeItems(routeResult.value)
     updateRouteReportingItems(routeResult.value)
@@ -1697,7 +2059,8 @@ function handleRouteLinkPopupClick(event) {
     event.stopPropagation?.()
     try {
       const feature = JSON.parse(decodeURIComponent(adminButton.dataset.mapAdminFeature))
-      if (adminButton.dataset.mapAdminAction === 'add-reporting') addReportingMessageFromFeature(feature)
+      if (adminButton.dataset.mapAdminAction === 'add-reporting-movement') addReportingMovementToLocation(feature)
+      else if (adminButton.dataset.mapAdminAction === 'add-reporting') addReportingMessageFromFeature(feature)
       else if (adminButton.dataset.mapAdminAction === 'edit-reporting-location') editReportingLocation(feature)
       else editMapObject(adminButton.dataset.mapAdminLayer, feature)
     } catch { mapObjectError.value = 'Objectgegevens konden niet worden geopend.' }
@@ -1716,11 +2079,20 @@ function handleRouteLinkPopupClick(event) {
     const longitude = button.dataset.routeLinkLng === '' ? NaN : Number(button.dataset.routeLinkLng)
     selectedRouteLinkItem.value = {
       kind, id,
+      objectKey: button.dataset.routeLinkObjectKey || '',
       name: button.dataset.routeLinkName || '',
       linkedNames: button.dataset.routeLinkNames || '',
       bearing: Number.isFinite(Number(button.dataset.routeLinkBearing)) && button.dataset.routeLinkBearing !== '' ? Number(button.dataset.routeLinkBearing) : 0,
       call: button.dataset.routeLinkCall || '',
+      movementRules: JSON.parse(decodeURIComponent(button.dataset.routeLinkRules || '%5B%5D')),
       point: Number.isFinite(latitude) && Number.isFinite(longitude) ? { latitude, longitude } : null,
+    }
+    if (kind === 'reporting' && selectedRouteLinkItem.value.point) {
+      for (const rule of selectedRouteLinkItem.value.movementRules) {
+        if (rule.kind === 'map-passage' && rule.from && rule.to && !rule.maneuver) {
+          rule.maneuver = deriveReportingManeuver(selectedRouteLinkItem.value.point, rule.from, rule.to) || 'straight'
+        }
+      }
     }
     drawSelectedRouteLinkItem()
     routeLinkPendingItem.value = null
@@ -1798,12 +2170,13 @@ function saveDraggedPendingRouteLink(latlng) {
   refreshRouteLinkMapLayer()
 }
 
-function nearestRoutingNetworkPosition(point, maxDistanceMeters = 120) {
+function nearestRoutingNetworkPosition(point, maxDistanceMeters = 120, realLinesOnly = false) {
   if (!canalRouteNetwork?.nodes?.size) return null
   let best = null
   const visited = new Set()
   for (const node of canalRouteNetwork.nodes.values()) {
     for (const [neighborKey, edge] of node.neighbors) {
+      if (realLinesOnly && edge?.virtual) continue
       const edgeKey = [node.key, neighborKey].sort().join('|')
       if (visited.has(edgeKey)) continue
       visited.add(edgeKey)
@@ -1860,7 +2233,118 @@ function parseRouteNames(value) {
   return String(value || '').split(/[,;\n]+/).map((name) => name.trim()).filter(Boolean)
 }
 
+function loadBuiltInGroupOverrides() {
+  if (!auth.user) return {}
+  try {
+    const stored = JSON.parse(localStorage.getItem('ais-built-in-group-overrides-v1') || '{}')
+    return stored && typeof stored === 'object' && !Array.isArray(stored) ? stored : {}
+  } catch { return {} }
+}
+
+function effectiveGroupMmsis(id, defaults) {
+  const overrides = builtInGroupOverrides.value[id] || {}
+  const members = new Set(defaults)
+  for (const [mmsi, included] of Object.entries(overrides)) {
+    if (included === true) members.add(mmsi)
+    if (included === false) members.delete(mmsi)
+  }
+  return [...members]
+}
+
+function persistSelectedVesselGroups(groups, message) {
+  try {
+    localStorage.setItem('ais-vessel-groups', JSON.stringify(groups))
+    vesselGroups.value = groups
+    applyVesselGroupFilter()
+    vesselGroupMessage.value = message
+    return true
+  } catch {
+    vesselGroupMessage.value = 'Could not save groups. Browser storage may be full or unavailable.'
+    return false
+  }
+}
+
+async function setSelectedVesselGroup(groupId, included) {
+  if (!auth.requireLogin() || !selectedVessel.value) return
+  const mmsi = String(selectedVessel.value.mmsi)
+  if (groupId === 'company') {
+    const group = availableVesselGroups.value.find(candidate => candidate.id === groupId)
+    vesselGroupMessage.value = included ? 'Adding boat to Fleet Directory…' : 'Removing boat from Fleet Directory…'
+    try {
+      const response = await fetch(`/api/fleet/company-membership/${encodeURIComponent(mmsi)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ included, name: selectedVessel.value.name || selectedVessel.value.fleet?.name || '' }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Fleet Directory could not be updated.')
+
+      companyBaseMmsis.value = included
+        ? [...new Set([...companyBaseMmsis.value, mmsi])]
+        : companyBaseMmsis.value.filter(value => value !== mmsi)
+      companyFleetBoats.value = included && result.boat
+        ? [...companyFleetBoats.value.filter(boat => String(boat.mmsi) !== mmsi), result.boat]
+        : companyFleetBoats.value.filter(boat => String(boat.mmsi) !== mmsi)
+      const companyOverrides = { ...(builtInGroupOverrides.value.company || {}) }
+      delete companyOverrides[mmsi]
+      const nextOverrides = { ...builtInGroupOverrides.value, company: companyOverrides }
+      localStorage.setItem('ais-built-in-group-overrides-v1', JSON.stringify(nextOverrides))
+      builtInGroupOverrides.value = nextOverrides
+      aisController?.setCompanyMmsis(companyMmsis.value)
+      selectedVessel.value = enrichVesselWithFleetData(selectedVessel.value)
+      applyVesselGroupFilter()
+      window.dispatchEvent(new CustomEvent('fleet-directory-updated'))
+      vesselGroupMessage.value = included ? `Added to ${group.name} and Fleet Directory.` : `Removed from ${group.name} and Fleet Directory.`
+    } catch (error) {
+      vesselGroupMessage.value = error.message || 'Fleet Directory could not be updated.'
+    }
+    return
+  }
+  if (['company', 'nt', 'police'].includes(groupId)) {
+    const group = availableVesselGroups.value.find(candidate => candidate.id === groupId)
+    const overrides = {
+      ...builtInGroupOverrides.value,
+      [groupId]: { ...builtInGroupOverrides.value[groupId], [mmsi]: included },
+    }
+    try {
+      localStorage.setItem('ais-built-in-group-overrides-v1', JSON.stringify(overrides))
+      builtInGroupOverrides.value = overrides
+      aisController?.setCompanyMmsis(companyMmsis.value)
+      aisController?.setSpecialVesselMmsis({ nt: ntMmsis.value, police: policeMmsis.value })
+      selectedVessel.value = enrichVesselWithFleetData(selectedVessel.value)
+      applyVesselGroupFilter()
+      vesselGroupMessage.value = included ? `Added to ${group.name}.` : `Removed from ${group.name}.`
+    } catch {
+      vesselGroupMessage.value = 'Could not save groups. Browser storage may be full or unavailable.'
+    }
+    return
+  }
+  const group = vesselGroups.value.find(candidate => candidate.id === groupId)
+  if (!group) return
+  const groups = vesselGroups.value.map(candidate => candidate.id !== groupId ? candidate : {
+    ...candidate,
+    mmsis: included ? [...new Set([...candidate.mmsis, mmsi])] : candidate.mmsis.filter(value => value !== mmsi),
+  })
+  persistSelectedVesselGroups(groups, included ? `Added to ${group.name}.` : `Removed from ${group.name}.`)
+}
+
+function createGroupWithSelectedVessel() {
+  if (!auth.requireLogin() || !selectedVessel.value) return
+  const name = vesselGroupDraftName.value.trim()
+  if (!name) return
+  const existing = availableVesselGroups.value.find(group => group.name.toLowerCase() === name.toLowerCase())
+  if (existing) {
+    setSelectedVesselGroup(existing.id, true)
+    return
+  }
+  const group = { id: createLocalId(), name, mmsis: [String(selectedVessel.value.mmsi)] }
+  if (persistSelectedVesselGroups([...vesselGroups.value, group], `Created ${name} and added this boat.`)) {
+    vesselGroupDraftName.value = ''
+  }
+}
+
 function createVesselGroup() {
+  if (!auth.requireLogin()) return
   const name = newGroupName.value.trim()
   if (!name) return
 
@@ -1877,6 +2361,7 @@ function createVesselGroup() {
 }
 
 function deleteActiveGroup() {
+  if (!auth.requireLogin()) return
   if (!activeGroup.value) return
   const filterId = `group:${activeGroup.value.id}`
   vesselGroups.value = vesselGroups.value.filter((group) => group.id !== activeGroup.value.id)
@@ -1886,6 +2371,7 @@ function deleteActiveGroup() {
 }
 
 function toggleVesselInActiveGroup(mmsi) {
+  if (!auth.requireLogin()) return
   if (!activeGroup.value) return
   const normalizedMmsi = String(mmsi)
   const current = activeGroup.value.mmsis
@@ -1897,6 +2383,7 @@ function toggleVesselInActiveGroup(mmsi) {
 }
 
 function addManualMmsi() {
+  if (!auth.requireLogin()) return
   const mmsi = manualMmsi.value.trim()
   if (!activeGroup.value || !/^\d{9}$/.test(mmsi)) return
   if (!activeGroup.value.mmsis.includes(mmsi)) activeGroup.value.mmsis.push(mmsi)
@@ -1913,8 +2400,8 @@ function applyVesselGroupFilter() {
 
   const visibleMmsis = new Set()
   if (activeVesselFilters.value.includes('company')) companyMmsis.value.forEach((mmsi) => visibleMmsis.add(mmsi))
-  if (activeVesselFilters.value.includes('nt')) ntMmsis.forEach((mmsi) => visibleMmsis.add(mmsi))
-  if (activeVesselFilters.value.includes('police')) policeMmsis.forEach((mmsi) => visibleMmsis.add(mmsi))
+  if (activeVesselFilters.value.includes('nt')) ntMmsis.value.forEach((mmsi) => visibleMmsis.add(mmsi))
+  if (activeVesselFilters.value.includes('police')) policeMmsis.value.forEach((mmsi) => visibleMmsis.add(mmsi))
   for (const filter of activeVesselFilters.value) {
     if (!filter.startsWith('group:')) continue
     const group = vesselGroups.value.find((candidate) => candidate.id === filter.slice(6))
@@ -1935,15 +2422,11 @@ function toggleVesselFilter(filter) {
     : [...withoutAll, filter]
 }
 
-function fitAisVessels() {
-  aisController?.fitVisibleVessels()
-}
-
 function setRouteMode(mode) {
   routePlannerOpen.value = true
   routeMode.value = routeMode.value === mode ? null : mode
   if (routeMode.value) routeMessage.value = routeMode.value === 'waypoint'
-    ? 'Klik op de kaart om een extra routepunt toe te voegen.'
+    ? 'Klik op de kaart om het nieuwe eindpunt toe te voegen.'
     : `Klik op de kaart om het ${routeMode.value === 'start' ? 'startpunt' : 'eindpunt'} te kiezen.`
 }
 
@@ -1963,15 +2446,12 @@ function finishMobileMapInteraction() {
 }
 
 function cancelMobileMapInteraction() {
+  if (reportingPassagePick.value) { reportingPassagePick.value = null; routeLinkMapStatus.value = 'Kaartselectie geannuleerd. Sla je wijzigingen op als je klaar bent.' }
   if (routeMode.value) {
     routeMode.value = null
     routeMessage.value = 'Map selection cancelled.'
   }
   if (mapObjectPlacement.value) mapObjectPlacement.value = false
-  if (reportingBearingPlacement.value) {
-    reportingBearingPlacement.value = false
-    routeLinkMapStatus.value = 'Direction selection cancelled.'
-  }
   if (customReportingPlacement.value) {
     customReportingPlacement.value = false
     customReportingStatus.value = 'Placement cancelled.'
@@ -1989,6 +2469,7 @@ function cancelMobileMapInteraction() {
 }
 
 function loadCustomRouteLines() {
+  if (!auth.user) return []
   try {
     const lines = JSON.parse(localStorage.getItem('custom-routing-lines-v1') || '[]')
     return Array.isArray(lines) ? lines.filter((line) => line?.id && Array.isArray(line.coordinates) && line.coordinates.length >= 2) : []
@@ -1998,6 +2479,7 @@ function loadCustomRouteLines() {
 }
 
 function loadCustomReportingPoints() {
+  if (!auth.user) return []
   try {
     const points = JSON.parse(localStorage.getItem('custom-reporting-points-v1') || '[]')
     return Array.isArray(points) ? points.filter((point) => point?.id && Number.isFinite(Number(point.latitude)) && Number.isFinite(Number(point.longitude))) : []
@@ -2060,6 +2542,7 @@ function toggleCustomReportingPlacement() {
 }
 
 function placeCustomReportingPoint(latlng) {
+  if (!auth.requireLogin()) return
   const draft = customReportingDraft.value
   const point = {
     id: createLocalId(), number: draft.number.trim(), name: draft.name.trim() || `Marifoonpunt ${draft.number.trim()}`,
@@ -2076,6 +2559,7 @@ function placeCustomReportingPoint(latlng) {
 }
 
 function deleteCustomReportingPoint(id) {
+  if (!auth.requireLogin()) return
   const point = customReportingPoints.value.find((candidate) => candidate.id === id)
   if (!point) return
   customReportingPoints.value = customReportingPoints.value.filter((candidate) => candidate.id !== id)
@@ -2192,6 +2676,7 @@ function undoCustomRoutePoint() {
 }
 
 function saveCustomRouteLine() {
+  if (!auth.requireLogin()) return
   if (customRouteDraft.value.length < 2) return
   const name = customRouteLineName.value || `Eigen vaarlijn ${customRouteLines.value.length + 1}`
   const coordinates = customRouteDraft.value.map((point) => ({ ...point }))
@@ -2244,6 +2729,7 @@ function customRouteTypeLabel(type) {
 }
 
 function deleteCustomRouteLine(id) {
+  if (!auth.requireLogin()) return
   const line = customRouteLines.value.find((candidate) => candidate.id === id)
   if (!line) return
   customRouteLines.value = customRouteLines.value.filter((candidate) => candidate.id !== id)
@@ -2255,15 +2741,12 @@ function deleteCustomRouteLine(id) {
 }
 
 function handleRouteMapClick(event) {
+  if (reportingPassagePick.value) { placeReportingPassageAnchor(event.latlng); return }
   if (mapObjectPlacement.value && mapObjectEditor.value) {
     mapObjectEditor.value.latitude = roundMapCoordinate(event.latlng.lat)
     mapObjectEditor.value.longitude = roundMapCoordinate(event.latlng.lng)
     mapObjectEditor.value.positionChanged = true
     mapObjectPlacement.value = false
-    return
-  }
-  if (reportingBearingPlacement.value) {
-    setReportingBearingFromMap(event.latlng)
     return
   }
   if (customReportingPlacement.value) {
@@ -2291,7 +2774,7 @@ function handleRoutePlacementClick(event) {
     event.stopImmediatePropagation()
     return
   }
-  const placementActive = routeMode.value || mapObjectPlacement.value || reportingBearingPlacement.value
+  const placementActive = reportingPassagePick.value || routeMode.value || mapObjectPlacement.value
     || customReportingPlacement.value || customRouteDrawing.value || routeLinkPendingItem.value?.networkPick
   if (!placementActive || event.button !== 0) return
   if (isInteractiveMapTarget(event.target)) return
@@ -2303,7 +2786,7 @@ function handleRoutePlacementClick(event) {
 }
 
 function handlePlacementPointerDown(event) {
-  const placementActive = routeMode.value || mapObjectPlacement.value || reportingBearingPlacement.value
+  const placementActive = reportingPassagePick.value || routeMode.value || mapObjectPlacement.value
     || customReportingPlacement.value || customRouteDrawing.value || routeLinkPendingItem.value?.networkPick
   if (!placementActive || event.isPrimary === false || isInteractiveMapTarget(event.target)) {
     placementPointerStart = null
@@ -2325,14 +2808,19 @@ function handlePlacementPointerUp(event) {
 }
 
 function isInteractiveMapTarget(target) {
-  return Boolean(target?.closest?.('.leaflet-control, .leaflet-popup, .leaflet-tooltip, .leaflet-marker-icon'))
+  const controls = '.leaflet-control, .leaflet-popup, button, input, select, textarea, a'
+  // While choosing a route point, map symbols are valid positions too.
+  // Existing route markers retain their drag/edit interaction.
+  const markers = routeMode.value ? '.leaflet-route-point-pane' : '.leaflet-tooltip, .leaflet-marker-icon'
+  return Boolean(target?.closest?.(`${controls}, ${markers}`))
 }
 
 function placeActiveRoutePoint(latlng) {
   if (!routeMode.value) return
   const point = { latitude: latlng.lat, longitude: latlng.lng }
   setRoutePoint(routeMode.value, point)
-  routeMode.value = routePoints.value.length >= 2 ? null : (routeMode.value === 'start' ? 'end' : 'start')
+  routeMode.value = !routePoints.value.some(point => point.role === 'start') ? 'start'
+    : !routePoints.value.some(point => point.role === 'end') ? 'end' : null
   updatePlannedRoute()
 }
 
@@ -2356,7 +2844,7 @@ function updatePlannedRoute({ redrawMarkers = true } = {}) {
   routeMessage.value = result.status === 'partial'
     ? result.message
     : result.status === 'ok'
-    ? `Route gevonden.${furthestSnap > 15 ? ` Gekozen punt sluit na ${formatRouteDistance(furthestSnap)} aan op het dichtstbijzijnde vaarwater.` : ''} ETA gebruikt ingestelde snelheid, bekende snelheidslimieten en AIS-drukte (${result.trafficLevel}).`
+    ? `Route gevonden.${furthestSnap > 15 ? ` Gekozen punt sluit na ${formatRouteDistance(furthestSnap)} aan op het dichtstbijzijnde vaarwater.` : ''} ETA gebruikt de ingestelde snelheid en bekende snelheidslimieten.`
     : result.message
 }
 
@@ -2392,48 +2880,50 @@ function refreshRouteAfterSettingsChange() {
 function routePlannerOptions() {
   return {
     snapDistanceMeters: Infinity,
-    speedKnots: routeSpeedKnots.value,
-    trafficPoints: liveVessels.value,
+    speedKmh: routeSpeedKmh.value,
     boatProfile: routeBoatProfileForPlanner(),
     allowZone3: routeAllowZone3.value,
     closurePoints: routeClosurePoints.value,
   }
 }
 
+function applyRouteClosureData(data) {
+  routeClosureData.value = data
+  routeClosurePoints.value = activeClosurePoints(data.features)
+  if (activeNavigationLayers.value.includes('closures')) {
+    navigationLayerControllers.get('closures')?.remove()
+    const layer = createNavigationLayer('closures', data, canalsGeoJson, {
+      adminObjectHtml: feature => mapAdminObjectHtml('closures', feature),
+    })
+    navigationLayerControllers.set('closures', layer)
+    layer.addTo(map)
+    navigationLayerCounts.value = { ...navigationLayerCounts.value, closures: closureSummary.value.total }
+  }
+}
+
 async function loadRouteClosures() {
-  try {
-    const data = await loadNavigationLayer('closures')
-    routeClosurePoints.value = (data.features || [])
-      .map(routeClosureFromFeature)
-      .filter(Boolean)
-  } catch {
-    routeClosurePoints.value = []
-  }
-}
-
-function routeClosureFromFeature(feature) {
-  const [longitude, latitude] = feature.geometry?.coordinates || []
-  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null
-  const properties = feature.properties || {}
-  if (!isActiveRouteClosure(properties.start, properties.end)) return null
-  return {
-    latitude,
-    longitude,
-    radiusMeters: 140,
-    name: properties.name || 'Scheepvaartbeperking',
-    start: properties.start,
-    end: properties.end,
-  }
-}
-
-function isActiveRouteClosure(startValue, endValue) {
-  const now = Date.now()
-  const start = Date.parse(startValue || '')
-  const end = Date.parse(endValue || '')
-  if (!Number.isFinite(start) && !Number.isFinite(end)) return true
-  if (Number.isFinite(start) && start - now > 30 * 60_000) return false
-  if (Number.isFinite(end) && end < now - 15 * 60_000) return false
-  return Number.isFinite(start) || Number.isFinite(end)
+  if (routeClosureLoad) return routeClosureLoad
+  routeClosureLoading.value = true
+  routeClosureLoad = (async () => {
+    try {
+      const data = await loadNavigationLayer('closures')
+      if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) throw new Error('Ongeldige stremmingengegevens.')
+      applyRouteClosureData(data)
+      routeClosureError.value = data.stale
+        ? 'Bron tijdelijk niet bereikbaar. Laatst bekende stremmingen worden gebruikt.'
+        : data.partial ? 'Enkele officiële berichten konden niet worden geladen; de overige informatie is actueel.' : ''
+    } catch {
+      if (routeClosureData.value) routeClosurePoints.value = activeClosurePoints(routeClosureData.value.features)
+      routeClosureError.value = routeClosureData.value
+        ? 'Vernieuwen mislukt. Laatst bekende stremmingen worden gebruikt.'
+        : 'Stremmingen niet beschikbaar. Deze route is niet op actuele stremmingen gecontroleerd.'
+    } finally {
+      routeClosureLoading.value = false
+      routeClosureLoad = null
+      if (routePoints.value.length >= 2 && map) refreshRouteAfterSettingsChange()
+    }
+  })()
+  return routeClosureLoad
 }
 
 function drawRouteMarkers() {
@@ -2669,6 +3159,78 @@ async function exportPlannedRoute(format = 'html') {
   }
 }
 
+async function sharePlannedRoute() {
+  if (!canSaveCurrentRoute.value || routeShareLoading.value) return
+  routeShareLoading.value = true
+  routeShareMessage.value = ''
+  routeShareUrl.value = ''
+  try {
+    const response = await fetch('/api/shared-routes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ route: currentRouteSnapshot(defaultSavedRouteName()) }),
+    })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error || 'Route delen faalde.')
+    routeShareUrl.value = new URL(data.url, window.location.origin).href
+    const copied = await copyText(routeShareUrl.value)
+    routeShareMessage.value = copied
+      ? 'Deellink gekopieerd. Deze route blijft 7 dagen beschikbaar.'
+      : 'Deellink gemaakt. Deze route blijft 7 dagen beschikbaar.'
+  } catch (error) {
+    routeShareMessage.value = error?.message || 'Route delen faalde.'
+  } finally {
+    routeShareLoading.value = false
+  }
+}
+
+async function copyText(value) {
+  try {
+    await navigator.clipboard.writeText(value)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function currentRouteSnapshot(name) {
+  return {
+    name,
+    savedAt: new Date().toISOString(),
+    routeType: routeResult.value?.routeType || 'manual',
+    points: routePoints.value.map((point) => ({
+      role: point.role,
+      latitude: Number(point.latitude),
+      longitude: Number(point.longitude),
+      name: point.name || null,
+    })).filter((point) => Number.isFinite(point.latitude) && Number.isFinite(point.longitude)),
+    result: savedRouteResultSnapshot(routeResult.value),
+    settings: {
+      speedValue: routeSpeedValue.value,
+      speedUnit: 'kmh',
+      loopMinutes: routeLoopMinutes.value,
+      allowZone3: routeAllowZone3.value,
+      boatProfile: { ...routeBoatProfile.value },
+      addressInputs: { ...routeAddressInputs.value },
+    },
+  }
+}
+
+async function loadSharedRouteFromUrl() {
+  const token = new URLSearchParams(window.location.search).get('route')
+  if (!token || !/^[A-Za-z0-9_-]{20,40}$/.test(token)) return
+  try {
+    const response = await fetch(`/api/shared-routes/${encodeURIComponent(token)}`)
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error || 'Gedeelde route laden faalde.')
+    loadSavedRoute(data.route)
+    routeShareMessage.value = `Gedeelde route geladen. Beschikbaar tot ${new Date(data.expiresAt).toLocaleString('nl-NL')}.`
+  } catch (error) {
+    routePlannerOpen.value = true
+    routeShareMessage.value = error?.message || 'Gedeelde route laden faalde.'
+  }
+}
+
 function prepareRouteExportPrintWindow(printWindow) {
   const triggerPrint = () => {
     if (printWindow.closed) return
@@ -2712,8 +3274,7 @@ async function buildRouteExportData(result) {
     summary: {
       distance: formatRouteDistance(result.distanceMeters),
       duration: formatRouteDuration(result.durationMinutes),
-      speed: formatRouteSpeed(result.speedKnots),
-      traffic: result.trafficLevel,
+      speed: formatRouteSpeed(result.speedKmh),
       status: result.status,
       from: routePointLabel(routePoints.value[0]),
       to: routePointLabel(routePoints.value[routePoints.value.length - 1]),
@@ -2791,11 +3352,27 @@ function collectReportingPointsAlongRoute(features, result) {
   const coordinates = result?.coordinates || []
   const segments = routeSegmentsForResult(result)
   return features
-    .map((feature) => {
+    .flatMap((feature) => {
       const point = featureRoutePoint(feature, coordinates, 'reporting')
       if (!point) return null
       const properties = feature.properties || {}
       const override = reportingOverrideForProperties(properties)
+      const rules = properties.movementRules ?? override?.movementRules
+      if (Array.isArray(rules) && rules.length) {
+        return matchReportingMovements(point, segments, rules).map(hit => ({
+          ...reportingPointExportItem(feature, point, override),
+          call: hit.rule.call,
+          bearing: hit.bearingDegrees,
+          routeBearing: hit.bearingDegrees,
+          sourceLatitude: point.latitude, sourceLongitude: point.longitude,
+          latitude: hit.point.latitude, longitude: hit.point.longitude,
+          routeNames: [hit.rule.from?.lineName || hit.rule.incomingLine, hit.rule.to?.lineName || hit.rule.outgoingLine].filter(Boolean),
+          movementRules: rules,
+          matchedRouteName: true, matchedRouteSegment: true,
+          matchedSegmentName: hit.segmentName, routeMeters: hit.routeMeters,
+          distanceToRouteMeters: Math.round(hit.distanceMeters),
+        }))
+      }
       const overrideRouteNames = routeLinkNamesFromOverride(override)
       const explicitRoutePosition = projectPointOnLinkedRouteSegment(point, segments, override)
       const candidateRouteNames = overrideRouteNames.length ? overrideRouteNames : inferReportingRouteNames(properties)
@@ -2807,7 +3384,6 @@ function collectReportingPointsAlongRoute(features, result) {
         ...reportingPointExportItem(feature, point, override),
         bearing,
         routeBearing: routePosition.bearingDegrees,
-        direction: compassDirection(routePosition.bearingDegrees),
         sourceLatitude: point.latitude,
         sourceLongitude: point.longitude,
         latitude: routePosition.point.latitude,
@@ -3047,8 +3623,6 @@ function reportingPointExportItem(feature, point, override = null) {
     name: override?.name || properties.locationName || properties.name || 'Marifoonmeldpunt',
     number: properties.number || '',
     call: override?.call || properties.call || '',
-    instruction: properties.instruction || '',
-    obligation: properties.obligation || '',
     source: properties.source || '',
     latitude: point.latitude,
     longitude: point.longitude,
@@ -3153,12 +3727,6 @@ function bearingDeltaDegrees(a, b) {
   return Math.abs(((a - b + 540) % 360) - 180)
 }
 
-function compassDirection(degrees) {
-  if (!Number.isFinite(degrees)) return ''
-  const labels = ['N', 'NO', 'O', 'ZO', 'Z', 'ZW', 'W', 'NW']
-  return labels[Math.round(((degrees % 360) / 45)) % labels.length]
-}
-
 function downloadRouteExport(html, filename) {
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
   const url = URL.createObjectURL(blob)
@@ -3173,7 +3741,7 @@ function downloadRouteExport(html, filename) {
 
 function routeExportFilename() {
   const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')
-  return `routekaart-${stamp}.html`
+  return `boat-tracker-route-${stamp}.html`
 }
 
 function routeExportHtml(data) {
@@ -3189,8 +3757,7 @@ function routeExportHtml(data) {
     { key: 'winterWaterLevelNap', label: 'Winterpeil' }, { key: 'width', label: 'Breedte' }, { key: 'route', label: 'Vaarroute' },
   ], numberedBridges)
   const reportingHtml = routeExportTableHtml([
-    { key: 'name', label: 'Meldpunt' }, { key: 'number', label: 'Nr' }, { key: 'direction', label: 'Richting' }, { key: 'call', label: 'Melding' },
-    { key: 'instruction', label: 'Werkwijze' }, { key: 'obligation', label: 'Opmerking' },
+    { key: 'name', label: 'Meldpunt' }, { key: 'number', label: 'Nr' }, { key: 'call', label: 'Melding' },
   ], data.reportingPoints)
   const mapSvg = routeExportMapSvg({ ...data, bridges: numberedBridges })
   return `<!doctype html>
@@ -3198,7 +3765,7 @@ function routeExportHtml(data) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Routekaart export</title>
+  <title>Boat Tracker · Routekaart</title>
   <style>
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     body { margin: 0; font-family: Arial, sans-serif; color: #0f172a; background: #f8fafc; }
@@ -3233,7 +3800,7 @@ function routeExportHtml(data) {
 <body>
   <header>
     <div>
-      <h1>Routekaart</h1>
+      <h1>Boat Tracker · Routekaart</h1>
       <div class="meta">Gegenereerd: ${escapeHtml(generatedAt)}</div>
     </div>
     <button id="route-export-print" type="button">Print / PDF</button>
@@ -3259,7 +3826,7 @@ function routeExportHtml(data) {
 function routeExportSummaryHtml(data) {
   return [
     ['Van', data.summary.from], ['Naar', data.summary.to], ['Afstand', data.summary.distance],
-    ['Vaartijd', data.summary.duration], ['Snelheid', data.summary.speed], ['Drukte', data.summary.traffic],
+    ['Vaartijd', data.summary.duration], ['Snelheid', data.summary.speed],
     ['Zone 3 / IJ', data.summary.zone3 ? 'toegestaan' : 'vermeden'],
   ].map(([label, value]) => `<div class="card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('')
 }
@@ -3354,13 +3921,12 @@ function routeExportMapSvg(data) {
     const connector = Math.hypot(source.x - p.x, source.y - p.y) > 9
       ? `<line x1="${source.x.toFixed(1)}" y1="${source.y.toFixed(1)}" x2="${p.x.toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.75"/><circle cx="${source.x.toFixed(1)}" cy="${source.y.toFixed(1)}" r="3" fill="#e11d48" opacity="0.7"/>`
       : ''
-    const angle = Number.isFinite(point.routeBearing) ? point.routeBearing : point.bearing || 0
-    const offsetAngle = (angle + (index % 2 === 0 ? 90 : -90)) * Math.PI / 180
+    const offsetAngle = (index % 2 === 0 ? -45 : -135) * Math.PI / 180
     const marker = placeExportMarker(p, offsetAngle, 32)
-    const title = `${point.number}. ${point.call} richting ${point.direction || Math.round(angle)}`
-    return `<g>${connector}<line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${marker.x.toFixed(1)}" y2="${marker.y.toFixed(1)}" stroke="#9f1239" stroke-width="1.5"/><circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="#9f1239"/><g transform="translate(${marker.x.toFixed(1)} ${marker.y.toFixed(1)}) rotate(${angle.toFixed(1)})"><path d="M0,-18 L12,10 L0,5 L-12,10 Z" fill="#e11d48" stroke="#fff" stroke-width="3" stroke-linejoin="round"><title>${escapeHtml(title)}</title></path></g><circle cx="${marker.x.toFixed(1)}" cy="${marker.y.toFixed(1)}" r="8" fill="#e11d48" stroke="#fff" stroke-width="2"/><text x="${marker.x.toFixed(1)}" y="${(marker.y + 4).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">${escapeHtml(point.number)}</text></g>`
+    const title = `${point.number}. ${point.call}`
+    return `<g>${connector}<line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${marker.x.toFixed(1)}" y2="${marker.y.toFixed(1)}" stroke="#9f1239" stroke-width="1.5"/><circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="#9f1239"/><circle cx="${marker.x.toFixed(1)}" cy="${marker.y.toFixed(1)}" r="11" fill="#e11d48" stroke="#fff" stroke-width="3"><title>${escapeHtml(title)}</title></circle><text x="${marker.x.toFixed(1)}" y="${(marker.y + 4).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">${escapeHtml(point.number)}</text></g>`
   }).join('')
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Routekaart">
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Boat Tracker routekaart">
     <defs><pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#bae6fd" stroke-width="1"/></pattern></defs>
     <rect width="100%" height="100%" fill="#f1f5f9"/>
     ${osmTiles}
@@ -3370,7 +3936,7 @@ function routeExportMapSvg(data) {
     <polyline points="${routeLine}" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
     <polyline points="${routeLine}" fill="none" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
     ${bridgeMarkers}${reportingMarkers}
-    <g transform="translate(24 24)"><rect width="278" height="82" rx="8" fill="white" opacity="0.95"/><line x1="14" y1="20" x2="54" y2="20" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/><text x="66" y="24" font-size="13" fill="#0f172a">Geplande route</text><circle cx="34" cy="47" r="9" fill="#f59e0b"/><text x="34" y="51" text-anchor="middle" font-size="9" font-weight="900" fill="#172554">#</text><text x="66" y="51" font-size="13" fill="#0f172a">Genummerde brug</text><path d="M34,59 L43,76 L34,72 L25,76 Z" fill="#e11d48"/><text x="66" y="74" font-size="13" fill="#0f172a">Meldpunt + richting</text></g>
+    <g transform="translate(24 24)"><rect width="278" height="82" rx="8" fill="white" opacity="0.95"/><line x1="14" y1="20" x2="54" y2="20" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/><text x="66" y="24" font-size="13" fill="#0f172a">Geplande route</text><circle cx="34" cy="47" r="9" fill="#f59e0b"/><text x="34" y="51" text-anchor="middle" font-size="9" font-weight="900" fill="#172554">#</text><text x="66" y="51" font-size="13" fill="#0f172a">Genummerde brug</text><circle cx="34" cy="70" r="9" fill="#e11d48"/><text x="66" y="74" font-size="13" fill="#0f172a">Marifoonmeldpunt</text></g>
   </svg>`
 }
 
@@ -3444,10 +4010,14 @@ function setRoutePoint(role, point) {
       ? routePoints.value.map((candidate, index) => index === existing ? next : candidate)
       : [...routePoints.value, next]
   } else {
-    next.role = 'waypoint'
-    const endIndex = routePoints.value.findIndex((candidate) => candidate.role === 'end')
-    const insertAt = endIndex >= 0 ? endIndex : routePoints.value.length
-    routePoints.value = [...routePoints.value.slice(0, insertAt), next, ...routePoints.value.slice(insertAt)]
+    next.role = 'end'
+    routePoints.value = [
+      ...routePoints.value.map((candidate) => {
+        if (candidate.role !== 'end') return candidate
+        return { ...candidate, role: 'waypoint' }
+      }),
+      next,
+    ]
   }
 }
 
@@ -3631,10 +4201,10 @@ function formatRouteDuration(minutes) {
   return `${Math.floor(minutes / 60)}u ${minutes % 60}m`
 }
 
-function formatRouteSpeed(knots) {
-  const value = Number(knots)
+function formatRouteSpeed(kmh) {
+  const value = Number(kmh)
   if (!Number.isFinite(value)) return '—'
-  return `${value.toFixed(value % 1 ? 1 : 0)} kn · ${(value * 1.852).toFixed(1)} km/u`
+  return `${value.toFixed(value % 1 ? 1 : 0)} km/u`
 }
 
 function focusVessel(vessel) {
@@ -3705,6 +4275,7 @@ function normalizeBoatLabel(value) {
 }
 
 async function loadTodayPlanning() {
+  if (!auth.user) return
   try {
     const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam' }).format(new Date())
     const response = await fetch(`/api/planning/day?date=${today}`)
@@ -3720,10 +4291,13 @@ function closeVesselDetails() {
   aisController?.clearSelection()
 }
 
-function showVesselHistory(hours) {
+async function showVesselHistory(hours) {
   if (!selectedVessel.value) return
   historyHours.value = hours
-  aisController?.showHistory(selectedVessel.value.mmsi, hours)
+  historyLoading.value = true
+  historyError.value = ''
+  const history = await aisController?.showHistory(selectedVessel.value.mmsi, hours, null, { fitBounds: true })
+  if (history && window.matchMedia('(max-width: 639px)').matches) vesselDetailsCollapsed.value = true
 }
 
 function formatDegrees(value) {
@@ -3746,14 +4320,14 @@ function formatFleetDimensions(boat) {
 function enrichVesselWithFleetData(vessel) {
   const fleet = companyFleetBoats.value.find((boat) => String(boat.mmsi) === String(vessel.mmsi)) || null
   const mmsi = String(vessel.mmsi)
-  const serviceGroup = ntMmsis.includes(mmsi) ? 'nt' : policeMmsis.includes(mmsi) ? 'police' : null
+  const serviceGroup = ntMmsis.value.includes(mmsi) ? 'nt' : policeMmsis.value.includes(mmsi) ? 'police' : null
   return { ...vessel, fleet, serviceGroup }
 }
 
 function searchVesselDotClass(mmsi) {
   const value = String(mmsi)
-  if (policeMmsis.includes(value)) return 'bg-blue-500'
-  if (ntMmsis.includes(value)) return 'bg-purple-500'
+  if (policeMmsis.value.includes(value)) return 'bg-blue-500'
+  if (ntMmsis.value.includes(value)) return 'bg-purple-500'
   if (companyMmsis.value.includes(value)) return 'bg-orange-400'
   return 'bg-sky-400'
 }
@@ -3900,12 +4474,11 @@ function selectFirstResult() {
 
 function activateUserLocation() {
   if (!map) return
+  window.clearTimeout(userLocationErrorTimer)
+  userLocationError.value = ''
 
   if (isUserLocationActive.value) {
-    userLocationController?.stop()
-    userLocationController = null
-    isUserLocationActive.value = false
-    latestUserLocation.value = null
+    userLocationController?.center()
     return
   }
 
@@ -3919,6 +4492,12 @@ function activateUserLocation() {
       userLocationController = null
       isUserLocationActive.value = false
       latestUserLocation.value = null
+      userLocationError.value = error?.code === 1
+        ? (/firefox/i.test(navigator.userAgent) ? 'Sta locatie toe in Firefox site-instellingen' : 'Locatietoegang is geblokkeerd')
+        : 'Locatie kon niet worden bepaald'
+      userLocationErrorTimer = window.setTimeout(() => {
+        userLocationError.value = ''
+      }, 5_000)
     },
   })
 }
@@ -3936,6 +4515,7 @@ async function toggleBridgeLayer() {
     if (!bridgeLayerController) {
       const data = await loadAmsterdamBridges()
       bridgeLayerController = createBridgeLayer(map, data, {
+        isLinked: (properties) => Boolean(routeLinkDisplayNames('bridge', properties) || routeLinkDisplaySegments('bridge', properties)),
         routeLinkPopupHtml: (properties, point) => routeLinkPopupHtml('bridge', properties, point),
         adminObjectHtml: (feature, point) => mapAdminObjectHtml('bridges', feature, point),
       })
@@ -3968,7 +4548,8 @@ async function toggleNavigationLayer(id) {
       if (!bridgeLayerController) {
         const data = await loadAmsterdamBridges()
         bridgeLayerController = createBridgeLayer(map, data, {
-          routeLinkPopupHtml: (properties, point) => routeLinkPopupHtml('bridge', properties, point),
+          isLinked: (properties) => Boolean(routeLinkDisplayNames('bridge', properties) || routeLinkDisplaySegments('bridge', properties)),
+        routeLinkPopupHtml: (properties, point) => routeLinkPopupHtml('bridge', properties, point),
           adminObjectHtml: (feature, point) => mapAdminObjectHtml('bridges', feature, point),
         })
         bridgeCount.value = bridgeLayerController.count
@@ -3976,6 +4557,12 @@ async function toggleNavigationLayer(id) {
       layer = bridgeLayerController.layer
       bridgeLayerVisible.value = true
       navigationLayerCounts.value = { ...navigationLayerCounts.value, bridges: bridgeCount.value }
+    } else if (id === 'closures') {
+      await loadRouteClosures()
+      if (!routeClosureData.value) throw new Error(routeClosureError.value)
+      layer = createNavigationLayer('closures', routeClosureData.value, canalsGeoJson, { adminObjectHtml: feature => mapAdminObjectHtml('closures', feature) })
+      navigationLayerControllers.set(id, layer)
+      navigationLayerCounts.value = { ...navigationLayerCounts.value, closures: closureSummary.value.total }
     } else if (id === 'restrictions') {
       layer = navigationLayerControllers.get(id) || createRestrictionLayer(canalsGeoJson)
       navigationLayerControllers.set(id, layer)
@@ -4008,9 +4595,9 @@ async function toggleNavigationLayer(id) {
 function formatResultMeta(result) {
   if (result?.kind === 'vessel') {
     const mmsi = String(result.mmsi)
-    const groupLabel = policeMmsis.includes(mmsi)
+    const groupLabel = policeMmsis.value.includes(mmsi)
       ? 'Police · '
-      : ntMmsis.includes(mmsi)
+      : ntMmsis.value.includes(mmsi)
         ? 'Nautical supervision · '
         : companyMmsis.value.includes(mmsi)
           ? 'Company fleet · '
@@ -4041,17 +4628,80 @@ function clearSelectedResult() {
   selectedResult.value = null
 }
 
+async function loadWaterwayEdits() {
+  if (!originalCanalsGeoJson) return
+  try {
+    const response = await fetch('/api/map/objects?layer=routing-lines')
+    const rows = await response.json()
+    if (!response.ok || !Array.isArray(rows)) throw new Error('Vaarlijnwijzigingen konden niet worden geladen.')
+    waterwayLoadError.value = ''
+    const serialized = JSON.stringify(rows)
+    if (serialized === waterwayEditsJson && canalsLayer.value) return
+    waterwayEditsJson = serialized
+    canalsGeoJson = applyWaterwayEdits(originalCanalsGeoJson, rows)
+    rebuildCanalRouteNetwork()
+    canalsLayer.value?.remove()
+    canalsLayer.value = await addCanals(map, canalsGeoJson)
+    canalSearchIndex.value = buildCanalSearchIndex(canalsGeoJson)
+    bindCanalClickSelection()
+    if (routePoints.value.length >= 2) refreshRouteAfterSettingsChange()
+  } catch {
+    waterwayLoadError.value = 'Vaarlijnwijzigingen niet geladen. De kaart kan verouderde vaarlijnen bevatten.'
+    if (!canalsLayer.value) {
+      canalsGeoJson = originalCanalsGeoJson
+      rebuildCanalRouteNetwork()
+      canalsLayer.value = await addCanals(map, canalsGeoJson)
+      canalSearchIndex.value = buildCanalSearchIndex(canalsGeoJson)
+      bindCanalClickSelection()
+    }
+  }
+}
+
+function addClosureForWaterway(feature) {
+  closeMapObjectEditor()
+  editMapObject('closures', { ...feature, id: undefined, properties: { name: feature.properties?.name || 'Eigen stremming', waterway: feature.properties?.name || '', type: 'Stremming', blocksRouting: true } })
+  mapObjectEditor.value.objectKey = ''
+}
+
+function editWaterwayGeometry() {
+  const feature = mapObjectEditor.value?.feature
+  if (!feature || !['LineString', 'MultiLineString'].includes(feature.geometry.type)) return
+  waterwayEditMarkers?.remove()
+  waterwayEditPreview?.remove()
+  waterwayEditPreview = L.geoJSON(feature, { style: { color: '#f59e0b', weight: 6 } }).addTo(map)
+  const lines = feature.geometry.type === 'LineString' ? [feature.geometry.coordinates] : feature.geometry.coordinates
+  waterwayEditMarkers = L.layerGroup(lines.flatMap(line => line.map(coordinate => L.marker([coordinate[1], coordinate[0]], {
+    draggable: true, zIndexOffset: 1600, icon: L.divIcon({ className: '', html: '<span style="display:block;width:18px;height:18px;border:3px solid white;border-radius:50%;background:#f59e0b"></span>', iconSize: [18,18], iconAnchor: [9,9] }),
+  }).on('dragend', event => {
+    const point = event.target.getLatLng()
+    coordinate[0] = point.lng; coordinate[1] = point.lat
+    waterwayEditPreview.clearLayers().addData(feature)
+  })))).addTo(map)
+  map.fitBounds(waterwayEditPreview.getBounds(), { padding: [60,60], maxZoom: 18 })
+}
+
 function bindCanalClickSelection() {
-  if (!canalsLayer.value || !canalSearchIndex.value) return
-
-  canalsLayer.value.eachLayer((featureLayer) => {
-    featureLayer.on('click', () => {
-      if (routeMode.value) return
-      const result = findCanalResultByFeature(canalSearchIndex.value, featureLayer.feature)
-
-      if (!result) return
-
-      focusResult(result)
+  if (!canalsLayer.value) return
+  canalsLayer.value.eachLayer(featureLayer => {
+    const feature = featureLayer.feature
+    if (!['LineString', 'MultiLineString'].includes(feature.geometry?.type)) return
+    featureLayer.bindPopup(() => {
+      const container = document.createElement('div')
+      const title = document.createElement('strong')
+      title.textContent = (feature.properties?.name || 'Vaarlijn') + (feature.properties?.closed ? ' · afgesloten' : '')
+      container.append(title)
+      for (const [label, action] of [['Vaarlijn bewerken / blijvend afsluiten', () => editMapObject('routing-lines', feature)], ['Tijdelijke stremming toevoegen', () => addClosureForWaterway(feature)]]) {
+        const button = document.createElement('button')
+        button.type = 'button'; button.textContent = label
+        button.style.cssText = 'display:block;width:100%;padding:10px;margin-top:8px;border-radius:8px;background:#e0f2fe;color:#075985;text-align:left'
+        button.onclick = () => {
+          if (!auth.requireLogin('Log in om vaarlijnen en stremmingen op te slaan.')) return
+          if (!isAdmin.value) { button.textContent = 'Alleen een beheerder kan de gedeelde kaart aanpassen.'; return }
+          map.closePopup(); action()
+        }
+        container.append(button)
+      }
+      return container
     })
   })
 }
@@ -4064,7 +4714,6 @@ watch(searchQuery, (nextValue, previousValue) => {
 
 watch(activeVesselFilters, applyVesselGroupFilter, { deep: true })
 watch(routeSpeedValue, refreshRouteAfterSettingsChange)
-watch(routeSpeedUnit, refreshRouteAfterSettingsChange)
 watch(routeAllowZone3, refreshRouteAfterSettingsChange)
 watch(routeLoopMinutes, () => { if (routeResult.value?.routeType === 'loop') generateRandomLoopRoute() })
 watch(routeBoatProfile, refreshRouteAfterSettingsChange, { deep: true })
@@ -4082,26 +4731,35 @@ onMounted(async () => {
   loadTodayPlanning()
   loadRouteClosures()
   planningRefreshTimer = window.setInterval(loadTodayPlanning, 60_000)
-  routeClosureRefreshTimer = window.setInterval(loadRouteClosures, 5 * 60_000)
+  routeClosureRefreshTimer = window.setInterval(() => { loadRouteClosures(); loadWaterwayEdits() }, 60_000)
 
   const canals = await loadCanals()
-  canalsGeoJson = canals
-  rebuildCanalRouteNetwork()
-  canalSearchIndex.value = buildCanalSearchIndex(canals)
-  canalsLayer.value = await addCanals(map, canals)
+  originalCanalsGeoJson = withSupplementalWaterways(canals)
+  await loadWaterwayEdits()
   drawCustomRouteLines()
   drawCustomReportingPoints()
   loadBridgeSearchItems()
   bindCanalClickSelection()
   map.on('click', handleRouteMapClick)
 
+  await startAccountMapLayers(canals)
+
+  await loadSharedRouteFromUrl()
+
+  for (const pin of PLANNING_LOCATION_PINS) addDock(map, pin.latitude, pin.longitude, pin.label)
+})
+
+async function startAccountMapLayers(canals) {
   try {
     const fleetSummary = await fetch('/api/fleet/summary').then((response) => response.json())
     companyFleetBoats.value = fleetSummary.boats
-    companyMmsis.value = fleetSummary.boats.map((boat) => String(boat.mmsi)).filter(Boolean)
+    companyBaseMmsis.value = fleetSummary.boats.map((boat) => String(boat.mmsi)).filter(Boolean)
 
     aisController = showLiveAisVessels(map, {
       canals,
+      connectLive: true,
+      companyMmsis: companyMmsis.value,
+      initialVessels: fleetSummary.boats.map(boat => boat.ais).filter(Boolean),
       onStatus: ({ status, message, configured }) => {
         aisStatus.value = status
         aisStatusMessage.value = message
@@ -4133,17 +4791,21 @@ onMounted(async () => {
         historyHours.value = range ? null : (hours || historyHours.value)
         historyPointCount.value = pointCount
         historyOmittedCount.value = omittedCount
+        historyLoading.value = false
+        historyError.value = pointCount ? '' : 'No route history is available for this period.'
       },
       onHistoryError: () => {
         historyPointCount.value = 0
         historyOmittedCount.value = 0
+        historyLoading.value = false
+        historyError.value = 'Route history could not be loaded.'
       },
       onSnapshot: (count) => {
         aisStatusMessage.value = `Loaded ${count} recent vessel positions; delayed vessels are faded automatically`
       },
     })
     aisController.setCompanyMmsis(companyMmsis.value)
-    aisController.setSpecialVesselMmsis({ nt: ntMmsis, police: policeMmsis })
+    aisController.setSpecialVesselMmsis({ nt: ntMmsis.value, police: policeMmsis.value })
     applyVesselGroupFilter()
   } catch (error) {
     console.error('Failed to start AIS layer', error)
@@ -4151,10 +4813,25 @@ onMounted(async () => {
     aisStatusMessage.value = 'AIS failed to start; canal routes remain available.'
   }
 
-  for (const pin of PLANNING_LOCATION_PINS) addDock(map, pin.latitude, pin.longitude, pin.label)
+}
+
+watch(() => auth.user?.id, (userId) => {
+  if (!userId) return
+  savedRoutes.value = loadSavedRoutes()
+  vesselGroups.value = loadVesselGroups()
+  builtInGroupOverrides.value = loadBuiltInGroupOverrides()
+  loadTodayPlanning()
+  if (canalsGeoJson) {
+    aisController?.stop()
+    aisController = null
+    startAccountMapLayers(canalsGeoJson)
+  }
 })
 
 onUnmounted(() => {
+  waterwayEditMarkers?.remove()
+  waterwayEditPreview?.remove()
+  reportingMovementPreview?.remove()
   map?.off('click', handleRouteMapClick)
   map?.getContainer().removeEventListener('click', handleRouteLinkPopupClick, true)
   map?.getContainer().removeEventListener('click', handleRoutePlacementClick, true)
@@ -4165,9 +4842,9 @@ onUnmounted(() => {
   customRouteDraftLayer?.remove()
   selectedRouteLinkLayer?.remove()
   customReportingLayer?.remove()
-  reportingBearingLayer?.remove()
   for (const timer of routeSuggestionTimers.values()) window.clearTimeout(timer)
   routeSuggestionTimers.clear()
+  window.clearTimeout(userLocationErrorTimer)
   userLocationController?.stop()
   aisController?.stop()
   window.clearInterval(planningRefreshTimer)
@@ -4179,6 +4856,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.mobile-map-tools-inner > div {
+  pointer-events: auto;
+}
+
+.route-placement-active :deep(.leaflet-container) {
+  cursor: crosshair;
+}
+
 .map-shell {
   position: relative;
   width: 100%;
@@ -4218,8 +4903,21 @@ onUnmounted(() => {
 }
 
 .vessel-details {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 7rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   bottom: calc(5.5rem + env(safe-area-inset-bottom));
   left: calc(0.75rem + env(safe-area-inset-left));
+}
+
+.vessel-details > header {
+  flex-shrink: 0;
+}
+
+.vessel-details > div:first-child:not(.vessel-details-body) {
+  flex-shrink: 0;
+  max-height: 22dvh;
+  overflow: hidden;
 }
 
 .vessel-details--collapsed {
@@ -4273,6 +4971,10 @@ onUnmounted(() => {
 
 .search-control button {
   cursor: pointer;
+}
+
+.mobile-location-control {
+  display: none;
 }
 
 @media (min-width: 640px) {
@@ -4334,6 +5036,78 @@ onUnmounted(() => {
 }
 
 @media (max-width: 639px) {
+  .mobile-location-control {
+    align-items: flex-end;
+    bottom: calc(var(--mobile-nav-height) + 0.75rem + env(safe-area-inset-bottom));
+    display: flex;
+    gap: 0.5rem;
+    left: calc(0.75rem + env(safe-area-inset-left));
+    pointer-events: none;
+    position: absolute;
+    z-index: 1450;
+  }
+
+  .mobile-location-control button {
+    aspect-ratio: 1;
+    align-items: center;
+    background: rgb(2 6 23 / 0.9);
+    border: 1px solid rgb(255 255 255 / 0.25);
+    border-radius: 50%;
+    box-shadow: 0 8px 28px rgb(0 0 0 / 0.38);
+    color: white;
+    display: flex;
+    flex: 0 0 3rem;
+    height: 3rem;
+    justify-content: center;
+    max-height: 3rem;
+    max-width: 3rem;
+    min-height: 3rem;
+    min-width: 3rem;
+    padding: 0;
+    pointer-events: auto;
+    touch-action: manipulation;
+    width: 3rem;
+  }
+
+  .mobile-location-control button.mobile-location-control--active {
+    background: rgb(2 132 199 / 0.95);
+    border-color: rgb(125 211 252 / 0.8);
+  }
+
+  .mobile-location-control button svg {
+    height: 1.35rem;
+    width: 1.35rem;
+  }
+
+  .mobile-location-control span {
+    background: rgb(2 6 23 / 0.92);
+    border: 1px solid rgb(248 113 113 / 0.45);
+    border-radius: 0.75rem;
+    color: rgb(254 202 202);
+    font-size: 0.7rem;
+    max-width: min(15rem, calc(100vw - 5rem));
+    padding: 0.5rem 0.65rem;
+    pointer-events: auto;
+  }
+
+  :deep(.guest-sign-in-control.mobile-nav-account) {
+    left: auto !important;
+    right: calc(4rem + env(safe-area-inset-right));
+    width: 5.6rem;
+  }
+
+  :deep(.guest-sign-in-control .mobile-nav-button) {
+    height: 3rem;
+    padding: 0.35rem 0.65rem;
+  }
+
+  .mobile-location-control.mobile-location-control--guest {
+    bottom: calc(0.4rem + env(safe-area-inset-bottom));
+    left: auto;
+    right: calc(0.5rem + env(safe-area-inset-right));
+    z-index: 1650;
+  }
+
   .map-shell {
     --mobile-nav-height: 4.6rem;
   }
@@ -4344,8 +5118,8 @@ onUnmounted(() => {
     width: calc(20vw - 0.24rem);
   }
 
-  :deep(.mobile-nav-planning) { left: 0.4rem !important; }
-  :deep(.mobile-nav-fleet) { left: calc(20vw + 0.08rem) !important; }
+  :deep(.mobile-nav-fleet) { left: 0.4rem !important; }
+  :deep(.mobile-nav-planning) { left: calc(20vw + 0.08rem) !important; }
   :deep(.mobile-nav-duty) { left: calc(40vw + 0.08rem) !important; }
   :deep(.mobile-nav-inventory) { left: calc(60vw + 0.08rem) !important; }
   :deep(.mobile-nav-account) { left: calc(80vw - 0.08rem) !important; }
@@ -4402,7 +5176,7 @@ onUnmounted(() => {
   }
 
   .map-interaction-active :deep(.mobile-nav-item),
-  .map-interaction-active .mobile-map-tools,
+  .map-interaction-active:not(.route-placement-active) .mobile-map-tools,
   .map-interaction-active .search-ais-control,
   .map-interaction-active .vessel-details,
   .map-interaction-active .map-editor-panel,
@@ -4509,6 +5283,31 @@ onUnmounted(() => {
 
   .mobile-map-tools-inner.mobile-map-tools-expanded > div {
     max-height: none;
+  }
+
+  .route-placement-active .mobile-map-tools-inner.mobile-map-tools-expanded {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    max-height: 40dvh;
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .route-placement-active .route-tools-panel {
+    display: flex;
+    flex-direction: column;
+    max-height: 40dvh !important;
+    overflow: hidden;
+  }
+
+  .route-placement-active .route-tools-panel > div {
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .route-placement-active .map-filters-panel {
+    display: none;
   }
 
   .mobile-map-tools-inner button,
@@ -4638,6 +5437,12 @@ onUnmounted(() => {
   padding: 3px 5px;
   text-align: center;
   white-space: nowrap;
+}
+
+:deep(.bridge-height-marker.bridge-height-marker--unlinked span) {
+  background: #ef4444;
+  border-color: #fca5a5;
+  color: white;
 }
 
 :deep(.bridge-height-marker span small) {

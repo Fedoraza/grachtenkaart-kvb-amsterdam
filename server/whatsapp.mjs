@@ -1,9 +1,11 @@
 import { existsSync } from "node:fs";
+import { rename } from "node:fs/promises";
 import { join } from "node:path";
 import makeWASocket, {
   Browsers,
   DisconnectReason,
   downloadMediaMessage,
+  fetchLatestWaWebVersion,
   useMultiFileAuthState,
 } from "@whiskeysockets/baileys";
 import pino from "pino";
@@ -12,7 +14,7 @@ import QRCode from "qrcode";
 const logger = pino({ level: "silent" });
 const authDirectory = process.env.WHATSAPP_AUTH_DIRECTORY || join(process.cwd(), "data", "whatsapp-auth");
 
-export function createWhatsAppConnector({ isChatEnabled, onChats, onGroupMessage, onPlanningMessage, onLocationStaffMessage, onVerificationMessage, onReady }) {
+export function createWhatsAppConnector({ enabled = true, isChatEnabled, onChats, onGroupMessage, onPlanningMessage, onLocationStaffMessage, onVerificationMessage, onReady }) {
   let socket = null;
   let reconnectTimer = null;
   let generation = 0;
@@ -24,9 +26,12 @@ export function createWhatsAppConnector({ isChatEnabled, onChats, onGroupMessage
   const recentPlanningText = new Map();
   const pendingPlanningImages = new Map();
   let credentials = null;
+  let webVersion = null;
+  let webVersionFetchedAt = 0;
+  let resetExpiredSession = false;
   let state = {
-    status: existsSync(join(authDirectory, "creds.json")) ? "connecting" : "waiting-for-qr",
-    message: "Starting WhatsApp connector…",
+    status: enabled ? (existsSync(join(authDirectory, "creds.json")) ? "connecting" : "waiting-for-qr") : "disabled",
+    message: enabled ? "Starting WhatsApp connector…" : "WhatsApp is disabled in this environment.",
     qrDataUrl: null,
     account: null,
     lastMessageAt: null,
@@ -34,6 +39,18 @@ export function createWhatsAppConnector({ isChatEnabled, onChats, onGroupMessage
   };
 
   async function start() {
+    if (!enabled) return;
+    const expectedGeneration = generation + 1;
+    try {
+      await connect();
+    } catch (error) {
+      if (generation !== expectedGeneration) return;
+      state = { ...state, status: "error", message: "Could not start WhatsApp. Try reconnecting.", qrDataUrl: null, lastError: error.message };
+      console.error("WhatsApp connection setup failed:", error.message);
+    }
+  }
+
+  async function connect() {
     const currentGeneration = ++generation;
     clearTimeout(reconnectTimer);
     if (socket) {
@@ -42,6 +59,11 @@ export function createWhatsAppConnector({ isChatEnabled, onChats, onGroupMessage
     }
 
     state = { ...state, status: "connecting", message: "Connecting to WhatsApp…", qrDataUrl: null, lastError: null };
+    if (resetExpiredSession) {
+      // Keep rejected credentials as a backup, but pair with a fresh session.
+      if (existsSync(authDirectory)) await rename(authDirectory, `${authDirectory}.expired-${Date.now()}`);
+      resetExpiredSession = false;
+    }
     const { state: auth, saveCreds } = await useMultiFileAuthState(authDirectory);
     if (process.env.WHATSAPP_FORCE_HISTORY_SYNC_ON_START === "true") {
       auth.creds.accountSyncCounter = 0;
@@ -52,8 +74,21 @@ export function createWhatsAppConnector({ isChatEnabled, onChats, onGroupMessage
     credentials = auth.creds;
     if (currentGeneration !== generation) return;
 
+    // Outdated bundled versions can be rejected before WhatsApp issues a QR.
+    if (!webVersion || Date.now() - webVersionFetchedAt > 60 * 60 * 1000) {
+      const latest = await fetchLatestWaWebVersion({ signal: AbortSignal.timeout(15_000) });
+      if (latest.isLatest) {
+        webVersion = latest.version;
+        webVersionFetchedAt = Date.now();
+      } else if (!webVersion) {
+        throw new Error("Cannot retrieve the current WhatsApp Web version. Check the server's internet connection and reconnect.");
+      }
+    }
+    if (currentGeneration !== generation) return;
+
     const nextSocket = makeWASocket({
       auth,
+      version: webVersion,
       browser: Browsers.macOS("Boat Tracker"),
       logger,
       markOnlineOnConnect: false,
@@ -65,14 +100,25 @@ export function createWhatsAppConnector({ isChatEnabled, onChats, onGroupMessage
     nextSocket.ev.on("connection.update", async (update) => {
       if (currentGeneration !== generation) return;
       if (update.qr) {
+        let qrDataUrl;
+        try {
+          qrDataUrl = await QRCode.toDataURL(update.qr, { width: 360, margin: 1 });
+        } catch {
+          if (currentGeneration === generation) state = { ...state, lastError: "Could not render the QR code. Try reconnecting." };
+          return;
+        }
+        if (currentGeneration !== generation || socket !== nextSocket) return;
         state = {
           ...state,
           status: "waiting-for-qr",
           message: "Scan this QR code in WhatsApp → Linked devices",
-          qrDataUrl: await QRCode.toDataURL(update.qr, { width: 360, margin: 1 }),
+          qrDataUrl,
+          lastError: null,
         };
+        console.log("WhatsApp pairing QR ready in connector settings.");
       }
       if (update.connection === "open") {
+        console.log("WhatsApp connector connected.");
         state = {
           ...state,
           status: "connected",
@@ -86,17 +132,25 @@ export function createWhatsAppConnector({ isChatEnabled, onChats, onGroupMessage
       }
       if (update.connection === "close") {
         const statusCode = update.lastDisconnect?.error?.output?.statusCode;
+        console.warn("WhatsApp connection closed:", statusCode || "unknown");
         const loggedOut = statusCode === DisconnectReason.loggedOut;
+        const connectionReplaced = statusCode === DisconnectReason.connectionReplaced;
+        if (loggedOut && auth.creds.me) resetExpiredSession = true;
+        if (statusCode === 405) webVersionFetchedAt = 0;
         socket = null;
         state = {
           ...state,
-          status: loggedOut ? "logged-out" : "reconnecting",
-          message: loggedOut ? "WhatsApp was logged out. Pair it again." : "Connection lost; reconnecting…",
+          status: loggedOut ? "logged-out" : connectionReplaced ? "conflict" : "reconnecting",
+          message: loggedOut
+            ? "WhatsApp was logged out. Pair it again."
+            : connectionReplaced
+              ? "This WhatsApp session is active in another Boat Tracker instance. Stop that instance, then select Reconnect."
+              : "Connection lost; reconnecting…",
           qrDataUrl: null,
           account: loggedOut ? null : state.account,
           lastError: update.lastDisconnect?.error?.message || null,
         };
-        if (!loggedOut && currentGeneration === generation) reconnectTimer = setTimeout(start, 2500);
+        if ((!loggedOut || resetExpiredSession) && !connectionReplaced && currentGeneration === generation) reconnectTimer = setTimeout(start, 2500);
       }
     });
     nextSocket.ev.on("groups.upsert", () => refreshGroups(nextSocket));
@@ -324,12 +378,13 @@ export function createWhatsAppConnector({ isChatEnabled, onChats, onGroupMessage
     refreshGroups,
     rescanHistory,
     isEligiblePhone: async (phone) => {
+      if (!enabled) return false;
       const matches = () => comparablePhoneKeys(phone).some((key) => eligiblePhoneKeys.has(key));
       if (!matches() && socket) await refreshGroups(socket);
       return matches();
     },
     getVerificationInfo: () => ({
-      connected: state.status === "connected",
+      connected: enabled && state.status === "connected",
       phone: phoneFromJid(state.account) || configuredVerificationPhone(),
       eligibleMemberCount: eligiblePhones.size,
     }),

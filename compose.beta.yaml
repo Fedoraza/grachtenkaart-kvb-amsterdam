@@ -1,0 +1,22 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: ${ENV_FILE:-.env.production}
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:5173:5173"
+    volumes:
+      - boat-tracker-data:/app/data
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    network_mode: host
+    depends_on:
+      app:
+        condition: service_healthy
+    env_file: .env.tunnel
+    command: tunnel --no-autoupdate run
+
+volumes:
+  boat-tracker-data:

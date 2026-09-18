@@ -5,8 +5,7 @@ const MAX_SNAP_DISTANCE_METERS = 50;
 const MAX_ENDPOINT_GAP_METERS = 45;
 const MAX_REPORT_GAP_MS = 15 * 60 * 1000;
 const MAX_REPORT_DISTANCE_METERS = 2_000;
-const MAX_IMPLIED_SPEED_KNOTS = 30;
-const KNOTS_TO_KMH = 1.852;
+const MAX_IMPLIED_SPEED_KMH = 55.56;
 const FORBIDDEN_WATERWAY_NAMES = new Set([
   "Beulingsloot",
   "Oudezijds Achterburgwal",
@@ -20,7 +19,8 @@ export function buildCanalRoutingNetwork(geoJson, options = {}) {
   const features = withSupplementalWaterways(geoJson, options)?.features || [];
   for (const feature of features) {
     if (respectRestrictions && isForbiddenForRouting(feature)) continue;
-    for (const line of getLines(feature)) {
+    for (const sourceLine of getLines(feature)) {
+      const line = respectRestrictions && String(feature.properties?.oneway) === "-1" ? [...sourceLine].reverse() : sourceLine;
       let previous = null;
       let first = null;
       for (const coordinate of line) {
@@ -90,10 +90,9 @@ export function planCanalRouteVia(points, network, options = {}) {
   }
 
   const distance = pathDistance(route);
-  const speedKnots = Number(options.speedKnots || 5.5);
-  const baseDurationMinutes = speedKnots > 0 ? Math.max(1, Math.round(pathDurationMinutes(route, network, speedKnots))) : null;
-  const traffic = estimateTraffic(route, options.trafficPoints || []);
-  const durationMinutes = baseDurationMinutes === null ? null : Math.max(1, Math.round(baseDurationMinutes * traffic.factor));
+  const speedKmh = Number(options.speedKmh || 6);
+  const baseDurationMinutes = speedKmh > 0 ? Math.max(1, Math.round(pathDurationMinutes(route, network, speedKmh))) : null;
+  const durationMinutes = baseDurationMinutes;
   const coordinates = route.map((node) => [node.lat, node.lng]);
   const virtualSegmentCount = route.slice(1).filter((node, index) => network.virtualEdges.has(getEdgeKey(route[index].key, node.key))).length;
   const warnings = routeConstraintWarnings(route, network, options.boatProfile);
@@ -104,12 +103,7 @@ export function planCanalRouteVia(points, network, options = {}) {
     distanceMeters: Math.round(distance),
     baseDurationMinutes,
     durationMinutes,
-    speedKnots,
-    speedKmh: speedKnots * KNOTS_TO_KMH,
-    trafficFactor: traffic.factor,
-    trafficLevel: traffic.level,
-    trafficVesselCount: traffic.vesselCount,
-    trafficDelayMinutes: baseDurationMinutes === null ? 0 : Math.max(0, durationMinutes - baseDurationMinutes),
+    speedKmh,
     steps: routeSteps(route, network),
     segments: routeSegments(route, network),
     snapped: snapped.map((snap) => ({ latitude: snap.node.lat, longitude: snap.node.lng, snapDistanceMeters: Math.round(snap.distance) })),
@@ -131,8 +125,8 @@ export function generateCanalLoopRoute(start, network, options = {}) {
   if (!snapped) return { status: "not-on-water", message: "Start point is too far from mapped water." };
 
   const targetMinutes = Math.max(10, Number(options.targetMinutes || 60));
-  const speedKnots = Number(options.speedKnots || 5.5);
-  const requestedDistance = Math.max(350, speedKnots * 1852 * (targetMinutes / 60));
+  const speedKmh = Number(options.speedKmh || 6);
+  const requestedDistance = Math.max(350, speedKmh * 1000 * (targetMinutes / 60));
   const random = seededRandom(options.seed ?? Math.floor(Math.random() * 1_000_000_000));
   const attempts = Math.max(20, Number(options.attempts || 90));
   let best = null;
@@ -147,7 +141,7 @@ export function generateCanalLoopRoute(start, network, options = {}) {
     const route = [...outbound, ...returnPath.slice(1)];
     if (routeUsesVirtualEdge(route, network)) continue;
     const distance = pathDistance(route);
-    const baseDurationMinutes = Math.max(1, Math.round(pathDurationMinutes(route, network, speedKnots)));
+    const baseDurationMinutes = Math.max(1, Math.round(pathDurationMinutes(route, network, speedKmh)));
     if (baseDurationMinutes > targetMinutes) continue;
     const score = Math.abs(targetMinutes - baseDurationMinutes) + repeatedNodePenalty(route) + Math.max(0, targetMinutes * 0.45 - baseDurationMinutes);
     if (!best || score < best.score) best = { route, distance, baseDurationMinutes, score };
@@ -155,8 +149,7 @@ export function generateCanalLoopRoute(start, network, options = {}) {
 
   if (!best) return { status: "no-loop", message: `Geen rondje gevonden dat binnen ${targetMinutes} minuten terug is bij het startpunt.` };
 
-  const traffic = estimateTraffic(best.route, options.trafficPoints || []);
-  const durationMinutes = Math.max(1, Math.round(best.baseDurationMinutes * traffic.factor));
+  const durationMinutes = best.baseDurationMinutes;
   return {
     status: "ok",
     routeType: "loop",
@@ -166,12 +159,7 @@ export function generateCanalLoopRoute(start, network, options = {}) {
     baseDurationMinutes: best.baseDurationMinutes,
     durationMinutes,
     targetDurationMinutes: targetMinutes,
-    speedKnots,
-    speedKmh: speedKnots * KNOTS_TO_KMH,
-    trafficFactor: traffic.factor,
-    trafficLevel: traffic.level,
-    trafficVesselCount: traffic.vesselCount,
-    trafficDelayMinutes: Math.max(0, durationMinutes - best.baseDurationMinutes),
+    speedKmh,
     steps: routeSteps(best.route, network),
     segments: routeSegments(best.route, network),
     snapped: [{ latitude: snapped.node.lat, longitude: snapped.node.lng, snapDistanceMeters: Math.round(snapped.distance) }],
@@ -291,8 +279,8 @@ function isPlausibleReportPair(previous, current, distance) {
   if (!previousTime || !currentTime) return distance <= 500;
   const elapsed = currentTime - previousTime;
   if (elapsed <= 0 || elapsed > MAX_REPORT_GAP_MS) return false;
-  const speedKnots = (distance / (elapsed / 1000)) * 1.943844;
-  return speedKnots <= MAX_IMPLIED_SPEED_KNOTS;
+  const speedKmh = (distance / (elapsed / 1000)) * 3.6;
+  return speedKmh <= MAX_IMPLIED_SPEED_KMH;
 }
 
 function reportTimestamp(report) {
@@ -319,6 +307,27 @@ function connectNearbyComponents(nodes, endpointKeys) {
   const componentByNode = findComponents(nodes);
   const endpoints = Array.from(endpointKeys, (key) => nodes.get(key));
   const virtualEdges = new Set();
+  // Gap repairs must never add a reverse lane to a real one-way waterway.
+  const physicalNeighbors = new Map([...nodes.keys()].map(key => [key, new Set()]));
+  for (const node of nodes.values()) for (const key of node.neighbors.keys()) {
+    physicalNeighbors.get(node.key).add(key);
+    physicalNeighbors.get(key).add(node.key);
+  }
+  function alreadyJoinedNearby(start, target) {
+    const queue = [{ key: start.key, distance: 0 }];
+    const best = new Map([[start.key, 0]]);
+    while (queue.length) {
+      const current = queue.pop();
+      if (current.key === target.key) return true;
+      for (const key of physicalNeighbors.get(current.key)) {
+        const distance = current.distance + distanceMeters(nodes.get(current.key), nodes.get(key));
+        if (distance > MAX_ENDPOINT_GAP_METERS || distance >= (best.get(key) ?? Infinity)) continue;
+        best.set(key, distance);
+        queue.push({ key, distance });
+      }
+    }
+    return false;
+  }
 
   for (const endpoint of endpoints) {
     let nearest = null;
@@ -328,7 +337,7 @@ function connectNearbyComponents(nodes, endpointKeys) {
       const distance = distanceMeters(endpoint, candidate);
       const sameComponent = componentByNode.get(candidate.key) === componentByNode.get(endpoint.key);
       const allowedDistance = sameComponent ? 30 : MAX_ENDPOINT_GAP_METERS;
-      if (distance < nearestDistance && distance <= allowedDistance) {
+      if (distance < nearestDistance && distance <= allowedDistance && !alreadyJoinedNearby(endpoint, candidate)) {
         nearest = candidate;
         nearestDistance = distance;
       }
@@ -534,7 +543,7 @@ function isEdgeAllowed(fromKey, toKey, edge, network, options = {}) {
   if (options.avoidVirtualEdges && (edge?.virtual || network?.virtualEdges?.has(getEdgeKey(fromKey, toKey)))) return false;
   if (edge?.closed) return false;
   if (edge?.zone === "zone3" && !options.allowZone3) return false;
-  if (edgeIsClosedByPoint(network.nodes.get(fromKey), network.nodes.get(toKey), options.closurePoints)) return false;
+  if (edgeIsClosedByPoint(network.nodes.get(fromKey), network.nodes.get(toKey), options.closurePoints, edge?.name)) return false;
   return true;
 }
 
@@ -586,9 +595,11 @@ function routeSegments(route, network) {
   return segments.filter((segment) => segment.distanceMeters >= 1);
 }
 
-function edgeIsClosedByPoint(start, end, closurePoints = []) {
+function edgeIsClosedByPoint(start, end, closurePoints = [], edgeName = "") {
   if (!start || !end || !Array.isArray(closurePoints) || !closurePoints.length) return false;
   return closurePoints.some((closure) => {
+    const normalize = value => String(value || "").toLowerCase().replace(/\([^)]*\)/g, "").replace(/[^a-z0-9]/g, "");
+    if (closure.waterway && edgeName && normalize(closure.waterway) !== normalize(edgeName)) return false;
     const point = normalizePoint(closure);
     if (!point) return false;
     const radius = Math.max(15, Number(closure.radiusMeters || 90));
@@ -596,14 +607,13 @@ function edgeIsClosedByPoint(start, end, closurePoints = []) {
   });
 }
 
-function pathDurationMinutes(route, network, requestedSpeedKnots) {
+function pathDurationMinutes(route, network, requestedSpeedKmh) {
   let totalMinutes = 0;
-  const requestedKmh = requestedSpeedKnots * KNOTS_TO_KMH;
   for (let index = 1; index < route.length; index += 1) {
     const edge = network.nodes.get(route[index - 1].key)?.neighbors.get(route[index].key);
     const edgeDistanceKm = distanceMeters(route[index - 1], route[index]) / 1000;
     const limitKmh = Number(edge?.maxspeed);
-    const speedKmh = Math.max(1, Number.isFinite(limitKmh) && limitKmh > 0 ? Math.min(requestedKmh, limitKmh) : requestedKmh);
+    const speedKmh = Math.max(1, Number.isFinite(limitKmh) && limitKmh > 0 ? Math.min(requestedSpeedKmh, limitKmh) : requestedSpeedKmh);
     totalMinutes += (edgeDistanceKm / speedKmh) * 60;
   }
   return totalMinutes;
@@ -634,31 +644,6 @@ function routeUsesZone(route, network, zone) {
     if (edge?.zone === zone) return true;
   }
   return false;
-}
-
-function estimateTraffic(route, trafficPoints) {
-  if (!route?.length || route.length < 2 || !Array.isArray(trafficPoints) || !trafficPoints.length) {
-    return { factor: 1, level: "rustig", vesselCount: 0 };
-  }
-  const nearby = new Set();
-  for (const vessel of trafficPoints) {
-    const point = normalizePoint(vessel);
-    if (!point) continue;
-    const timestamp = Date.parse(vessel.sourceReceivedAt || vessel.receivedAt || "");
-    if (Number.isFinite(timestamp) && Date.now() - timestamp > 15 * 60_000) continue;
-    for (let index = 1; index < route.length; index += 1) {
-      if (distanceToSegmentMeters(point, route[index - 1], route[index]) <= 90) {
-        nearby.add(String(vessel.mmsi || `${point.lat},${point.lng}`));
-        break;
-      }
-    }
-  }
-  const vesselCount = nearby.size;
-  const routeKm = Math.max(0.25, pathDistance(route) / 1000);
-  const density = vesselCount / routeKm;
-  const factor = density >= 8 ? 1.45 : density >= 5 ? 1.28 : density >= 2.5 ? 1.14 : 1;
-  const level = factor >= 1.4 ? "druk" : factor >= 1.2 ? "matig druk" : factor > 1 ? "licht druk" : "rustig";
-  return { factor, level, vesselCount };
 }
 
 function distanceToSegmentMeters(point, start, end) {
@@ -703,7 +688,7 @@ function isClosedForRouting(feature) {
 }
 
 function isOneway(feature) {
-  return /^(?:yes|1|true)$/i.test(String(feature?.properties?.oneway || ""));
+  return /^(?:yes|1|true|-1)$/i.test(String(feature?.properties?.oneway || ""));
 }
 
 class MinHeap {

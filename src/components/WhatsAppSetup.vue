@@ -61,7 +61,7 @@
       <p v-if="status.lastError" class="rounded-lg bg-red-500/15 p-2 text-xs text-red-200">{{ status.lastError }}</p>
       <p v-if="error" class="rounded-lg bg-red-500/15 p-2 text-xs text-red-200">{{ error }}</p>
       <div class="mt-3 flex gap-2">
-        <button type="button" class="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-bold hover:bg-emerald-400" @click="reconnect">{{ status.status === 'connected' ? 'Reconnect' : 'Create QR code' }}</button>
+        <button type="button" :disabled="reconnecting" class="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-bold hover:bg-emerald-400 disabled:opacity-50" @click="reconnect">{{ reconnecting ? 'Connecting…' : status.status === 'connected' ? 'Reconnect' : 'Create QR code' }}</button>
         <button v-if="status.status === 'connected'" type="button" class="rounded-lg bg-red-500/15 px-3 py-1.5 text-xs text-red-200 hover:bg-red-500/25" @click="logout">Log out device</button>
       </div>
     </div>
@@ -75,6 +75,7 @@ const open = ref(false)
 const status = ref({ status: 'loading', message: 'Loading connector…' })
 const chats = ref([])
 const error = ref('')
+const reconnecting = ref(false)
 let timer
 
 const communities = computed(() => chats.value.filter((chat) => chat.isCommunity))
@@ -88,6 +89,7 @@ const statusDot = computed(() => ({
   connected: 'bg-emerald-400 shadow-[0_0_8px_rgb(52_211_153/0.8)]',
   'waiting-for-qr': 'bg-amber-400',
   reconnecting: 'bg-amber-400',
+  conflict: 'bg-orange-400',
   connecting: 'bg-sky-400',
   'logged-out': 'bg-red-400',
 }[status.value.status] || 'bg-slate-500'))
@@ -143,8 +145,15 @@ async function setChatEnabled(chat, enabled) {
 
 async function reconnect() {
   error.value = ''
-  await request('/api/whatsapp/reconnect', { method: 'POST' })
-  await loadStatus()
+  reconnecting.value = true
+  try {
+    await request('/api/whatsapp/reconnect', { method: 'POST' })
+    await loadStatus()
+  } catch (requestError) {
+    error.value = requestError.message
+  } finally {
+    reconnecting.value = false
+  }
 }
 
 async function logout() {

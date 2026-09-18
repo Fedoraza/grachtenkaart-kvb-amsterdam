@@ -1,0 +1,9 @@
+{$BETA_DOMAIN} {
+    encode zstd gzip
+    reverse_proxy app:5173
+
+    log {
+        output stdout
+        format console
+    }
+}

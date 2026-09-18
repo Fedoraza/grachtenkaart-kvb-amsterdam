@@ -610,7 +610,8 @@
         "canoe": "yes",
         "motorboat": "yes",
         "name": "Groenburgwal",
-        "waterway": "canal"
+        "waterway": "canal",
+        "closed": true
       },
       "geometry": {
         "type": "LineString",
@@ -7113,7 +7114,9 @@
         "canoe": "yes",
         "motorboat": "yes",
         "name": "Brouwersgracht",
-        "waterway": "canal"
+        "waterway": "canal",
+        "oneway": "yes",
+        "oneway:description": "Brouwersgracht: alleen van Herengracht naar Singel"
       },
       "geometry": {
         "type": "LineString",
@@ -7138,7 +7141,9 @@
         "motorboat": "yes",
         "name": "Brouwersgracht",
         "seamark:bridge:category": "yes",
-        "waterway": "canal"
+        "waterway": "canal",
+        "oneway": "yes",
+        "oneway:description": "Brouwersgracht: alleen van Herengracht naar Singel"
       },
       "geometry": {
         "type": "LineString",
@@ -7162,7 +7167,9 @@
         "canoe": "yes",
         "motorboat": "yes",
         "name": "Brouwersgracht",
-        "waterway": "canal"
+        "waterway": "canal",
+        "oneway": "yes",
+        "oneway:description": "Brouwersgracht: alleen van Herengracht naar Singel"
       },
       "geometry": {
         "type": "LineString",
@@ -7182,7 +7189,7 @@
     {
       "type": "Feature",
       "properties": {
-        "@id": "way/1308400519",
+        "@id": "local/brouwersgracht-west-herengracht",
         "canoe": "yes",
         "motorboat": "yes",
         "name": "Brouwersgracht",
@@ -7195,6 +7202,28 @@
             4.8917821,
             52.379252
           ],
+          [
+            4.8920164,
+            52.3792362
+          ]
+        ]
+      },
+      "id": "local/brouwersgracht-west-herengracht"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1308400519",
+        "canoe": "yes",
+        "motorboat": "yes",
+        "name": "Brouwersgracht",
+        "waterway": "canal",
+        "oneway": "yes",
+        "oneway:description": "Brouwersgracht: alleen van Herengracht naar Singel"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
           [
             4.8920164,
             52.3792362
@@ -7312,7 +7341,9 @@
         "canoe": "yes",
         "motorboat": "yes",
         "name": "Brouwersgracht",
-        "waterway": "canal"
+        "waterway": "canal",
+        "oneway": "yes",
+        "oneway:description": "Brouwersgracht: alleen van Herengracht naar Singel"
       },
       "geometry": {
         "type": "LineString",
@@ -13161,7 +13192,8 @@
         "motorboat": "yes",
         "name": "Groenburgwal",
         "seamark:bridge:category": "yes",
-        "waterway": "canal"
+        "waterway": "canal",
+        "closed": true
       },
       "geometry": {
         "type": "LineString",
@@ -13186,7 +13218,8 @@
         "canoe": "yes",
         "motorboat": "yes",
         "name": "Groenburgwal",
-        "waterway": "canal"
+        "waterway": "canal",
+        "closed": true
       },
       "geometry": {
         "type": "LineString",
@@ -16881,7 +16914,8 @@
         "motorboat": "yes",
         "name": "Groenburgwal",
         "seamark:bridge:category": "yes",
-        "waterway": "canal"
+        "waterway": "canal",
+        "closed": true
       },
       "geometry": {
         "type": "LineString",

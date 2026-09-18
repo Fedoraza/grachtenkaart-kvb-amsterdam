@@ -11,6 +11,7 @@
       </div>
 
       <form v-if="needsSetup || (mode === 'login' && !challenge)" class="mt-6 space-y-3" @submit.prevent="submitPasswordForm">
+        <label v-if="needsSetup && setupTokenRequired" class="auth-label">Setup token<input v-model="form.setupToken" class="auth-input mt-1" type="password" autocomplete="off" required placeholder="From the deployment configuration" /></label>
         <label v-if="needsSetup" class="auth-label">Name<input v-model="form.name" class="auth-input mt-1" autocomplete="name" required minlength="2" /></label>
         <label class="auth-label">{{ needsSetup ? 'Email' : 'Email or phone number' }}<input v-model="form.email" class="auth-input mt-1" :type="needsSetup ? 'email' : 'text'" autocomplete="username" required :placeholder="needsSetup ? '' : 'name@example.com or 06…'" /></label>
         <label class="auth-label">Password
@@ -25,9 +26,6 @@
       <form v-else-if="mode === 'phone' && !challenge" class="mt-6 space-y-3" @submit.prevent="startPhoneVerification">
         <label class="auth-label">Full name<input v-model="phoneForm.name" class="auth-input mt-1" autocomplete="name" required minlength="2" placeholder="Your name as colleagues know it" /></label>
         <label class="auth-label">WhatsApp phone number<input v-model="phoneForm.phone" class="auth-input mt-1" type="tel" autocomplete="tel" required placeholder="+31 6 12345678" /></label>
-        <div class="rounded-xl border border-sky-300/15 bg-sky-400/5 p-3 text-xs leading-relaxed text-slate-300">
-          Your number must be present in an enabled Flagship day chat. Boat Tracker will never send or reply to WhatsApp messages.
-        </div>
         <p v-if="error" class="auth-error">{{ error }}</p>
         <button class="auth-primary" :disabled="submitting">{{ submitting ? 'Checking day-chat membership…' : 'Continue with WhatsApp' }}</button>
       </form>
@@ -71,10 +69,10 @@
 <script setup>
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 
-const props = defineProps({ needsSetup: Boolean })
+const props = defineProps({ needsSetup: Boolean, setupTokenRequired: Boolean })
 const emit = defineEmits(['authenticated'])
 const mode = ref('login')
-const form = reactive({ name: '', email: '', password: '', confirmPassword: '' })
+const form = reactive({ setupToken: '', name: '', email: '', password: '', confirmPassword: '' })
 const phoneForm = reactive({ name: '', phone: '' })
 const challenge = ref(null)
 const passwordStage = ref(false)
@@ -100,7 +98,10 @@ const timeRemaining = computed(() => {
 })
 
 async function api(path, options) {
-  const response = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...options })
+  const response = await fetch(path, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...(options?.headers || {}) },
+  })
   const data = await response.json()
   if (!response.ok) throw new Error(data.error || 'Request failed')
   return data
@@ -111,7 +112,8 @@ async function submitPasswordForm() {
   error.value = ''
   try {
     if (!passwordsMatch.value) throw new Error('Passwords do not match')
-    const data = await api(props.needsSetup ? '/api/auth/setup' : '/api/auth/login', { method: 'POST', body: JSON.stringify(form) })
+    const headers = props.needsSetup ? { 'X-Setup-Token': form.setupToken } : undefined
+    const data = await api(props.needsSetup ? '/api/auth/setup' : '/api/auth/login', { method: 'POST', headers, body: JSON.stringify(form) })
     emit('authenticated', data.user)
   } catch (submitError) { error.value = submitError.message }
   finally { submitting.value = false }
