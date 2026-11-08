@@ -28,3 +28,6 @@ data/
 # Browser test artifacts
 test-results/
 playwright-report/
+
+# Generated knowledge graph
+graphify-out/
