@@ -4,6 +4,7 @@
     <KmLeaderboardPage v-else-if="isLeaderboardPage" />
     <div v-else-if="auth.loading" class="flex h-full items-center justify-center bg-slate-950 text-sm text-slate-300">Loading map…</div>
     <LeafletMap v-else :key="mapSession" />
+    <OfflineNotice />
     <dialog ref="loginDialog" class="fixed inset-0 z-[3000] m-auto max-h-[95dvh] w-[min(32rem,95vw)] overflow-auto rounded-3xl border border-white/20 bg-slate-950 p-0 text-white backdrop:bg-black/60" @close="loginRequested = false">
       <template v-if="loginRequested">
         <div class="flex items-center justify-between gap-3 px-5 pt-4">
@@ -22,6 +23,7 @@ import { visibleInterval } from './scripts/networkUsage.js'
 import { startUsageAnalytics } from './scripts/usageAnalytics.js'
 const AuthScreen = defineAsyncComponent(() => import('./components/AuthScreen.vue'))
 import LeafletMap from './components/LeafletMap.vue'
+import OfflineNotice from './components/OfflineNotice.vue'
 const FleetStatisticsPage = defineAsyncComponent(() => import('./components/FleetStatisticsPage.vue'))
 const KmLeaderboardPage = defineAsyncComponent(() => import('./components/KmLeaderboardPage.vue'))
 import { createLanguage, installDomTranslations } from './i18n.js'
@@ -69,9 +71,13 @@ async function loadAuth() {
     auth.user = data.authenticated ? data.user : null
     language.setUser(auth.user)
   } catch {
-    if (auth.user) mapSession.value++
-    auth.user = null
-    language.setUser(null)
+    // An unreachable server (offline, flaky mobile data) says nothing about
+    // the session. Keep the current user so a periodic check does not remount
+    // the map and drop the planned route; only the first check falls back to guest.
+    if (auth.loading) {
+      auth.user = null
+      language.setUser(null)
+    }
   } finally {
     auth.loading = false
   }

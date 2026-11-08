@@ -242,6 +242,7 @@ phrases.push(
   ['No items found along this route.', 'Geen items langs deze route gevonden.'],
   ['Planned route', 'Geplande route'], ['Numbered bridge', 'Genummerde brug'],
   ['Radio reporting point', 'Marifoonmeldpunt'],
+  ['Offline. The map and route planner use saved data; live boats, notices and water level may be out of date.', 'Offline. De kaart en routeplanner gebruiken opgeslagen gegevens; live boten, hinderingen en waterstand kunnen verouderd zijn.'],
   ['less clearance under canal bridges than at target level. The route planner accounts for this.', 'minder doorvaarthoogte onder grachtbruggen dan bij streefpeil. De routeplanner rekent hiermee.'],
   ['Clearance at current water level', 'Vrije hoogte bij actuele waterstand'],
   ['Surinamekade water level', 'Waterstand Surinamekade'],

@@ -2,6 +2,9 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { DatabaseSync } from 'node:sqlite'
 import { PUBLIC_PAGES, SITE_ORIGIN, pageHead, publicFleetEntries, renderPublicPage, robotsTxt, sitemapXml } from './public-pages.mjs'
+import { existsSync, statSync } from 'node:fs'
+// A link to a real file in public/ (stylesheet, icon, manifest, docs) is valid.
+const isPublicAsset = (href) => { const file = new URL(`../public${href}`, import.meta.url); return existsSync(file) && statSync(file).isFile() }
 
 const now = Date.parse('2026-10-17T10:00:00Z')
 test('public search pages have distinct titles, descriptions and canonical URLs', () => {
@@ -114,7 +117,7 @@ test('all local information links lead to registered pages, actual map links or 
   for (const path of ['/amsterdam-routeplanner', '/flagship-vloot', ...Object.keys(NAVIGATION_PAGES)]) {
     const html = renderPublicPage(path)
     for (const [, href] of html.matchAll(/href="(\/[^"?#]*)[^"]*"/g)) {
-      assert.ok(Object.hasOwn(PUBLIC_PAGES, href) || ['/favicon.svg', '/public-pages.css', '/openapi.json', '/llms.txt'].includes(href), `${path} -> ${href}`)
+      assert.ok(Object.hasOwn(PUBLIC_PAGES, href) || isPublicAsset(href), `${path} -> ${href}`)
     }
   }
 })
@@ -126,7 +129,7 @@ test('sample routes expose indicative facts, recalculation links and genuine cop
     assert.equal((html.match(/<h1>/g) || []).length, 1)
     assert.ok(html.includes(`href="${SITE_ORIGIN}${path}"`))
     assert.ok(sitemapXml().includes(`<loc>${SITE_ORIGIN}${path}</loc>`))
-    for (const [, href] of html.matchAll(/href="(\/[^"?#]*)[^"]*"/g)) assert.ok(Object.hasOwn(PUBLIC_PAGES, href) || ['/favicon.svg', '/public-pages.css', '/openapi.json', '/llms.txt'].includes(href), `${path} -> ${href}`)
+    for (const [, href] of html.matchAll(/href="(\/[^"?#]*)[^"]*"/g)) assert.ok(Object.hasOwn(PUBLIC_PAGES, href) || isPublicAsset(href), `${path} -> ${href}`)
   }
   const route = renderPublicPage('/vaarroutes-amsterdam/herengracht-noord-zuid')
   assert.ok(route.includes('2,22 km'))

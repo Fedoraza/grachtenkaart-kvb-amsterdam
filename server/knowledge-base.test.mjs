@@ -3,6 +3,9 @@ import assert from 'node:assert/strict'
 import { KNOWLEDGE_PAGES, KNOWLEDGE_ARTICLES, KNOWLEDGE_ENTRIES, knowledgeContent } from './knowledge-base.mjs'
 import { PUBLIC_PAGES, renderPublicPage, sitemapXml } from './public-pages.mjs'
 import { matchesKnowledge } from '../shared/knowledge-search.mjs'
+import { existsSync, statSync } from 'node:fs'
+// A link to a real file in public/ (stylesheet, icon, manifest, docs) is valid.
+const isPublicAsset = (href) => { const file = new URL(`../public${href}`, import.meta.url); return existsSync(file) && statSync(file).isFile() }
 
 test('knowledge articles are public, linked, readable without scripts and have Article metadata', () => {
   assert.equal(KNOWLEDGE_ARTICLES.length,10)
@@ -18,7 +21,7 @@ test('knowledge articles are public, linked, readable without scripts and have A
       assert.ok(html.includes('Bronnen en verder lezen'))
       assert.ok(html.includes('7 november 2026'))
     }
-    for(const [,href] of html.matchAll(/href="(\/[^"?#]*)[^"]*"/g)) assert.ok(Object.hasOwn(PUBLIC_PAGES,href)||['/public-pages.css','/favicon.svg','/openapi.json'].includes(href),`${path} -> ${href}`)
+    for(const [,href] of html.matchAll(/href="(\/[^"?#]*)[^"]*"/g)) assert.ok(Object.hasOwn(PUBLIC_PAGES,href)||isPublicAsset(href),`${path} -> ${href}`)
   }
 })
 test('search is accent insensitive, combines words and filters in server HTML', () => {

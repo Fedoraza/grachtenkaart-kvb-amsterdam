@@ -1,5 +1,8 @@
 import { startUsageAnalytics } from './scripts/usageAnalytics.js'
 import { matchesKnowledge } from '../shared/knowledge-search.mjs'
+import { registerServiceWorker } from './scripts/serviceWorker.js'
+
+registerServiceWorker()
 
 let tracker = startUsageAnalytics(document.body.dataset.usagePage)
 window.addEventListener('pagehide', () => tracker.stop())

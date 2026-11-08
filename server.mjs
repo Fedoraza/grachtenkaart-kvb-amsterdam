@@ -3925,6 +3925,9 @@ function serveProductionFile(req, res) {
     ".js": "text/javascript; charset=utf-8",
     ".json": "application/json",
     ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".webp": "image/webp",
+    ".webmanifest": "application/manifest+json",
   };
   const requestPath = decodeURIComponent(new URL(req.url || "/", "http://localhost").pathname);
   const relativePath = normalize(requestPath).replace(/^(\.\.(\/|\\|$))+/, "").replace(/^[/\\]+/, "");

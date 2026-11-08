@@ -111,6 +111,30 @@ Use both Proxmox VM backups and an application-level copy of the
 `boat-tracker-data` volume. Do not restore an older VM snapshot without
 considering the newer operational data that would be lost.
 
+## Install as an app and offline use
+
+Production builds register `public/sw.js` and serve `public/manifest.webmanifest`,
+so the map can be installed to a phone's home screen. Development (`npm run dev`)
+registers no service worker, so cached code never hides local changes.
+
+After one online visit, the map and route planner work without a connection.
+Route calculation runs in the browser; the worker caches the app shell, the
+hashed `/assets/` bundles, the canal network (`export.geojson`), visited public
+pages and these public reads: bridges, navigation layers (closures), route links,
+map objects, operator groups and the Surinamekade water level. Data is fetched
+from the network first; the cached copy is only used when the network fails, and
+it keeps its own `fetchedAt`/`measuredAt`. An amber notice tells users when they
+are offline.
+
+Never cached: account, admin, planning, fleet, inventory and AIS-history APIs,
+WebSocket traffic, non-GET requests and other origins. OpenStreetMap tiles are
+not cached by the worker because the tile usage policy does not allow offline
+use; tiles still in the browser's normal HTTP cache may appear.
+
+When changing caching rules, bump `VERSION` in `public/sw.js` so old caches are
+deleted on activation. Regenerate the icons in `public/icons` after changing the
+favicon with `node scripts/generate-app-icons.mjs`.
+
 ## Run locally with live AIS
 
 The map displays live positions from AISStream for vessels transmitting AIS in
