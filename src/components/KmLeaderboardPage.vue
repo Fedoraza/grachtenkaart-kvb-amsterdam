@@ -5,7 +5,13 @@
 
     <header class="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-5 sm:px-8">
       <a href="/" class="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-bold text-slate-200 backdrop-blur hover:bg-white/10">← Naar de kaart</a>
-      <span class="text-xs font-black uppercase tracking-[0.22em] text-amber-300">Boat Tracker</span>
+      <div class="flex items-center gap-3">
+        <div class="flex rounded-xl border border-white/15 bg-white/5 p-1 text-xs font-bold" aria-label="Language">
+          <button type="button" class="rounded-lg px-2 py-1" :class="language.locale === 'en' ? 'bg-sky-500 text-white' : 'text-slate-400'" @click="language.setLocale('en')">EN</button>
+          <button type="button" class="rounded-lg px-2 py-1" :class="language.locale === 'nl' ? 'bg-sky-500 text-white' : 'text-slate-400'" @click="language.setLocale('nl')">NL</button>
+        </div>
+        <span class="hidden text-xs font-black uppercase tracking-[0.22em] text-amber-300 sm:inline">Boottracker</span>
+      </div>
     </header>
 
     <div class="relative z-10 mx-auto w-full max-w-6xl px-4 pb-16 sm:px-8">
@@ -14,6 +20,7 @@
         <p class="m-0 text-xs font-black uppercase tracking-[0.28em] text-amber-300">Het dagelijkse vloottoernooi</p>
         <h1 class="mx-auto mt-3 max-w-4xl text-4xl font-black leading-none tracking-tight sm:text-7xl">De grote kilometerstrijd</h1>
         <p class="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-300 sm:text-lg">Welke boot verslindt vandaag de meeste Amsterdamse waterkilometers? AIS houdt de stand bij. Geen jury, geen fotofinish en teleporteren levert geen punten op.</p>
+        <p class="mt-4"><a href="/vlootstatistieken" class="text-sm font-bold text-sky-300">Uitgebreide vlootstatistieken →</a></p>
       </section>
 
       <section class="mx-auto mt-8 max-w-3xl rounded-3xl border border-white/10 bg-white/[0.06] p-3 shadow-2xl backdrop-blur-xl sm:mt-12 sm:p-4">
@@ -23,6 +30,11 @@
             <span class="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Stand van</span>
             <strong class="block truncate text-lg capitalize sm:text-xl">{{ formattedDate }}</strong>
           </div>
+          <select v-model="selectedOperator" class="date-input" aria-label="Rederij klassement" @change="loadLeaderboard">
+            <option value="all">Alle rederijen</option>
+            <option v-for="operator in operators" :key="operator.id" :value="operator.id">{{ operator.name }}</option>
+            <option value="unassigned">Nog niet gekoppeld</option>
+          </select>
           <input v-model="selectedDate" type="date" class="date-input" :max="todayAmsterdam" aria-label="Kies een datum" @change="loadLeaderboard" />
           <button type="button" class="date-button" :disabled="selectedDate >= todayAmsterdam" aria-label="Volgende dag" @click="shiftDate(1)">→</button>
         </div>
@@ -59,7 +71,7 @@
           <ol class="m-0 divide-y divide-white/10 p-0">
             <li v-for="entry in displayedEntries" :id="`leaderboard-boat-${entry.id}`" :key="entry.id" class="grid scroll-mt-4 grid-cols-[2.5rem_1fr_auto] items-center gap-3 px-4 py-3 transition hover:bg-white/5 sm:px-6 sm:py-4">
               <span class="rank-number" :class="entry.rank <= 3 && 'rank-number--top'">{{ entry.rank }}</span>
-              <div class="min-w-0"><strong class="block truncate text-sm sm:text-base">{{ entry.name }}</strong><span class="text-[10px] text-slate-500">{{ entry.samples ? `${entry.samples} AIS-metingen` : (entry.mmsi ? 'Geen AIS-metingen deze dag' : 'Geen AIS gekoppeld') }}</span></div>
+              <div class="min-w-0"><strong class="block truncate text-sm sm:text-base">{{ entry.name }}</strong><span class="block text-xs text-slate-400">{{ entry.operatorName }}</span><span class="text-[10px] text-slate-500">{{ entry.samples ? `${entry.samples} AIS-metingen` : (entry.mmsi ? 'Geen AIS-metingen deze dag' : 'Geen AIS gekoppeld') }}</span></div>
               <strong class="text-base font-black tabular-nums text-amber-200 sm:text-lg">{{ formatDistance(entry.distanceKm) }}</strong>
             </li>
           </ol>
@@ -93,11 +105,19 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { VESSEL_OPERATORS, sortOperatorsByBoatCount } from '../../shared/vessel-operators.mjs'
+import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
+
+const language = inject('language')
+const displayLocale = computed(() => language?.locale === 'nl' ? 'nl-NL' : 'en-GB')
 
 const todayAmsterdam = currentRaceDate()
 const selectedDate = ref(todayAmsterdam)
 const entries = ref([])
+const operatorCounts = ref({})
+const operators = computed(() => sortOperatorsByBoatCount(VESSEL_OPERATORS.map((operator) => ({ ...operator, ...(operatorCounts.value[operator.id] !== undefined ? { boatCount: operatorCounts.value[operator.id] } : {}) }))))
+const requestedOperator = new URLSearchParams(window.location.search).get('operator')
+const selectedOperator = ref(operators.value.some((operator) => operator.id === requestedOperator) || requestedOperator === 'unassigned' ? requestedOperator : 'all')
 const coverage = ref(null)
 const complete = ref(false)
 const loading = ref(true)
@@ -114,15 +134,16 @@ const displayedEntries = computed(() => {
   if (query) return rankedEntries.value.filter((entry) => entry.name.toLocaleLowerCase('nl-NL').includes(query))
   return showAll.value ? rankedEntries.value : rankedEntries.value.slice(0, initialVisibleCount)
 })
-const formattedDate = computed(() => new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Amsterdam' }).format(new Date(`${selectedDate.value}T12:00:00Z`)))
+const formattedDate = computed(() => new Intl.DateTimeFormat(displayLocale.value, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Amsterdam' }).format(new Date(`${selectedDate.value}T12:00:00Z`)))
 
 async function loadLeaderboard() {
   loading.value = true
   error.value = ''
   try {
-    const response = await fetch(`/api/fleet/leaderboard?date=${encodeURIComponent(selectedDate.value)}`)
+    const response = await fetch(`/api/fleet/leaderboard?date=${encodeURIComponent(selectedDate.value)}&operator=${encodeURIComponent(selectedOperator.value)}`)
     const data = await response.json()
     if (!response.ok) throw new Error(data.error || 'Het klassement kon niet worden geladen.')
+    if (Array.isArray(data.operators)) operatorCounts.value = Object.fromEntries(data.operators.map((operator) => [operator.id, operator.boatCount]))
     entries.value = Array.isArray(data.entries) ? data.entries : []
     showAll.value = false
     boatSearch.value = ''
@@ -155,11 +176,11 @@ function currentRaceDate() {
 }
 
 function formatDistance(value) {
-  return `${Number(value || 0).toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 2 })} km`
+  return `${Number(value || 0).toLocaleString(displayLocale.value, { minimumFractionDigits: 1, maximumFractionDigits: 2 })} km`
 }
 
 onMounted(() => {
-  document.title = 'Kilometerstrijd · Boat Tracker'
+  document.title = 'Kilometerstrijd · Boottracker'
   loadLeaderboard()
   refreshTimer = window.setInterval(() => { if (selectedDate.value === todayAmsterdam) loadLeaderboard() }, 60_000)
 })

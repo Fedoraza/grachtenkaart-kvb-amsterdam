@@ -1,16 +1,17 @@
 {
-  "name": "boat-tracker",
+  "name": "boottracker",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node server.mjs",
+    "dev": "node --watch-path=server.mjs --watch-path=server --watch-path=shared server.mjs",
     "build": "vite build",
     "test": "node --test",
     "start": "NODE_ENV=production node server.mjs",
     "preview": "NODE_ENV=production node server.mjs",
     "import-company-boats": "node scripts/import-company-boats.mjs",
-    "update-query": "node scripts/update-overpass-query.mjs"
+    "update-query": "node scripts/update-overpass-query.mjs",
+    "test:mobile": "playwright test"
   },
   "dependencies": {
     "@lucide/vue": "^1.20.0",
@@ -26,6 +27,7 @@
     "ws": "^8.21.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/vite": "^4.3.1",
     "@vitejs/plugin-vue": "^6.0.6",
     "tailwindcss": "^4.3.1",

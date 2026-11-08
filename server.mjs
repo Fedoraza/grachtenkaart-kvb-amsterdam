@@ -1,3 +1,13 @@
+import { closureSnapshot } from './shared/closure-snapshot.mjs';
+import { ACCOUNT_ROLES, canReadFlagshipPlanning, canUseOperations } from './shared/account-access.mjs';
+import { migrateAccountRoles } from './server/account-role-migration.mjs';
+import { parseAgentRoute } from './server/agent-routing.mjs';
+import { sharedRouteDocument, renderSharedRoutePage, unavailableSharedRoutePage } from './server/shared-route-page.mjs';
+import { reportingPointsAlongRoute } from './shared/reporting-route.mjs';
+import { statisticsRange } from './server/fleet-statistics.mjs';
+import { hasVerifiedBoatPhoto } from './server/boat-photo-verification.mjs';
+import { buildOperatorDirectories, operatorById, inferVesselOperator } from './shared/vessel-operators.mjs';
+import { createOperatorStore, publicOperatorGroups } from './server/vessel-operators.mjs';
 import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { dirname, extname, join, normalize } from "node:path";
@@ -6,6 +16,8 @@ import { backup, DatabaseSync } from "node:sqlite";
 import { WebSocket, WebSocketServer } from "ws";
 import { monitorEventLoopDelay } from "node:perf_hooks";
 import { gunzipSync } from "node:zlib";
+import { sendAsset, sendJsonResponse } from "./server/http-transfer.mjs";
+import { DATA_SAVER_INTERVAL_MS, queueLatestAis, takeAisBatch } from "./server/ais-delivery.mjs";
 import { createWhatsAppConnector } from "./server/whatsapp.mjs";
 import { analyzePlanningImage, getOcrQueueStats } from "./server/planning-ocr-client.mjs";
 import { createDatabaseReadClient } from "./server/database-read-client.mjs";
@@ -20,7 +32,12 @@ import { validateReportingRules } from "./shared/reporting-movements.mjs";
 import { loadCurrentClosures } from "./server/navigation-closures.mjs";
 import { isPublicMapRead } from "./server/public-map-access.mjs";
 import { fetchSurinamekadeWaterLevel } from "./server/water-level.mjs";
-import { amsterdamDayBounds, amsterdamRaceDate, calculateFleetDistances, fleetDistanceIncrement } from "./server/fleet-leaderboard.mjs";
+import { loadBridgeCatalog } from "./server/bridge-catalog.mjs";
+import { amsterdamDayBounds, amsterdamRaceDate, calculateFleetDistances } from "./server/fleet-leaderboard.mjs";
+
+import { isPublicInformationPage, PUBLIC_PAGES, pageHead, publicFleetEntries, renderPublicPage, robotsTxt, sitemapXml } from "./server/public-pages.mjs";
+import { createUsageAnalytics } from "./server/usage-analytics.mjs";
+import { createRouteLinkStore } from "./server/route-links.mjs";
 
 loadLocalEnv();
 
@@ -78,8 +95,11 @@ let databaseBackupRunning = false;
 const databasePath = process.env.DATABASE_PATH || join(process.cwd(), "data", "ais.sqlite");
 mkdirSync(dirname(databasePath), { recursive: true });
 const database = new DatabaseSync(databasePath);
+const routeLinkStore = createRouteLinkStore(database);
+const operatorStore = createOperatorStore(database);
 const databaseReads = createDatabaseReadClient(databasePath);
 const fleetSummaryCache = new Map();
+const fleetStatisticsCache = new Map();
 const eventLoopDelay = monitorEventLoopDelay({ resolution: 20 });
 eventLoopDelay.enable();
 const serviceMetrics = {
@@ -113,30 +133,6 @@ database.exec(`
     received_at INTEGER NOT NULL
   );
   CREATE INDEX IF NOT EXISTS positions_mmsi_time ON positions (mmsi, received_at);
-  CREATE TABLE IF NOT EXISTS fleet_leaderboard_days (
-    race_date TEXT PRIMARY KEY,
-    range_from INTEGER NOT NULL,
-    range_to INTEGER NOT NULL,
-    materialized_at INTEGER NOT NULL
-  );
-  CREATE TABLE IF NOT EXISTS fleet_leaderboard_totals (
-    race_date TEXT NOT NULL,
-    boat_id INTEGER NOT NULL,
-    distance_meters REAL NOT NULL DEFAULT 0,
-    samples INTEGER NOT NULL DEFAULT 0,
-    last_latitude REAL,
-    last_longitude REAL,
-    last_speed REAL,
-    last_received_at INTEGER,
-    updated_at INTEGER NOT NULL,
-    PRIMARY KEY (race_date, boat_id),
-    FOREIGN KEY (boat_id) REFERENCES fleet_boats(id) ON DELETE CASCADE
-  );
-  CREATE TABLE IF NOT EXISTS fleet_leaderboard_coverage (
-    race_date TEXT NOT NULL,
-    slot INTEGER NOT NULL,
-    PRIMARY KEY (race_date, slot)
-  );
   CREATE TABLE IF NOT EXISTS fleet_boats (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -274,7 +270,7 @@ database.exec(`
     phone_e164 TEXT UNIQUE,
     phone_verified_at INTEGER,
     auth_method TEXT NOT NULL DEFAULT 'password',
-    role TEXT NOT NULL CHECK (role IN ('admin', 'harbour', 'viewer')),
+    role TEXT NOT NULL CHECK (role IN ('admin', 'harbour', 'viewer', 'flagship_employee')),
     active INTEGER NOT NULL DEFAULT 1,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
@@ -366,7 +362,9 @@ database.exec(`
     FOREIGN KEY (boat_id) REFERENCES fleet_boats(id), FOREIGN KEY (product_id) REFERENCES inventory_products(id), FOREIGN KEY (updated_by) REFERENCES users(id)
   );
 `);
-ensureUserRoleConstraint();
+const usageAnalytics = createUsageAnalytics(database);
+ensureUserColumns();
+migrateAccountRoles(database);
 ensureFleetBoatColumns();
 ensureBoatDayAssignmentColumns();
 ensureBoatDayListColumns();
@@ -386,12 +384,6 @@ const insertPositionStatement = database.prepare(`
   INSERT INTO positions (mmsi, latitude, longitude, speed, course, heading, received_at)
   VALUES (?, ?, ?, ?, ?, ?, ?)
 `);
-const materializedLeaderboardDays = new Map(database.prepare("SELECT race_date, range_from, range_to FROM fleet_leaderboard_days").all()
-  .map((day) => [day.race_date, day]));
-const leaderboardCoverageSlots = new Set(database.prepare("SELECT race_date, slot FROM fleet_leaderboard_coverage").all()
-  .map((row) => `${row.race_date}:${row.slot}`));
-let fleetLeaderboardBoatIds = new Map();
-let fleetLeaderboardBoatIdsLoadedAt = 0;
 loadLatestVessels();
 pruneHistory();
 
@@ -402,7 +394,6 @@ const whatsapp = createWhatsAppConnector({
   onGroupMessage: recordWhatsAppGroupAnchor,
   onPlanningMessage: importReadOnlyWhatsAppPlanningMessage,
   onLocationStaffMessage: importReadOnlyWhatsAppLocationStaff,
-  onVerificationMessage: verifyInboundAccountMessage,
   onReady: () => {
     if (whatsappRescanStarted) return;
     whatsappRescanStarted = true;
@@ -424,6 +415,7 @@ const vite = isProduction
       }),
     );
 
+let agentRouteRequests = 0;
 const server = createServer(async (req, res) => {
   const requestStartedAt = performance.now();
   serviceMetrics.requests += 1;
@@ -434,13 +426,133 @@ const server = createServer(async (req, res) => {
   applySecurityHeaders(req, res);
   const requestUrl = new URL(req.url || "/", "http://localhost");
   const apiPath = decodeURIComponent(requestUrl.pathname).replace(/\/+$/, "") || "/";
+  if (requestUrl.pathname === '/' && requestUrl.searchParams.has('route') && ['GET', 'HEAD'].includes(req.method)) {
+    const token = requestUrl.searchParams.get('route');
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('X-Robots-Tag', 'noindex, follow');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    const stored = requestUrl.searchParams.getAll('route').length === 1 && /^[A-Za-z0-9_-]{20,40}$/.test(token || '')
+      ? database.prepare('SELECT route_json, created_at, expires_at FROM shared_routes WHERE token = ? AND expires_at > ?').get(token, Date.now()) : null;
+    if (!stored) { res.statusCode = 404; return res.end(req.method === 'HEAD' ? undefined : unavailableSharedRoutePage()); }
+    try {
+      const document = readableSharedRoute(stored);
+      let html = readFileSync(join(process.cwd(), isProduction ? 'dist/index.html' : 'index.html'), 'utf8');
+      html = renderSharedRoutePage(html, document, token);
+      if (vite) html = await vite.transformIndexHtml(req.url, html);
+      res.setHeader('Link', `</api/shared-routes/${token}>; rel="alternate"; type="application/json"`);
+      return res.end(req.method === 'HEAD' ? undefined : html);
+    } catch (error) {
+      console.warn('Shared route page failed:', error.message);
+      res.statusCode = 503; res.setHeader('Retry-After', '60');
+      return res.end(req.method === 'HEAD' ? undefined : '<!doctype html><html lang="nl"><h1>Gedeelde route tijdelijk niet beschikbaar</h1><p>Probeer het later opnieuw.</p></html>');
+    }
+  }
+  if (['/llms.txt', '/openapi.json'].includes(requestUrl.pathname)) {
+    if (!['GET', 'HEAD'].includes(req.method)) { res.setHeader('Allow', 'GET, HEAD'); return sendJson(res, 405, { error: 'method_not_allowed' }); }
+    const asset = requestUrl.pathname.slice(1);
+    res.setHeader('Content-Type', asset.endsWith('.json') ? 'application/json; charset=utf-8' : 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    const bundled = new URL(`./dist/${asset}`, import.meta.url);
+    return res.end(req.method === 'HEAD' ? undefined : readFileSync(isProduction && existsSync(bundled) ? bundled : new URL(`./public/${asset}`, import.meta.url)));
+  }
+  if (requestUrl.pathname === '/api/routeplanner/route') {
+    if (req.method !== 'GET') { res.setHeader('Allow', 'GET'); return sendJson(res, 405, { error: 'method_not_allowed' }); }
+    let input;
+    try {
+      if (requestUrl.search.length > 4096) throw new Error('Query exceeds 4096 characters');
+      input = parseAgentRoute(requestUrl.searchParams);
+    } catch (error) { return sendJson(res, 400, { error: 'invalid_request', message: error.message, documentation: '/routeplanner-api' }); }
+    if (agentRouteRequests >= 4) { res.setHeader('Retry-After', '5'); return sendJson(res, 429, { error: 'busy', message: 'Retry after 5 seconds' }); }
+    agentRouteRequests += 1;
+    try {
+      const bridges = applyMapObjectOverrides('bridges', await loadAmsterdamBridgeCollection());
+      let closures = navigationLayerCache.get('closures');
+      if (!closures) {
+        try {
+          const data = JSON.parse(readFileSync(join(process.cwd(), 'data', 'navigation-closures-v1.json'), 'utf8'));
+          const fetchedAt = Date.parse(data.fetchedAt);
+          if (!data.stale && data.type === 'FeatureCollection' && Array.isArray(data.features) && fetchedAt <= Date.now() && Date.now() - fetchedAt < 60_000) closures = { data, expiresAt: fetchedAt + 60_000 };
+        } catch {}
+      }
+      if (!closures || closures.expiresAt <= Date.now()) {
+        pendingClosureLoad ||= loadCurrentClosures({ previous: navigationLayerCache.get('closures')?.data }).finally(() => { pendingClosureLoad = null; });
+        closures = { data: await pendingClosureLoad, expiresAt: Date.now() + 60_000 };
+        navigationLayerCache.set('closures', closures);
+      }
+      const edits = database.prepare("SELECT object_key AS objectKey, action, feature_json FROM map_object_overrides WHERE layer = 'routing-lines'").all().map(row => ({ ...row, feature: row.feature_json ? JSON.parse(row.feature_json) : null }));
+      const result = await databaseReads.run('agent-route', { input, bridges, links: routeLinkStore.read(), edits, closures: applyMapObjectOverrides('closures', closures.data) });
+      res.setHeader('Link', '</openapi.json>; rel="service-desc", </routeplanner-api>; rel="service-doc"');
+      return sendJson(res, 200, result, 'no-store');
+    } catch (error) {
+      console.warn('Public route calculation unavailable:', error.message);
+      res.setHeader('Retry-After', '60');
+      return sendJson(res, 503, { error: 'routing_unavailable', message: 'Route or current restriction data unavailable; retry later.' });
+    } finally { agentRouteRequests -= 1; }
+  }
   if (req.method === "GET" && apiPath === "/healthz") {
     sendJson(res, 200, { status: "ok" });
     return;
   }
+  if (["GET", "HEAD"].includes(req.method)) {
+    const cleanPath = requestUrl.pathname.replace(/\/+$/, "") || "/";
+    if (PUBLIC_PAGES[cleanPath] && cleanPath !== requestUrl.pathname) {
+      res.writeHead(301, { Location: cleanPath + requestUrl.search });
+      return res.end();
+    }
+    if (cleanPath === "/robots.txt" || cleanPath === "/sitemap.xml") {
+      res.setHeader("Content-Type", cleanPath.endsWith(".xml") ? "application/xml; charset=utf-8" : "text/plain; charset=utf-8");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      return res.end(req.method === "HEAD" ? undefined : cleanPath.endsWith(".xml") ? sitemapXml() : robotsTxt());
+    }
+    if (isPublicInformationPage(cleanPath)) {
+      let scriptUrl = "/src/publicPages.js";
+      if (isProduction) {
+        const manifest = JSON.parse(readFileSync(join(process.cwd(), "dist", ".vite", "manifest.json"), "utf8"));
+        scriptUrl = `/${manifest["src/publicPages.js"].file}`;
+      }
+      let bridgeCollection;
+      if (cleanPath.startsWith("/bruggen-amsterdam/")) {
+        try { bridgeCollection = applyMapObjectOverrides("bridges", await loadAmsterdamBridgeCollection()); }
+        catch (error) {
+          console.warn(`Public bridge page unavailable: ${error.message}`);
+          res.statusCode = 503;
+          res.setHeader("Retry-After", "300");
+          res.setHeader("X-Robots-Tag", "noindex");
+        }
+      }
+      const operatorGroups = cleanPath.startsWith("/rederijen-amsterdam") || cleanPath === "/flagship-vloot" ? publicOperatorGroups(database, operatorStore.read()) : [];
+      const flagshipMmsis = new Set(operatorGroups.find((group) => group.id === "flagship")?.mmsis || []);
+      if (cleanPath === '/kennisbank' && (requestUrl.searchParams.has('q') || requestUrl.searchParams.has('categorie'))) res.setHeader('X-Robots-Tag', 'noindex, follow');
+      const html = renderPublicPage(cleanPath, { searchParams: requestUrl.searchParams, scriptUrl, bridgeCollection, operatorGroups, boats: cleanPath === "/flagship-vloot" ? publicFleetEntries(database).filter((boat) => flagshipMmsis.has(String(boat.mmsi))) : [] });
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", res.statusCode === 503 ? "no-store" : "public, max-age=30");
+      return res.end(req.method === "HEAD" ? undefined : html);
+    }
+  }
   if (isMutationMethod(req.method) && !isTrustedOrigin(req)) {
     sendJson(res, 403, { error: "Untrusted request origin" });
     return;
+  }
+  if (apiPath === "/api/analytics/usage" && req.method === "POST") {
+    try {
+      const body = await readJsonBody(req, 2048);
+      if (!body || typeof body !== "object" || Array.isArray(body)) return sendJson(res, 400, { error: "Invalid usage event" });
+      let token = parseCookies(req.headers.cookie || "").boat_usage;
+      if (!/^[a-f0-9]{48}$/.test(token || "")) {
+        token = randomBytes(24).toString("hex");
+        const secure = process.env.AUTH_SECURE_COOKIE === "true" || req.headers["x-forwarded-proto"] === "https";
+        res.setHeader("Set-Cookie", `boat_usage=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=7776000${secure ? "; Secure" : ""}`);
+      }
+      usageAnalytics.record({
+        visitorId: createHash("sha256").update(token).digest("hex"),
+        userId: getAuthenticatedUser(req)?.id ?? null,
+        page: body.page, type: body.type, activeSeconds: body.activeSeconds,
+      });
+      return sendJson(res, 200, { recorded: true });
+    } catch (error) {
+      const status = error.statusCode || (error instanceof TypeError ? 400 : 500);
+      return sendJson(res, status, { error: status === 500 ? "Usage recording unavailable" : "Invalid usage event" });
+    }
   }
   if (apiPath === "/api/geocode" || apiPath.startsWith("/api/geocode/") || apiPath.includes("/geocode/")) {
     await handleGeocodeApi(requestUrl, res);
@@ -463,6 +575,13 @@ const server = createServer(async (req, res) => {
     }
     req.authUser = user;
   }
+  if (requestUrl.pathname === "/api/admin/usage") {
+    if (!requireAdmin(req, res)) return;
+    if (req.method !== "GET") return sendJson(res, 405, { error: "Method not allowed" });
+    const days = Number(requestUrl.searchParams.get("days") || 7);
+    if (![1, 7, 30, 90].includes(days)) return sendJson(res, 400, { error: "Invalid usage period" });
+    return sendJson(res, 200, usageAnalytics.summary(days));
+  }
   if (requestUrl.pathname === "/api/admin/metrics") {
     if (!requireAdmin(req, res)) return;
     sendJson(res, 200, applicationMetrics());
@@ -477,10 +596,12 @@ const server = createServer(async (req, res) => {
     return;
   }
   if (requestUrl.pathname.startsWith("/api/boat-duty")) {
+    if (!canUseOperations(req.authUser)) return sendJson(res, 403, { error: "Staff access required" });
     await handleBoatDutyApi(req, requestUrl, res);
     return;
   }
   if (requestUrl.pathname.startsWith("/api/inventory")) {
+    if (!canUseOperations(req.authUser)) return sendJson(res, 403, { error: "Staff access required" });
     await handleInventoryApi(req, requestUrl, res);
     return;
   }
@@ -491,8 +612,32 @@ const server = createServer(async (req, res) => {
     return;
   }
   if (requestUrl.pathname.startsWith("/api/planning/")) {
+    if (!canReadFlagshipPlanning(req.authUser)) return sendJson(res, 403, { error: "Flagship employee access required" });
     await handlePlanningApi(req, requestUrl, res);
     return;
+  }
+  if (requestUrl.pathname === "/api/map/operator-groups") {
+    if (req.method !== "GET") return sendJson(res, 405, { error: "Method not allowed" });
+    return sendJson(res, 200, { assignments: operatorStore.read(), groups: publicOperatorGroups(database, operatorStore.read()) }, "public, max-age=15");
+  }
+  const operatorMembership = requestUrl.pathname.match(/^\/api\/map\/operator-membership\/(\d{9})$/);
+  if (operatorMembership) {
+    if (!requireAdmin(req, res)) return;
+    if (req.method !== "PUT" && req.method !== "DELETE") return sendJson(res, 405, { error: "Method not allowed" });
+    try {
+      if (req.method === "DELETE") operatorStore.reset(operatorMembership[1]);
+      else { const body = await readJsonBody(req); operatorStore.write(operatorMembership[1], body.operatorId, req.authUser.id); }
+    } catch (error) { return sendJson(res, 400, { error: error.message }); }
+    return sendJson(res, 200, { saved: true, assignments: operatorStore.read() });
+  }
+  if (requestUrl.pathname === "/api/map/route-links") {
+    if (req.method === "GET") return sendJson(res, 200, routeLinkStore.read());
+    if (req.method !== "PUT") return sendJson(res, 405, { error: "Method not allowed" });
+    if (!requireAdmin(req, res)) return;
+    const body = await readJsonBody(req);
+    try { routeLinkStore.write(body.bucket, body.id, body.value); }
+    catch { return sendJson(res, 400, { error: "Invalid route link" }); }
+    return sendJson(res, 200, { saved: true });
   }
   if (requestUrl.pathname === "/api/map/bridges") {
     await handleBridgeDataApi(res);
@@ -528,6 +673,12 @@ const server = createServer(async (req, res) => {
   serveProductionFile(req, res);
 });
 
+function readableSharedRoute(stored) {
+  const route = JSON.parse(stored.route_json);
+  const features = applyMapObjectOverrides('reporting-points', reportingPointsGeoJson()).features;
+  return sharedRouteDocument(stored, reportingPointsAlongRoute(features, route.result, routeLinkStore.read()));
+}
+
 async function handleSharedRoutesApi(req, requestUrl, res) {
   const routeToken = requestUrl.pathname.match(/^\/api\/shared-routes\/([A-Za-z0-9_-]{20,40})$/)?.[1];
   const now = Date.now();
@@ -548,6 +699,15 @@ async function handleSharedRoutesApi(req, requestUrl, res) {
       const stored = database.prepare("SELECT route_json, created_at, expires_at FROM shared_routes WHERE token = ? AND expires_at > ?")
         .get(routeToken, now);
       if (!stored) return sendJson(res, 404, { error: "This shared route was not found or has expired" });
+      res.setHeader('X-Robots-Tag', 'noindex, follow');
+      if (requestUrl.searchParams.has('format')) {
+        if (requestUrl.searchParams.get('format') !== 'geojson') return sendJson(res, 400, { error: 'Unknown route format; use geojson' });
+        const document = readableSharedRoute(stored);
+        res.setHeader('Content-Type', 'application/geo+json; charset=utf-8');
+        res.setHeader('Cache-Control', 'private, no-store');
+        res.setHeader('X-Robots-Tag', 'noindex, follow');
+        return res.end(JSON.stringify({ type: 'Feature', geometry: document.geometry, properties: { ...document, geometry: undefined } }));
+      }
       sendJson(res, 200, {
         route: JSON.parse(stored.route_json),
         createdAt: new Date(stored.created_at).toISOString(),
@@ -594,53 +754,43 @@ function validSharedCoordinate(latitude, longitude) {
     && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
 }
 
-async function handleBridgeDataApi(res) {
-  const cachePath = join(process.cwd(), "data", "amsterdam-bridges-v2.json");
+let bridgeDataLoadPromise;
+function loadAmsterdamBridgeCollection() {
+  if (bridgeDataCache && Date.now() - bridgeDataCache.fetchedAt < 24 * 60 * 60 * 1000) return Promise.resolve(bridgeDataCache);
+  if (!bridgeDataLoadPromise) bridgeDataLoadPromise = fetchAmsterdamBridgeCollection().finally(() => { bridgeDataLoadPromise = null; });
+  return bridgeDataLoadPromise;
+}
+
+async function fetchAmsterdamBridgeCollection() {
+  const cachePath = join(process.cwd(), "data", "amsterdam-bridges-v6.json");
   const maxAge = 24 * 60 * 60 * 1000;
+  let stored;
+  if (existsSync(cachePath)) {
+    try { stored = JSON.parse(readFileSync(cachePath, "utf8")); } catch {}
+  }
+  if (stored?.catalogVersion === 6 && Date.now() - stored.fetchedAt < maxAge) {
+    bridgeDataCache = stored;
+    return bridgeDataCache;
+  }
   try {
-    if (!bridgeDataCache && existsSync(cachePath) && Date.now() - statSync(cachePath).mtimeMs < maxAge) {
-      bridgeDataCache = JSON.parse(readFileSync(cachePath, "utf8"));
-    }
-    if (!bridgeDataCache) {
-      const baseUrl = "https://api.data.amsterdam.nl/v1/civieleconstructies/v1";
-      const [allResponse, fixedResponse] = await Promise.all([
-        fetch(`${baseUrl}/brug?_format=geojson&page_size=5000`, { headers: { Accept: "application/geo+json, application/json" } }),
-        fetch(`${baseUrl}/brug_vast?_format=geojson&page_size=5000`, { headers: { Accept: "application/geo+json, application/json" } }),
-      ]);
-      if (!allResponse.ok || !fixedResponse.ok) throw new Error(`Amsterdam bridge API returned ${allResponse.status}/${fixedResponse.status}`);
-      const [allBridges, fixedBridges] = await Promise.all([allResponse.json(), fixedResponse.json()]);
-      const fixedByNumber = new Map((fixedBridges.features || []).map((feature) => [feature.properties?.objectnummer, feature]));
-      const includedNumbers = new Set();
-      const normalizeFeature = (feature, details = feature) => ({
-        type: "Feature",
-        id: feature.id,
-        geometry: feature.geometry,
-        properties: {
-          name: details.properties?.objectnaam || feature.properties?.objectnaam || details.properties?.openbareruimte || "Naam onbekend",
-          number: feature.properties.objectnummer || null,
-          clearanceNap: finiteNumber(details.properties?.doorvaarthoogte),
-          clearanceAt4mNap: finiteNumber(details.properties?.brughoogteBij4M),
-          passageWidth: finiteNumber(details.properties?.doorvaartbreedte),
-          winterWaterLevelNap: finiteNumber(details.properties?.waterpeilwinter),
-          bridgeType: details.properties?.typebrug || feature.properties?.type || feature.properties?.nenTypeBeheerobject || null,
-          route: details.properties?.hoofdvaarroute || details.properties?.waterobject || null,
-          updatedAt: details.properties?.lastupdate || null,
-        },
-      });
-      const features = (allBridges.features || []).map((feature) => {
-        const number = feature.properties?.objectnummer;
-        if (number) includedNumbers.add(number);
-        return normalizeFeature(feature, fixedByNumber.get(number) || feature);
-      });
-      for (const feature of fixedBridges.features || []) {
-        const number = feature.properties?.objectnummer;
-        if (!number || includedNumbers.has(number)) continue;
-        features.push(normalizeFeature(feature));
-      }
-      bridgeDataCache = { type: "FeatureCollection", source: "Gemeente Amsterdam Civiele Constructies", fetchedAt: Date.now(), features };
-      writeFileSync(cachePath, JSON.stringify(bridgeDataCache));
-    }
-    sendJson(res, 200, applyMapObjectOverrides("bridges", bridgeDataCache), "public, max-age=60, s-maxage=300, stale-while-revalidate=600");
+    const catalog = await loadBridgeCatalog();
+    // Audit rows are retained separately by the audit command, not in every map response.
+    const { audit, ...data } = catalog;
+    writeFileSync(cachePath + '.tmp', JSON.stringify(data));
+    renameSync(cachePath + '.tmp', cachePath);
+    bridgeDataCache = data;
+  } catch (error) {
+    if (!stored?.features?.length || stored.catalogVersion !== 6) throw error;
+    console.warn(`Bridge sources unavailable; serving explicitly stale catalogue: ${error.message}`);
+    return { ...stored, stale: true, sourceWarning: 'Brugbron tijdelijk niet bereikbaar; eerder opgehaalde gegevens worden getoond.' };
+  }
+  return bridgeDataCache;
+}
+
+async function handleBridgeDataApi(res) {
+  try {
+    const data = await loadAmsterdamBridgeCollection();
+    sendJson(res, 200, applyMapObjectOverrides("bridges", data), "public, max-age=60, s-maxage=300, stale-while-revalidate=600");
   } catch (error) {
     console.error("Bridge data API error", error.message);
     sendJson(res, 502, { error: "Could not load Amsterdam bridge data" });
@@ -681,7 +831,8 @@ async function handleSurinamekadeWaterLevel(res) {
 async function handleNavigationLayerApi(requestUrl, res) {
   const layer = requestUrl.searchParams.get("layer");
   const cached = navigationLayerCache.get(layer);
-  if (cached && cached.expiresAt > Date.now()) return sendJson(res, 200, applyMapObjectOverrides(layer, cached.data), "public, max-age=30, s-maxage=60, stale-while-revalidate=300");
+  if (layer === "closures") res.setHeader("Cache-Control", "no-store");
+  if (cached && cached.expiresAt > Date.now()) return sendJson(res, 200, applyMapObjectOverrides(layer, layer === "closures" ? closureSnapshot(cached.data) : cached.data), layer === "closures" ? "no-store" : "public, max-age=30, s-maxage=60, stale-while-revalidate=300");
   try {
     let data;
     let maxAge = 6 * 60 * 60 * 1000;
@@ -718,7 +869,7 @@ async function handleNavigationLayerApi(requestUrl, res) {
       data = parseNdwBridgeOpenings(xml);
       maxAge = 5 * 60 * 1000;
     } else if (layer === "closures") {
-      pendingClosureLoad ||= loadCurrentClosures().finally(() => { pendingClosureLoad = null; });
+      pendingClosureLoad ||= loadCurrentClosures({ previous: navigationLayerCache.get('closures')?.data }).finally(() => { pendingClosureLoad = null; });
       data = await pendingClosureLoad;
       maxAge = 60 * 1000;
       try {
@@ -767,7 +918,7 @@ async function handleNavigationLayerApi(requestUrl, res) {
       return sendJson(res, 400, { error: "Unknown navigation layer" });
     }
     navigationLayerCache.set(layer, { data, expiresAt: Date.now() + maxAge });
-    sendJson(res, 200, applyMapObjectOverrides(layer, data), "public, max-age=30, s-maxage=60, stale-while-revalidate=300");
+    sendJson(res, 200, applyMapObjectOverrides(layer, layer === "closures" ? closureSnapshot(data) : data), layer === "closures" ? "no-store" : "public, max-age=30, s-maxage=60, stale-while-revalidate=300");
   } catch (error) {
     console.error(`Navigation layer ${layer} failed`, error.message);
     if (layer === "closures") {
@@ -781,7 +932,7 @@ async function handleNavigationLayerApi(requestUrl, res) {
         if (manual.features.length) fallback = manual;
       }
       if (fallback?.type === "FeatureCollection" && Array.isArray(fallback.features)) {
-        return sendJson(res, 200, { ...applyMapObjectOverrides(layer, fallback), stale: true });
+        return sendJson(res, 200, { ...applyMapObjectOverrides(layer, closureSnapshot(fallback)), stale: true });
       }
     }
     sendJson(res, 502, { error: `Could not load ${layer}` });
@@ -923,7 +1074,7 @@ function parseNdwBridgeOpenings(xml) {
   return { type: "FeatureCollection", features };
 }
 
-const localSocketServer = new WebSocketServer({ noServer: true, maxPayload: 1024 });
+const localSocketServer = new WebSocketServer({ noServer: true, maxPayload: 1024, perMessageDeflate: { threshold: 1024, serverNoContextTakeover: true, clientNoContextTakeover: true, concurrencyLimit: 4, zlibDeflateOptions: { level: 4 } } });
 
 server.on("upgrade", (request, socket, head) => {
   const pathname = new URL(request.url || "/", "http://localhost").pathname;
@@ -951,6 +1102,9 @@ server.on("upgrade", (request, socket, head) => {
   }
 
   localSocketServer.handleUpgrade(request, socket, head, (client) => {
+    client.dataSaver = new URL(request.url, "http://localhost").searchParams.get("dataSaver") === "1";
+    client.pendingAis = new Map();
+    client.lastAisSentAt = Date.now();
     client.authUserId = user?.id || null;
     client.clientIp = clientIp;
     localSocketServer.emit("connection", client, request);
@@ -999,7 +1153,7 @@ server.keepAliveTimeout = 5_000;
 server.maxHeadersCount = 100;
 
 server.listen(port, host, () => {
-  console.log(`Boat Tracker: http://${host}:${port}/`);
+  console.log(`Boottracker: http://${host}:${port}/`);
   console.log(apiKey ? "AIS: configured" : "AIS: not configured (copy .env.example to .env)");
   console.log(`AIS history: ${historyDays} days in data/ais.sqlite`);
   connectUpstream();
@@ -1043,7 +1197,7 @@ function connectUpstream() {
         ],
       }),
     );
-    broadcast({ type: "status", status: "live", message: "Receiving live AIS positions", reason: "AISStream connected" });
+    broadcast({ type: "status", status: "reconnecting", message: "AISStream connected; waiting for vessel positions", reason: "Waiting for first position report" });
   });
 
   upstream.on("message", (raw) => {
@@ -1116,7 +1270,7 @@ function checkUpstreamHealth() {
 
 function currentAisFeedState(now = Date.now()) {
   return feedState({ configured: Boolean(apiKey), open: upstream?.readyState === WebSocket.OPEN,
-    messageAgeMs: lastUpstreamMessageAt ? now - lastUpstreamMessageAt : Infinity, watchdogMs: aisWatchdogMs });
+    messageAgeMs: lastUpstreamMessageAt ? now - lastUpstreamMessageAt : Infinity, positionAgeMs: lastPositionMessageAt ? now - lastPositionMessageAt : Infinity, watchdogMs: aisWatchdogMs });
 }
 
 function latencySummary() {
@@ -1131,7 +1285,7 @@ function aisStatusMessage(state, now = Date.now()) {
   const age = lastUpstreamMessageAt ? Math.max(0, Math.round((now - lastUpstreamMessageAt) / 1000)) : null;
   const latency = latencySummary().average;
   if (state.status === "live") return `Live positions · feed ${age}s ago${latency === null ? "" : ` · avg latency ${(latency / 1000).toFixed(1)}s`}`;
-  if (state.status === "degraded") return `AISStream delayed · last feed ${age}s ago`;
+  if (state.status === "degraded") return `${state.reason} · last message ${age}s ago`;
   return state.reason;
 }
 
@@ -1158,7 +1312,6 @@ function persistAisMessage(message) {
   try {
     insertPositionStatement.run(message.mmsi, message.latitude, message.longitude, message.speed, message.course, message.heading, receivedAt);
     lastStoredPositionAt.set(message.mmsi, receivedAt);
-    updateMaterializedFleetLeaderboard(message, receivedAt);
   } catch (error) {
     if (error.errcode !== 5) throw error;
     console.warn("AIS history point skipped: database is busy");
@@ -1173,10 +1326,12 @@ function parseAisTime(value) {
 
 function loadLatestVessels() {
   const cutoff = Date.now() - aisRemoveAfterMs;
-  const rows = database.prepare("SELECT mmsi, data FROM vessels WHERE updated_at >= ?").all(cutoff);
+  const assignments = operatorStore.read();
+  const rows = database.prepare("SELECT mmsi, data, updated_at FROM vessels").all();
   for (const row of rows) {
     try {
-      latestVessels.set(row.mmsi, JSON.parse(row.data));
+      const vessel = JSON.parse(row.data);
+      if (row.updated_at >= cutoff || inferVesselOperator(vessel, assignments)) latestVessels.set(row.mmsi, vessel);
     } catch {
       // Ignore malformed legacy rows.
     }
@@ -1184,9 +1339,11 @@ function loadLatestVessels() {
 }
 
 function getActiveVesselSnapshot() {
+  const assignments = operatorStore.read();
   const cutoff = Date.now() - Math.min(aisRemoveAfterMs, aisNamedRemoveAfterMs);
   const unnamedCutoff = Date.now() - aisUnnamedRemoveAfterMs;
   return Array.from(latestVessels.values()).filter((vessel) => {
+    if (inferVesselOperator(vessel, assignments)) return true;
     const receivedAt = parseAisTime(vessel.receivedAt);
     return receivedAt >= cutoff && (String(vessel.name || "").trim() || receivedAt >= unnamedCutoff);
   });
@@ -1195,12 +1352,17 @@ function getActiveVesselSnapshot() {
 function pruneHistory() {
   const cutoff = Date.now() - historyDays * DAY_MS;
   database.prepare("DELETE FROM positions WHERE received_at < ?").run(cutoff);
-  database.prepare("DELETE FROM vessels WHERE updated_at < ?").run(cutoff);
+  database.prepare(`
+    DELETE FROM vessels
+    WHERE updated_at < ?
+      AND mmsi NOT IN (SELECT value FROM json_each(?))
+  `).run(cutoff, JSON.stringify(publicOperatorGroups(database, operatorStore.read()).flatMap((group) => group.mmsis)));
 }
 
 function runDatabaseMaintenance() {
   const now = Date.now();
   try {
+    usageAnalytics.prune(now);
     database.exec("BEGIN IMMEDIATE");
     pruneHistory();
     database.prepare("DELETE FROM auth_sessions WHERE expires_at <= ?").run(now);
@@ -1212,8 +1374,9 @@ function runDatabaseMaintenance() {
       .run(new Date(now - temporaryDataRetention.boatDutyMs).toISOString().slice(0, 10));
     expirePlanningSourceData(now - temporaryDataRetention.planningSourceMs);
     database.exec("COMMIT");
+    const assignments = operatorStore.read();
     for (const [mmsi, vessel] of latestVessels) {
-      if (parseAisTime(vessel.receivedAt) < now - historyDays * DAY_MS) latestVessels.delete(mmsi);
+      if (!inferVesselOperator(vessel, assignments) && parseAisTime(vessel.receivedAt) < now - historyDays * DAY_MS) latestVessels.delete(mmsi);
     }
     database.exec("PRAGMA optimize");
     database.exec("PRAGMA wal_checkpoint(TRUNCATE)");
@@ -1333,10 +1496,7 @@ async function handleAisApi(requestUrl, res) {
 }
 
 function sendJson(res, statusCode, value, cacheControl = "no-store") {
-  res.statusCode = statusCode;
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Cache-Control", cacheControl);
-  res.end(JSON.stringify(value));
+  return sendJsonResponse(res.req, res, statusCode, value, cacheControl);
 }
 
 function planningTimeTimestamp(serviceDate, time) {
@@ -1389,7 +1549,7 @@ function applySecurityHeaders(req, res) {
     "font-src 'self' data:",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org",
+    "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://service.pdok.nl",
     "object-src 'none'",
     "script-src 'self'",
     "style-src 'self' 'unsafe-inline'",
@@ -1437,102 +1597,20 @@ async function handleAuthApi(req, requestUrl, res) {
       return;
     }
 
-    if (req.method === "POST" && path === "/api/auth/register/start") {
-      if (database.prepare("SELECT COUNT(*) AS count FROM users").get().count === 0) {
-        return sendJson(res, 409, { error: "An administrator must complete initial setup first" });
-      }
-      const body = await readJsonBody(req);
-      const name = normalizeName(body.name);
-      const phone = normalizePhoneNumber(body.phone);
-      const requester = req.socket.remoteAddress || "unknown";
-      const phoneAttemptKey = `${requester}:${phone}`;
-      const ipAttemptKey = `${requester}:*`;
-      if (isRegistrationRateLimited(phoneAttemptKey, 5) || isRegistrationRateLimited(ipAttemptKey, 20)) {
-        return sendJson(res, 429, { error: "Too many verification attempts. Try again later." });
-      }
-      recordRegistrationAttempt(phoneAttemptKey);
-      recordRegistrationAttempt(ipAttemptKey);
-      const verificationInfo = whatsapp.getVerificationInfo();
-      if (!verificationInfo.connected || !verificationInfo.phone) {
-        return sendJson(res, 503, { error: "WhatsApp verification is temporarily unavailable" });
-      }
-      if (!await whatsapp.isEligiblePhone(phone)) {
-        return sendJson(res, 403, { error: "This phone number was not found in the enabled day-chat member lists" });
-      }
-      const browserToken = randomBytes(32).toString("base64url");
-      const challengeCode = `BT-${randomBytes(6).toString("hex").toUpperCase()}`;
-      const now = Date.now();
-      const expiresAt = now + 10 * 60 * 1000;
-      database.prepare("UPDATE account_verifications SET status = 'replaced' WHERE phone_e164 = ? AND status IN ('pending', 'verified')")
-        .run(phone);
-      database.prepare(`
-        INSERT INTO account_verifications
-          (browser_token_hash, phone_e164, name, code_hash, status, expires_at, created_at)
-        VALUES (?, ?, ?, ?, 'pending', ?, ?)
-      `).run(hashSessionToken(browserToken), phone, name, hashSessionToken(challengeCode), expiresAt, now);
-      sendJson(res, 201, {
-        token: browserToken,
-        code: challengeCode,
-        destinationPhone: verificationInfo.phone,
-        expiresAt,
-        existingAccount: Boolean(database.prepare("SELECT id FROM users WHERE phone_e164 = ?").get(phone)),
-      });
-      return;
-    }
-
-    if (req.method === "POST" && path === "/api/auth/register/status") {
-      const body = await readJsonBody(req);
-      const tokenHash = hashSessionToken(String(body.token || ""));
-      const challenge = database.prepare("SELECT * FROM account_verifications WHERE browser_token_hash = ?").get(tokenHash);
-      if (!challenge) return sendJson(res, 404, { error: "Verification request not found" });
-      if (challenge.expires_at <= Date.now() && challenge.status === "pending") {
-        database.prepare("UPDATE account_verifications SET status = 'expired' WHERE id = ?").run(challenge.id);
-        return sendJson(res, 410, { status: "expired", error: "Verification code expired" });
-      }
-      if (challenge.status === "pending") return sendJson(res, 200, { status: "pending", expiresAt: challenge.expires_at });
-      if (challenge.status !== "verified") return sendJson(res, 410, { status: challenge.status, error: "Verification is no longer active" });
-
-      database.exec("BEGIN IMMEDIATE");
-      let user;
-      try {
-        user = getOrCreatePhoneVerifiedUser(challenge);
-        if (!user.active) throw authValidationError("This account has been disabled");
-        database.exec("COMMIT");
-      } catch (error) {
-        database.exec("ROLLBACK");
-        throw error;
-      }
-      sendJson(res, 200, { status: "password_required", name: user.name, phone: user.phone_e164 });
-      return;
-    }
-
-    if (req.method === "POST" && path === "/api/auth/register/set-password") {
-      const body = await readJsonBody(req);
-      const password = validatePassword(body.password);
-      if (password !== String(body.confirmPassword || "")) return sendJson(res, 400, { error: "Passwords do not match" });
-      const challenge = database.prepare("SELECT * FROM account_verifications WHERE browser_token_hash = ?")
-        .get(hashSessionToken(String(body.token || "")));
-      if (!challenge || challenge.status !== "verified" || challenge.expires_at <= Date.now()) {
-        return sendJson(res, 410, { error: "Phone verification has expired" });
-      }
-      const user = getOrCreatePhoneVerifiedUser(challenge);
-      if (!user.active) return sendJson(res, 403, { error: "This account has been disabled" });
-      database.exec("BEGIN IMMEDIATE");
-      try {
-        database.prepare("UPDATE users SET password_hash = ?, auth_method = 'phone_password', phone_verified_at = ?, updated_at = ? WHERE id = ?")
-          .run(hashPassword(password), Date.now(), Date.now(), user.id);
-        database.prepare("DELETE FROM auth_sessions WHERE user_id = ?").run(user.id);
-        database.prepare("UPDATE account_verifications SET status = 'consumed', consumed_at = ? WHERE id = ? AND status = 'verified'")
-          .run(Date.now(), challenge.id);
-        database.exec("COMMIT");
-      } catch (error) {
-        database.exec("ROLLBACK");
-        throw error;
-      }
-      const updated = database.prepare("SELECT * FROM users WHERE id = ?").get(user.id);
+    if (req.method === "POST" && path === "/api/auth/register") {
+      const requester = `${req.socket.remoteAddress || "unknown"}:public-registration`;
+      if (isRegistrationRateLimited(requester, 20)) return sendJson(res, 429, { error: "Too many registration attempts. Try again later." });
+      recordRegistrationAttempt(requester);
+      const body = await readJsonBody(req, 4096);
+      if (body.password !== body.confirmPassword) return sendJson(res, 400, { error: "Passwords do not match" });
+      if (database.prepare("SELECT COUNT(*) AS count FROM users").get().count === 0) return sendJson(res, 409, { error: "An administrator must complete initial setup first" });
+      // The public endpoint never accepts a role, employee status or privileges.
+      const user = createUser(body, "viewer");
       createAuthSession(req, res, user.id);
-      sendJson(res, 200, { status: "authenticated", user: publicUser(updated) });
-      return;
+      return sendJson(res, 201, { user: publicUser(user) });
+    }
+    if (path.startsWith("/api/auth/register/")) {
+      return sendJson(res, 410, { error: "Employment verification has been removed. Create an account with email and password." });
     }
 
     if (req.method === "POST" && path === "/api/auth/setup") {
@@ -1742,7 +1820,7 @@ function normalizeEmail(value) {
 }
 
 function normalizeRole(value) {
-  return ["admin", "harbour", "viewer"].includes(value) ? value : "viewer";
+  return ACCOUNT_ROLES.includes(value) ? value : "viewer";
 }
 
 function validatePassword(value) {
@@ -2127,27 +2205,53 @@ async function handleFleetApi(req, requestUrl, res) {
   const path = requestUrl.pathname;
 
   try {
+    if (req.method === "GET" && path === "/api/fleet/statistics") {
+      const input = Object.fromEntries(requestUrl.searchParams);
+      try {
+        const range = statisticsRange(input);
+        if (range.operator !== 'all' && range.operator !== 'unassigned' && !operatorById(range.operator)) throw new Error('Onbekende rederij.');
+        if (range.mmsi && !/^\d{9}$/.test(range.mmsi)) throw new Error('Ongeldig MMSI.');
+      } catch (error) { return sendJson(res, 400, { error: error.message }); }
+      const key = JSON.stringify(Object.entries(input).filter(([key]) => ['from','to','operator','mmsi','hour','includeUnassigned'].includes(key)).sort());
+      let cached = fleetStatisticsCache.get(key);
+      if (!cached || cached.expiresAt < Date.now()) {
+        if (fleetStatisticsCache.size >= 16) fleetStatisticsCache.delete(fleetStatisticsCache.keys().next().value);
+        const promise = databaseReads.run('fleet-statistics', input).catch((error) => { fleetStatisticsCache.delete(key); throw error; });
+        cached = { promise, expiresAt: Date.now() + 60_000 };
+        fleetStatisticsCache.set(key, cached);
+      }
+      return sendJson(res, 200, await cached.promise, "public, max-age=30");
+    }
+
     if (req.method === "GET" && path === "/api/fleet/leaderboard") {
       const date = requestUrl.searchParams.get("date") || amsterdamRaceDate();
       const bounds = amsterdamDayBounds(date);
       if (!bounds) return sendJson(res, 400, { error: "Use a valid date in YYYY-MM-DD format" });
-      ensureFleetLeaderboardDay(date, bounds);
-      const entries = database.prepare(`
-        SELECT b.id, b.name, b.mmsi,
-               ROUND(COALESCE(t.distance_meters, 0) / 10) / 100 AS distanceKm,
-               COALESCE(t.samples, 0) AS samples
-        FROM fleet_boats b
-        LEFT JOIN fleet_leaderboard_totals t ON t.boat_id = b.id AND t.race_date = ?
-        WHERE b.active = 1
-        ORDER BY distanceKm DESC, b.name COLLATE NOCASE
-      `).all(date);
+      const requestedOperator = requestUrl.searchParams.get("operator") || "all";
+      if (requestedOperator !== "all" && requestedOperator !== "unassigned" && !operatorById(requestedOperator)) return sendJson(res, 400, { error: "Unknown operator" });
+      const assignments = operatorStore.read();
+      const groups = publicOperatorGroups(database, assignments);
+      const storedBoats = database.prepare("SELECT id, name, mmsi, operator_id FROM fleet_boats WHERE active = 1 ORDER BY name").all();
+      const directories = buildOperatorDirectories(storedBoats, groups, assignments);
+      const boats = directories.filter((directory) => requestedOperator === "all" || directory.id === requestedOperator)
+        .flatMap((directory) => directory.boats.map((boat) => ({ id: boat.mmsi ? `mmsi:${boat.mmsi}` : `name:${directory.id}:${boat.name}`, name: boat.name, mmsi: boat.mmsi || null, operatorId: directory.id, operatorName: directory.name })));
+      const positions = database.prepare(`
+        SELECT mmsi, latitude, longitude, speed, received_at
+        FROM positions WHERE received_at >= ? AND received_at < ?
+        AND mmsi IN (SELECT value FROM json_each(?))
+        ORDER BY mmsi, received_at
+      `).all(bounds.from, bounds.to, JSON.stringify(boats.map((boat) => boat.mmsi).filter(Boolean)));
+      const entries = calculateFleetDistances(boats, positions);
       const coverageUntil = Math.min(bounds.to, Date.now());
       const expectedSlots = Math.max(1, Math.ceil((coverageUntil - bounds.from) / (5 * 60_000)));
-      const coveredSlots = Number(database.prepare("SELECT COUNT(*) AS count FROM fleet_leaderboard_coverage WHERE race_date = ? AND slot < ?")
-        .get(date, expectedSlots)?.count || 0);
+      const coveredSlots = coverageUntil > bounds.from ? Number(database.prepare(`
+        SELECT COUNT(DISTINCT CAST((received_at - ?) / 300000 AS INTEGER)) AS count
+        FROM positions WHERE received_at >= ? AND received_at < ?
+        AND mmsi IN (SELECT value FROM json_each(?))
+      `).get(bounds.from, bounds.from, coverageUntil, JSON.stringify(boats.map((boat) => boat.mmsi).filter(Boolean)))?.count || 0) : 0;
       const coveragePercent = Math.min(100, Math.round(coveredSlots / expectedSlots * 100));
       sendJson(res, 200, {
-        date, entries, coveragePercent,
+        date, operator: requestedOperator, entries, operators: directories.filter((directory) => directory.id !== "unassigned").map((directory) => ({ id: directory.id, name: directory.name, boatCount: directory.boats.length })), coveragePercent,
         complete: coveragePercent >= 85,
         calculatedAt: new Date().toISOString(),
       }, "public, max-age=30, stale-while-revalidate=60");
@@ -2163,23 +2267,23 @@ async function handleFleetApi(req, requestUrl, res) {
         return;
       }
       const boats = database.prepare(`
-        SELECT b.id, b.name, b.mmsi, b.registration, b.capacity, b.notes, b.active,
+        SELECT b.id, b.name, b.mmsi, b.operator_id, b.registration, b.capacity, b.notes, b.active,
                b.license_required, b.open_boat, b.length_m, b.width_m, b.boat_type,
-               b.propulsion, b.home_dock, b.has_toilet, b.niceness_rating, b.photo_mime, b.created_at, b.updated_at,
+               b.propulsion, b.home_dock, b.has_toilet, b.niceness_rating, b.photo_mime, b.photo_verified, b.photo_verified_mmsi, b.photo_verified_name, b.created_at, b.updated_at,
                v.data AS ais_data
         FROM fleet_boats b
         LEFT JOIN vessels v ON v.mmsi = b.mmsi
         WHERE b.active = 1
         ORDER BY b.name
       `).all().map((boat) => sanitizeFleetBoatForUser(formatFleetBoat(boat), req.authUser));
-      const assignments = req.authUser ? database.prepare(`
+      const assignments = canReadFlagshipPlanning(req.authUser) ? database.prepare(`
         SELECT a.*, b.name AS boat_name, b.mmsi
         FROM fleet_assignments a
         LEFT JOIN fleet_boats b ON b.id = a.boat_id
         WHERE a.service_date = ?
         ORDER BY COALESCE(a.start_time, '99:99'), b.name
       `).all(date) : [];
-      const planning = req.authUser ? database.prepare(`
+      const planning = canReadFlagshipPlanning(req.authUser) ? database.prepare(`
         SELECT p.boat_id, p.boat_name, p.start_time, p.end_time, p.person_name,
                p.role, p.event_type, p.from_location, p.to_location,
                i.location AS group_location, b.mmsi
@@ -2197,6 +2301,7 @@ async function handleFleetApi(req, requestUrl, res) {
 
     if (req.method === "POST" && path === "/api/fleet/boats") {
       const body = await readJsonBody(req);
+      if (Object.hasOwn(body, "operatorId") && body.operatorId !== null && !operatorById(body.operatorId)) return sendJson(res, 400, { error: "Unknown operator" });
       if (!body.name?.trim()) return sendJson(res, 400, { error: "Boat name is required" });
       if (!body.homeDock?.trim()) return sendJson(res, 400, { error: "Docking location is required" });
       const now = Date.now();
@@ -2222,6 +2327,11 @@ async function handleFleetApi(req, requestUrl, res) {
         now,
         now,
       );
+      if (Object.hasOwn(body, "operatorId")) {
+        database.prepare("UPDATE fleet_boats SET operator_id = ? WHERE id = ?").run(body.operatorId, result.lastInsertRowid);
+        if (normalizeMmsi(body.mmsi)) operatorStore.write(normalizeMmsi(body.mmsi), body.operatorId, req.authUser.id);
+      }
+      fleetSummaryCache.clear();
       sendJson(res, 201, getFleetBoat(result.lastInsertRowid));
       return;
     }
@@ -2235,15 +2345,23 @@ async function handleFleetApi(req, requestUrl, res) {
 
       if (!body.included) {
         if (existing) database.prepare("UPDATE fleet_boats SET active = 0, updated_at = ? WHERE id = ?").run(now, existing.id);
+        if (existing) fleetSummaryCache.clear();
         sendJson(res, 200, { included: false, mmsi });
         return;
       }
 
-      const aisName = cleanOptional(body.name);
+      let aisName = cleanOptional(body.name);
+      if (!aisName) {
+        try {
+          const vessel = database.prepare("SELECT data FROM vessels WHERE mmsi = ?").get(mmsi);
+          aisName = cleanOptional(vessel?.data ? JSON.parse(vessel.data).name : null);
+        } catch { /* Fall back to an AIS-number label below. */ }
+      }
       if (existing) {
         const nextName = /^AIS \d{9}$/i.test(existing.name) && aisName ? aisName : existing.name;
         database.prepare("UPDATE fleet_boats SET name = ?, active = 1, updated_at = ? WHERE id = ?")
           .run(nextName, now, existing.id);
+        fleetSummaryCache.clear();
         sendJson(res, 200, { included: true, boat: getFleetBoat(existing.id) });
         return;
       }
@@ -2252,6 +2370,7 @@ async function handleFleetApi(req, requestUrl, res) {
         INSERT INTO fleet_boats (name, mmsi, active, created_at, updated_at)
         VALUES (?, ?, 1, ?, ?)
       `).run(aisName || `AIS ${mmsi}`, mmsi, now, now);
+      fleetSummaryCache.clear();
       sendJson(res, 201, { included: true, boat: getFleetBoat(result.lastInsertRowid) });
       return;
     }
@@ -2259,6 +2378,7 @@ async function handleFleetApi(req, requestUrl, res) {
     const boatMatch = path.match(/^\/api\/fleet\/boats\/(\d+)$/);
     if (boatMatch && req.method === "PUT") {
       const body = await readJsonBody(req);
+      if (Object.hasOwn(body, "operatorId") && body.operatorId !== null && !operatorById(body.operatorId)) return sendJson(res, 400, { error: "Unknown operator" });
       if (!body.name?.trim()) return sendJson(res, 400, { error: "Boat name is required" });
       if (!body.homeDock?.trim()) return sendJson(res, 400, { error: "Docking location is required" });
       database.prepare(`
@@ -2284,14 +2404,19 @@ async function handleFleetApi(req, requestUrl, res) {
         Date.now(),
         boatMatch[1],
       );
+      if (Object.hasOwn(body, "operatorId")) {
+        database.prepare("UPDATE fleet_boats SET operator_id = ? WHERE id = ?").run(body.operatorId, boatMatch[1]);
+        if (normalizeMmsi(body.mmsi)) operatorStore.write(normalizeMmsi(body.mmsi), body.operatorId, req.authUser.id);
+      }
+      fleetSummaryCache.clear();
       sendJson(res, 200, getFleetBoat(boatMatch[1]));
       return;
     }
 
     const photoMatch = path.match(/^\/api\/fleet\/boats\/(\d+)\/photo$/);
     if (photoMatch && req.method === "GET") {
-      const photo = database.prepare("SELECT photo, photo_mime FROM fleet_boats WHERE id = ?").get(photoMatch[1]);
-      if (!photo?.photo) return sendJson(res, 404, { error: "Photo not found" });
+      const photo = database.prepare("SELECT photo, photo_mime, name, mmsi, photo_verified, photo_verified_mmsi, photo_verified_name FROM fleet_boats WHERE id = ?").get(photoMatch[1]);
+      if (!photo?.photo || !hasVerifiedBoatPhoto(photo)) return sendJson(res, 404, { error: "No verified photo available" }, "no-store");
       res.statusCode = 200;
       res.setHeader("Content-Type", photo.photo_mime);
       res.setHeader("Cache-Control", "private, max-age=86400");
@@ -2305,9 +2430,10 @@ async function handleFleetApi(req, requestUrl, res) {
       if (!match) return sendJson(res, 400, { error: "Use a JPEG, PNG, or WebP image" });
       const photo = Buffer.from(match[2], "base64");
       if (photo.length > 5_000_000) return sendJson(res, 400, { error: "Photo must be smaller than 5 MB" });
-      database.prepare("UPDATE fleet_boats SET photo = ?, photo_mime = ?, updated_at = ? WHERE id = ?")
+      database.prepare("UPDATE fleet_boats SET photo = ?, photo_mime = ?, photo_verified = 1, photo_verified_mmsi = mmsi, photo_verified_name = name, updated_at = ? WHERE id = ?")
         .run(photo, match[1], Date.now(), photoMatch[1]);
-      sendJson(res, 200, { photoUrl: `/api/fleet/boats/${photoMatch[1]}/photo?v=${Date.now()}` });
+      fleetSummaryCache.clear();
+      sendJson(res, 200, { photoUrl: `/api/fleet/boats/${photoMatch[1]}/photo?v=${Date.now()}`, photoVerified: true });
       return;
     }
 
@@ -2364,88 +2490,6 @@ async function handleFleetApi(req, requestUrl, res) {
     if (!error.statusCode) console.error("Fleet API error", error);
     sendJson(res, error.statusCode || 500, { error: error.statusCode ? error.message : "Fleet request failed" });
   }
-}
-
-function ensureFleetLeaderboardDay(date, bounds) {
-  if (database.prepare("SELECT 1 FROM fleet_leaderboard_days WHERE race_date = ?").get(date)) return;
-  const boats = database.prepare("SELECT id, name, mmsi FROM fleet_boats WHERE active = 1 ORDER BY name").all();
-  const positions = database.prepare(`
-    SELECT p.mmsi, p.latitude, p.longitude, p.speed, p.received_at
-    FROM positions p
-    JOIN fleet_boats b ON b.mmsi = p.mmsi AND b.active = 1
-    WHERE p.received_at >= ? AND p.received_at < ?
-    ORDER BY p.mmsi, p.received_at
-  `).all(bounds.from, bounds.to);
-  const totals = calculateFleetDistances(boats, positions);
-  const lastByMmsi = new Map(positions.map((point) => [String(point.mmsi), point]));
-  const insertTotal = database.prepare(`
-    INSERT INTO fleet_leaderboard_totals
-      (race_date, boat_id, distance_meters, samples, last_latitude, last_longitude, last_speed, last_received_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-  database.exec("BEGIN IMMEDIATE");
-  try {
-    database.prepare("DELETE FROM fleet_leaderboard_totals WHERE race_date = ?").run(date);
-    database.prepare("DELETE FROM fleet_leaderboard_coverage WHERE race_date = ?").run(date);
-    const now = Date.now();
-    for (const total of totals) {
-      const last = total.mmsi ? lastByMmsi.get(String(total.mmsi)) : null;
-      insertTotal.run(date, total.id, total.distanceMeters, total.samples, last?.latitude ?? null, last?.longitude ?? null,
-        last?.speed ?? null, last?.received_at ?? null, now);
-    }
-    database.prepare(`
-      INSERT OR IGNORE INTO fleet_leaderboard_coverage (race_date, slot)
-      SELECT ?, CAST((received_at - ?) / 300000 AS INTEGER)
-      FROM positions WHERE received_at >= ? AND received_at < ?
-    `).run(date, bounds.from, bounds.from, bounds.to);
-    database.prepare("INSERT INTO fleet_leaderboard_days (race_date, range_from, range_to, materialized_at) VALUES (?, ?, ?, ?)")
-      .run(date, bounds.from, bounds.to, now);
-    database.exec("COMMIT");
-    materializedLeaderboardDays.set(date, { race_date: date, range_from: bounds.from, range_to: bounds.to });
-    for (const row of database.prepare("SELECT slot FROM fleet_leaderboard_coverage WHERE race_date = ?").all(date)) {
-      leaderboardCoverageSlots.add(`${date}:${row.slot}`);
-    }
-  } catch (error) {
-    database.exec("ROLLBACK");
-    throw error;
-  }
-}
-
-function updateMaterializedFleetLeaderboard(message, receivedAt) {
-  const date = amsterdamRaceDate(receivedAt);
-  const day = materializedLeaderboardDays.get(date);
-  if (!day || receivedAt >= day.range_to) return;
-  const slot = Math.floor((receivedAt - day.range_from) / (5 * 60_000));
-  const coverageKey = `${date}:${slot}`;
-  if (!leaderboardCoverageSlots.has(coverageKey)) {
-    database.prepare("INSERT OR IGNORE INTO fleet_leaderboard_coverage (race_date, slot) VALUES (?, ?)").run(date, slot);
-    leaderboardCoverageSlots.add(coverageKey);
-  }
-  refreshFleetLeaderboardBoatIds();
-  const boatId = fleetLeaderboardBoatIds.get(String(message.mmsi));
-  if (!boatId) return;
-  const current = database.prepare("SELECT * FROM fleet_leaderboard_totals WHERE race_date = ? AND boat_id = ?").get(date, boatId);
-  const point = { latitude: message.latitude, longitude: message.longitude, speed: message.speed, received_at: receivedAt };
-  const increment = current?.last_received_at ? fleetDistanceIncrement({
-    latitude: current.last_latitude, longitude: current.last_longitude, speed: current.last_speed, received_at: current.last_received_at,
-  }, point) : 0;
-  database.prepare(`
-    INSERT INTO fleet_leaderboard_totals
-      (race_date, boat_id, distance_meters, samples, last_latitude, last_longitude, last_speed, last_received_at, updated_at)
-    VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?)
-    ON CONFLICT(race_date, boat_id) DO UPDATE SET
-      distance_meters = fleet_leaderboard_totals.distance_meters + excluded.distance_meters,
-      samples = fleet_leaderboard_totals.samples + 1,
-      last_latitude = excluded.last_latitude, last_longitude = excluded.last_longitude,
-      last_speed = excluded.last_speed, last_received_at = excluded.last_received_at, updated_at = excluded.updated_at
-  `).run(date, boatId, increment, point.latitude, point.longitude, point.speed, receivedAt, Date.now());
-}
-
-function refreshFleetLeaderboardBoatIds() {
-  if (Date.now() - fleetLeaderboardBoatIdsLoadedAt < 60_000) return;
-  fleetLeaderboardBoatIds = new Map(database.prepare("SELECT id, mmsi FROM fleet_boats WHERE active = 1 AND mmsi IS NOT NULL").all()
-    .map((boat) => [String(boat.mmsi), boat.id]));
-  fleetLeaderboardBoatIdsLoadedAt = Date.now();
 }
 
 async function handlePlanningApi(req, requestUrl, res) {
@@ -2557,7 +2601,8 @@ async function handlePlanningApi(req, requestUrl, res) {
       const locations = [...new Map([...importedLocations, ...chatLocations].map((location) => [location.name, location])).values()]
         .sort((left, right) => left.name.localeCompare(right.name));
       const consolidatedItems = consolidateDayPlanning(items);
-      sendJson(res, 200, { date, locations, items: annotateTourPerformance(consolidatedItems, date), staff });
+      const day = { date, locations, items: annotateTourPerformance(consolidatedItems, date), staff };
+      sendJson(res, 200, day);
       return;
     }
 
@@ -2583,7 +2628,7 @@ async function handleWhatsAppApi(req, requestUrl, res) {
   const path = requestUrl.pathname;
   try {
     if (req.method === "GET" && path === "/api/whatsapp/status") {
-      sendJson(res, 200, { ...whatsapp.getState(), verification: whatsapp.getVerificationInfo() });
+      sendJson(res, 200, whatsapp.getState());
       return;
     }
     if (req.method === "GET" && path === "/api/whatsapp/chats") {
@@ -3135,41 +3180,6 @@ function scheduleInterval(row) {
   return { start, end };
 }
 
-function verifyInboundAccountMessage(message) {
-  const code = String(message.text || "").trim().toUpperCase();
-  if (!/^BT-[A-F0-9]{12}$/.test(code)) return false;
-  let phone;
-  try {
-    phone = normalizePhoneNumber(message.phone);
-  } catch {
-    return false;
-  }
-  const result = database.prepare(`
-    UPDATE account_verifications
-    SET status = 'verified', verified_at = ?, external_message_id = ?
-    WHERE phone_e164 = ? AND code_hash = ? AND status = 'pending' AND expires_at > ?
-  `).run(Date.now(), cleanOptional(message.externalMessageId), phone, hashSessionToken(code), Date.now());
-  if (result.changes > 0) {
-    const challenge = database.prepare("SELECT * FROM account_verifications WHERE phone_e164 = ? AND code_hash = ? AND status = 'verified'")
-      .get(phone, hashSessionToken(code));
-    if (challenge) getOrCreatePhoneVerifiedUser(challenge);
-  }
-  return result.changes > 0;
-}
-
-function getOrCreatePhoneVerifiedUser(challenge) {
-  let user = database.prepare("SELECT * FROM users WHERE phone_e164 = ?").get(challenge.phone_e164);
-  if (user) return user;
-  const now = Date.now();
-  const syntheticEmail = `${challenge.phone_e164.replace(/\D/g, "")}.${randomBytes(5).toString("hex")}@phone.boattracker.invalid`;
-  const result = database.prepare(`
-    INSERT INTO users
-      (name, email, password_hash, phone_e164, phone_verified_at, auth_method, role, active, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, 'whatsapp_pending', 'viewer', 1, ?, ?)
-  `).run(challenge.name, syntheticEmail, hashPassword(randomBytes(32).toString("base64url")), challenge.phone_e164, now, now, now);
-  return database.prepare("SELECT * FROM users WHERE id = ?").get(result.lastInsertRowid);
-}
-
 function importPlanningMessage(body) {
   const externalMessageId = cleanOptional(body.externalMessageId);
   const serviceDate = cleanOptional(body.serviceDate);
@@ -3533,8 +3543,8 @@ function normalizeInteger(value) {
 
 function getFleetBoat(id) {
   return database.prepare(`
-    SELECT id, name, mmsi, registration, capacity, notes, active, license_required,
-      open_boat, length_m, width_m, boat_type, propulsion, home_dock, photo_mime,
+    SELECT id, name, mmsi, operator_id, registration, capacity, notes, active, license_required,
+      open_boat, length_m, width_m, boat_type, propulsion, home_dock, photo_mime, photo_verified, photo_verified_mmsi, photo_verified_name,
       has_toilet, niceness_rating,
       created_at, updated_at
     FROM fleet_boats WHERE id = ?
@@ -3549,7 +3559,8 @@ function formatFleetBoat(boat) {
     ais = null;
   }
 
-  const lastSeenAt = ais?.receivedAt ? parseAisTime(ais.receivedAt) : null;
+  const lastSeenAt = ais?.sourceReceivedAt || ais?.receivedAt
+    ? parseAisTime(ais.sourceReceivedAt || ais.receivedAt) : null;
   const age = lastSeenAt ? Date.now() - lastSeenAt : Infinity;
   const aisStatus = age <= 15 * 60 * 1000 ? "working" : age <= 24 * 60 * 60 * 1000 ? "stale" : "offline";
 
@@ -3558,7 +3569,8 @@ function formatFleetBoat(boat) {
     active: Boolean(boat.active),
     open_boat: boat.open_boat === null ? null : Boolean(boat.open_boat),
     has_toilet: boat.has_toilet === null ? null : Boolean(boat.has_toilet),
-    photoUrl: boat.photo_mime ? `/api/fleet/boats/${boat.id}/photo?v=${boat.updated_at}` : null,
+    photoVerified: hasVerifiedBoatPhoto(boat),
+    photoUrl: boat.photo_mime && hasVerifiedBoatPhoto(boat) ? `/api/fleet/boats/${boat.id}/photo?v=${boat.updated_at}` : null,
     ais,
     aisStatus,
     aisLastSeenAt: lastSeenAt,
@@ -3567,7 +3579,7 @@ function formatFleetBoat(boat) {
 }
 
 function sanitizeFleetBoatForUser(boat, user) {
-  if (user) return boat;
+  if (canUseOperations(user)) return boat;
   return {
     ...boat,
     notes: null,
@@ -3594,6 +3606,7 @@ function normalizeNicenessRating(value) {
 function ensureFleetBoatColumns() {
   const existing = new Set(database.prepare("PRAGMA table_info(fleet_boats)").all().map((column) => column.name));
   const columns = {
+    operator_id: "TEXT",
     license_required: "TEXT",
     open_boat: "INTEGER",
     length_m: "REAL",
@@ -3605,6 +3618,9 @@ function ensureFleetBoatColumns() {
     niceness_rating: "TEXT",
     photo: "BLOB",
     photo_mime: "TEXT",
+    photo_verified: "INTEGER NOT NULL DEFAULT 0",
+    photo_verified_mmsi: "TEXT",
+    photo_verified_name: "TEXT",
   };
   for (const [name, type] of Object.entries(columns)) {
     if (!existing.has(name)) database.exec(`ALTER TABLE fleet_boats ADD COLUMN ${name} ${type}`);
@@ -3627,38 +3643,6 @@ function ensureInventoryProductColumns() {
   if(!existing.has("category_id"))database.exec("ALTER TABLE inventory_products ADD COLUMN category_id INTEGER");
 }
 
-function ensureUserRoleConstraint() {
-  const schema = database.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'").get()?.sql || "";
-  if (schema.includes("'harbour'")) return;
-  database.exec("PRAGMA foreign_keys = OFF");
-  database.exec("BEGIN IMMEDIATE");
-  try {
-    database.exec(`
-      CREATE TABLE users_role_migration (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-        password_hash TEXT NOT NULL,
-        phone_e164 TEXT UNIQUE,
-        phone_verified_at INTEGER,
-        auth_method TEXT NOT NULL DEFAULT 'password',
-        role TEXT NOT NULL CHECK (role IN ('admin', 'harbour', 'viewer')),
-        active INTEGER NOT NULL DEFAULT 1,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL
-      );
-      INSERT INTO users_role_migration SELECT id, name, email, password_hash, phone_e164, phone_verified_at, auth_method, role, active, created_at, updated_at FROM users;
-      DROP TABLE users;
-      ALTER TABLE users_role_migration RENAME TO users;
-    `);
-    database.exec("COMMIT");
-  } catch (error) {
-    database.exec("ROLLBACK");
-    throw error;
-  } finally {
-    database.exec("PRAGMA foreign_keys = ON");
-  }
-}
 
 function ensureIncrementalAutoVacuum() {
   const mode = Number(database.prepare("PRAGMA auto_vacuum").get()?.auto_vacuum);
@@ -3829,7 +3813,10 @@ function broadcast(message) {
   const authenticatedOnly = message?.type === "boat-duty-update" || message?.type === "inventory-update";
   const serialized = JSON.stringify(message);
   for (const client of clients) {
-    if (authenticatedOnly && !client.authUserId) continue;
+    if (authenticatedOnly) {
+      const user = client.authUserId ? database.prepare('SELECT role FROM users WHERE id = ? AND active = 1').get(client.authUserId) : null;
+      if (!canUseOperations(user)) continue;
+    }
     sendSerialized(client, serialized);
   }
 }
@@ -3852,12 +3839,25 @@ function queueAisBroadcast(message) {
 }
 
 function flushAisBroadcasts() {
-  if (!pendingAisBroadcasts.size) return;
   const messages = [...pendingAisBroadcasts.values()];
   pendingAisBroadcasts.clear();
-  serviceMetrics.aisBatches += 1;
-  serviceMetrics.aisMessagesBatched += messages.length;
-  broadcast({ type: "ais-batch", messages });
+  if (messages.length) {
+    serviceMetrics.aisBatches += 1;
+    serviceMetrics.aisMessagesBatched += messages.length;
+  }
+  const serialized = messages.length ? JSON.stringify({ type: "ais-batch", messages }) : null;
+  const now = Date.now();
+  for (const client of clients) {
+    if (!client.dataSaver) {
+      if (serialized) sendSerialized(client, serialized);
+      continue;
+    }
+    queueLatestAis(client.pendingAis, messages);
+    if (client.pendingAis.size && now - client.lastAisSentAt >= DATA_SAVER_INTERVAL_MS) {
+      send(client, takeAisBatch(client.pendingAis));
+      client.lastAisSentAt = now;
+    }
+  }
 }
 
 function getRequestIp(request) {
@@ -3921,12 +3921,27 @@ function serveProductionFile(req, res) {
   let filePath = join(process.cwd(), "dist", relativePath || "index.html");
 
   if (!existsSync(filePath) || statSync(filePath).isDirectory()) {
+    if (!PUBLIC_PAGES[requestPath]) {
+      res.statusCode = 404;
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res.end(req.method === "HEAD" ? undefined : '<!doctype html><html lang="nl"><meta charset="UTF-8"><meta name="robots" content="noindex"><title>Pagina niet gevonden | Boottracker</title><h1>Pagina niet gevonden</h1><p><a href="/">Open de vaarkaart</a> of bekijk de <a href="/amsterdam-routeplanner">Amsterdam routeplanner</a>.</p></html>');
+    }
     filePath = join(process.cwd(), "dist", "index.html");
   }
-
-  res.setHeader("Content-Type", mimeTypes[extname(filePath)] || "application/octet-stream");
-  res.setHeader("Cache-Control", relativePath.startsWith("assets/")
-    ? "public, max-age=31536000, immutable"
-    : "no-cache");
-  createReadStream(filePath).pipe(res);
+  if (["/km-leaderboard", "/vlootstatistieken"].includes(requestPath)) {
+    let html = readFileSync(filePath, "utf8");
+    html = html.replace(/<title>[\s\S]*?<\/title>/, "").replace(/<meta[^>]*(?:name="(?:description|robots|twitter:[^"]+)"|property="og:[^"]+")[^>]*>/g, "").replace(/<link[^>]*rel="canonical"[^>]*>/g, "");
+    html = html.replace("</head>", `${pageHead(requestPath)}</head>`);
+    if (requestPath === "/vlootstatistieken") {
+      html = html.replace('<h1>Amsterdam routeplanner voor de boot</h1>', '<h1>Vlootstatistieken Amsterdam</h1>')
+        .replace('Plan je vaarroute door de Amsterdamse grachten en bekijk bruggen en ontvangen AIS-bootposities met Boottracker.', 'Vergelijk rederijen en bekijk actieve boten, kilometers, vaaruren, vaarwegen en ontvangen AIS-metingen.')
+        .replace('De interactieve vaarkaart wordt geladen. JavaScript is nodig voor de kaart; de informatiepagina’s kun je direct openen.', 'Het statistiekdashboard wordt geladen. JavaScript is nodig voor de filters, grafieken en de kaart. Cijfers beschrijven ontvangen AIS-metingen en kunnen onvolledig zijn.');
+    }
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache");
+    return res.end(req.method === "HEAD" ? undefined : html);
+  }
+  if (new URL(req.url, "http://localhost").search) res.setHeader("X-Robots-Tag", "noindex, follow");
+  return sendAsset(req, res, filePath, mimeTypes[extname(filePath)] || "application/octet-stream",
+    relativePath.startsWith("assets/") ? "public, max-age=31536000, immutable" : "no-cache");
 }

@@ -38,29 +38,22 @@ export function calculateFleetDistances(boats, positions) {
     if (!earlier) continue
     const elapsedMs = Number(point.received_at) - Number(earlier.received_at)
     if (!(elapsedMs > 0) || elapsedMs > MAX_GAP_MS) continue
-    entry.meters += fleetDistanceIncrement(earlier, point)
+    const directMeters = haversineMeters(earlier, point)
+    const derivedSpeedKmh = directMeters / elapsedMs * 3_600
+    if (directMeters < MIN_MOVEMENT_METERS || derivedSpeedKmh > MAX_SPEED_KMH) continue
+    const reportedSpeeds = [earlier.speed, point.speed].map(Number)
+    const reportedMoving = reportedSpeeds.some((speed) => speed > 0.5)
+    if (!reportedMoving && directMeters < 12) continue
+    const validSpeeds = reportedSpeeds.every((speed) => Number.isFinite(speed) && speed >= 0 && speed <= 14)
+    const speedDistanceMeters = validSpeeds
+      ? ((reportedSpeeds[0] + reportedSpeeds[1]) / 2) * 1.852 * elapsedMs / 3_600
+      : 0
+    entry.meters += Math.max(directMeters, speedDistanceMeters)
   }
 
   return allEntries
-    .map((entry) => ({ id: entry.id, name: entry.name, mmsi: entry.mmsi, distanceMeters: entry.meters, distanceKm: Math.round(entry.meters / 10) / 100, samples: entry.samples }))
+    .map((entry) => ({ id: entry.id, name: entry.name, mmsi: entry.mmsi, operatorId: entry.operatorId || null, operatorName: entry.operatorName || null, distanceKm: Math.round(entry.meters / 10) / 100, samples: entry.samples }))
     .sort((left, right) => right.distanceKm - left.distanceKm || left.name.localeCompare(right.name, 'nl'))
-}
-
-export function fleetDistanceIncrement(earlier, point) {
-  if (!earlier || !point) return 0
-  const elapsedMs = Number(point.received_at) - Number(earlier.received_at)
-  if (!(elapsedMs > 0) || elapsedMs > MAX_GAP_MS) return 0
-  const directMeters = haversineMeters(earlier, point)
-  const derivedSpeedKmh = directMeters / elapsedMs * 3_600
-  if (directMeters < MIN_MOVEMENT_METERS || derivedSpeedKmh > MAX_SPEED_KMH) return 0
-  const reportedSpeeds = [earlier.speed, point.speed].map(Number)
-  const reportedMoving = reportedSpeeds.some((speed) => speed > 0.5)
-  if (!reportedMoving && directMeters < 12) return 0
-  const validSpeeds = reportedSpeeds.every((speed) => Number.isFinite(speed) && speed >= 0 && speed <= 14)
-  const speedDistanceMeters = validSpeeds
-    ? ((reportedSpeeds[0] + reportedSpeeds[1]) / 2) * 1.852 * elapsedMs / 3_600
-    : 0
-  return Math.max(directMeters, speedDistanceMeters)
 }
 
 function localHourUtc(date, hour) {

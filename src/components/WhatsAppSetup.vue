@@ -37,7 +37,7 @@
               <span class="text-[10px] text-slate-400">Community</span>
             </label>
             <p class="mb-0 ml-5 mt-1 text-[10px] text-slate-400">
-              {{ childGroups(community.id).length }} linked groups found. Members can use phone verification when this community is enabled.
+              {{ childGroups(community.id).length }} linked groups found. Enabled groups can supply planning images.
             </p>
             <div v-if="community.enabled && childGroups(community.id).length" class="ml-5 mt-1 flex flex-wrap gap-1">
               <span v-for="group in childGroups(community.id).slice(0, 8)" :key="group.id" class="max-w-36 truncate rounded bg-emerald-400/10 px-1.5 py-0.5 text-[10px] text-emerald-200">{{ group.title }}</span>
@@ -54,8 +54,7 @@
           </template>
           <p v-if="!communities.length && !standaloneGroups.length" class="m-0 px-2 py-3 text-xs text-slate-400">No communities or groups loaded yet.</p>
         </div>
-        <p class="mb-0 mt-2 text-[11px] text-slate-400">Enabled day groups are read for schedule images and employee verification. The connector has no message-sending workflow and never posts replies.</p>
-        <p class="mb-0 mt-1 text-[11px] text-slate-400">Account verification: <strong class="text-slate-300">{{ status.verification?.eligibleMemberCount || 0 }}</strong> unique day-chat phone numbers · linked number <strong class="text-slate-300">{{ status.verification?.phone || 'unavailable' }}</strong></p>
+        <p class="mb-0 mt-2 text-[11px] text-slate-400">Enabled day groups are read for schedule images. The connector has no message-sending workflow and never posts replies.</p>
       </div>
 
       <p v-if="status.lastError" class="rounded-lg bg-red-500/15 p-2 text-xs text-red-200">{{ status.lastError }}</p>

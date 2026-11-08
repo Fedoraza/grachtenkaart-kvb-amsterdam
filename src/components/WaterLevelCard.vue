@@ -11,7 +11,7 @@
       <span class="water-level-chevron" aria-hidden="true">{{ open ? '−' : '+' }}</span>
     </button>
 
-    <div v-if="open" class="water-level-detail">
+    <div v-if="open && !props.routePlannerOpen" class="water-level-detail">
       <div class="water-level-heading">
         <div><small>Leidende waterstand</small><h2>Amsterdam, Surinamekade</h2></div>
         <div class="water-level-heading-actions">
@@ -41,10 +41,17 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { visibleInterval } from '../scripts/networkUsage.js'
+import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Waves } from '@lucide/vue'
 
+const language = inject('language')
+const props = defineProps({ routePlannerOpen: { type: Boolean, default: false } })
+const displayLocale = computed(() => language?.locale === 'nl' ? 'nl-NL' : 'en-GB')
 const open = ref(false)
+watch(() => props.routePlannerOpen, (plannerOpen) => {
+  if (plannerOpen) open.value = false
+})
 const loading = ref(true)
 const error = ref('')
 const level = ref(null)
@@ -53,10 +60,10 @@ let refreshTimer
 const markerPosition = computed(() => Math.max(0, Math.min(100, ((level.value?.valueCmNap + 60) / 40) * 100)))
 const statusLabel = computed(() => ({ low: 'Laag', normal: 'Normaal', high: 'Boven beheerband' }[level.value?.status] || 'Onbekend'))
 const isStale = computed(() => level.value?.stale || !level.value?.measuredAt || Date.now() - Date.parse(level.value.measuredAt) > 90 * 60_000)
-const formattedTime = computed(() => new Intl.DateTimeFormat('nl-NL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(level.value.measuredAt)))
+const formattedTime = computed(() => new Intl.DateTimeFormat(displayLocale.value, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(level.value.measuredAt)))
 
 function formatLevel(value) {
-  return new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 }).format(value)
+  return new Intl.NumberFormat(displayLocale.value, { maximumFractionDigits: 1 }).format(value)
 }
 
 async function loadLevel() {
@@ -75,9 +82,9 @@ async function loadLevel() {
 
 onMounted(() => {
   loadLevel()
-  refreshTimer = window.setInterval(loadLevel, 5 * 60_000)
+  refreshTimer = visibleInterval(loadLevel, 5 * 60_000)
 })
-onUnmounted(() => window.clearInterval(refreshTimer))
+onUnmounted(() => refreshTimer?.())
 </script>
 
 <style scoped>
@@ -121,7 +128,7 @@ onUnmounted(() => window.clearInterval(refreshTimer))
 .water-level-footer a, .water-level-footer button { color: #7dd3fc; font-size: .68rem; font-weight: 800; }
 .water-level-footer button { background: rgb(14 165 233 / .15); border: 0; border-radius: .5rem; cursor: pointer; padding: .35rem .55rem; }
 @media (max-width: 639px) {
-  .water-level-card, .water-level-card--open { left: calc(.55rem + env(safe-area-inset-left)); top: calc(5rem + env(safe-area-inset-top)); transform: none; width: auto; }
+  .water-level-card, .water-level-card--open { left: calc(.55rem + env(safe-area-inset-left)); top: calc(5rem + env(safe-area-inset-top)); transform: none; width: auto; z-index: 1050; }
   .water-level-summary { border-radius: .85rem; min-height: 2.75rem; padding: .25rem .5rem .25rem .25rem; width: auto; }
   .water-level-icon { background: transparent; height: 2.2rem; width: 2.2rem; }
   .water-level-summary-text { flex: 0 0 auto; }

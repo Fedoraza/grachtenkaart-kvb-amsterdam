@@ -4,16 +4,38 @@
       <span class="mobile-nav-icon hidden">⌁</span><span>Fleet</span><span class="hidden sm:inline"> directory</span>
     </button>
 
-    <section v-else class="pointer-events-auto flex max-h-[calc(100dvh-5rem)] w-[calc(100vw-1.5rem)] max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-slate-950/95 text-slate-50 shadow-2xl backdrop-blur-xl">
+    <section v-else class="pointer-events-auto flex max-h-[calc(100dvh-5rem)] w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-2xl border border-white/20 bg-slate-950/95 text-slate-50 shadow-2xl backdrop-blur-xl" :class="compact ? 'max-w-sm' : 'max-w-3xl'">
       <header class="flex items-center justify-between border-b border-white/10 px-4 py-3">
-        <div>
-          <p class="m-0 text-[10px] font-bold uppercase tracking-widest text-sky-300">Company database</p>
-          <h2 class="m-0 text-lg font-bold">Fleet directory <span class="text-sm font-normal text-slate-400">{{ summary.boats.length }} boats</span></h2>
+        <div class="min-w-0">
+          <p class="m-0 text-[10px] font-bold uppercase tracking-widest text-sky-300">Rederijen</p>
+          <h2 class="m-0 truncate text-lg font-bold">Fleet directory <span class="text-sm font-normal text-slate-400">{{ directoryBoats.length }} boats</span></h2>
         </div>
-        <button class="rounded-lg bg-white/10 px-2 py-1 hover:bg-white/20" type="button" @click="open = false">×</button>
+        <div class="flex shrink-0 items-center gap-1">
+          <button type="button" class="rounded-lg bg-white/10 px-2.5 py-2 text-xs font-bold hover:bg-white/20" :aria-expanded="!compact" @click="toggleCompact">{{ compact ? 'Uitklappen' : 'Inklappen' }}</button>
+          <button class="rounded-lg bg-white/10 px-2 py-1 hover:bg-white/20" type="button" aria-label="Close fleet directory" @click="open = false">×</button>
+        </div>
       </header>
 
-      <div class="overflow-auto p-4">
+      <a :href="`/vlootstatistieken?operator=${selectedOperator}`" class="border-b border-white/10 px-4 py-3 text-sm font-semibold text-sky-300">Uitgebreide vlootstatistieken →</a>
+      <div class="border-b border-white/10 p-3">
+        <label class="text-xs text-slate-400" for="fleet-operator">Fleet directory per rederij</label>
+        <select id="fleet-operator" v-model="selectedOperator" class="fleet-input mt-1">
+          <option value="all">Alle rederijen</option>
+          <option v-for="directory in directories" :key="directory.id" :value="directory.id">{{ directory.name }} ({{ directory.boats.length }})</option>
+        </select>
+        <p class="mb-0 mt-2 text-xs text-slate-400">Registervermeldingen kunnen zonder AIS-positie worden getoond.</p>
+      </div>
+      <div v-if="compact" class="min-h-0 overflow-y-auto p-2 sm:p-3">
+        <ul class="m-0 divide-y divide-white/10 p-0">
+          <li v-for="boat in compactBoats" :key="boat.id" class="flex min-h-12 items-center gap-2 px-2 py-1.5">
+            <span class="min-w-0 flex-1 truncate text-sm font-semibold" :title="boat.name"><span class="block truncate">{{ boat.name }}</span><span class="block text-[10px] font-normal text-slate-400">{{ boat.mmsi ? `MMSI ${boat.mmsi}` : 'Geen AIS gekoppeld' }}</span></span>
+            <button type="button" class="shrink-0 rounded-lg bg-sky-500/15 px-3 py-2 text-xs font-bold text-sky-200 hover:bg-sky-500/25 disabled:cursor-not-allowed disabled:opacity-40" :disabled="!boat.ais?.latitude || !boat.ais?.longitude" :title="boat.ais?.latitude && boat.ais?.longitude ? '' : 'No position available'" :aria-label="`Show on map: ${boat.name}`" @click="showOnMap(boat)">Kaart</button>
+          </li>
+        </ul>
+        <p v-if="!compactBoats.length" class="m-0 p-3 text-sm text-slate-400">No boats found.</p>
+        <p v-if="error" class="m-0 p-3 text-xs text-red-300">{{ error }}</p>
+      </div>
+      <div v-else class="overflow-auto p-4">
         <WhatsAppSetup v-if="isAdmin" class="mb-4" />
         <section class="mb-4 overflow-hidden rounded-2xl border border-amber-300/20 bg-amber-300/[0.06]">
           <div class="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2.5">
@@ -36,7 +58,7 @@
           <p v-if="leaderboardCoverage !== null && !leaderboardComplete" class="m-0 border-t border-amber-300/15 bg-amber-300/[0.06] px-3 py-2 text-[10px] leading-relaxed text-amber-100">Deze kilometerstanden zijn te laag doordat delen van de AIS-ontvangst ontbreken. Ze gelden alleen voor de gemeten perioden.</p>
           <p v-if="leaderboardError" class="m-0 border-t border-red-300/15 px-3 py-2 text-xs text-red-200">{{ leaderboardError }}</p>
           <p class="m-0 border-t border-white/10 px-3 py-2 text-[10px] leading-relaxed text-slate-500">Berekend uit geldige AIS-verplaatsingen en vaarsnelheid; onrealistische GPS-sprongen tellen niet mee.</p>
-          <a href="/km-leaderboard" class="block border-t border-amber-300/15 bg-amber-300/10 px-3 py-2.5 text-center text-xs font-black text-amber-200 hover:bg-amber-300/15">Open het volledige kilometertoernooi →</a>
+          <a :href="`/km-leaderboard?operator=${selectedOperator}`" class="block border-t border-amber-300/15 bg-amber-300/10 px-3 py-2.5 text-center text-xs font-black text-amber-200 hover:bg-amber-300/15">Open het volledige kilometertoernooi →</a>
         </section>
         <div class="flex items-center gap-2">
           <input v-model="boatSearch" class="fleet-input flex-1" placeholder="Search by boat name, MMSI or type" />
@@ -79,20 +101,24 @@
           </select>
         </div>
         <div class="mt-1 flex items-center justify-between text-[11px] text-slate-400">
-          <span>Showing {{ filteredBoats.length }} of {{ summary.boats.length }} boats</span>
+          <span>Showing {{ filteredBoats.length }} of {{ directoryBoats.length }} boats</span>
           <button v-if="hasActiveFilters" type="button" class="text-sky-300 hover:text-sky-200" @click="clearFilters">Clear filters</button>
         </div>
 
-        <BoatEditor v-if="isAdmin && creatingBoat" class="mt-3" @save="saveBoat" @cancel="creatingBoat = false" />
+        <BoatEditor v-if="isAdmin && creatingBoat" :boat="['all', 'unassigned'].includes(selectedOperator) ? null : { operator_id: selectedOperator }" class="mt-3" @save="saveBoat" @cancel="creatingBoat = false" />
 
         <div class="mt-4 grid gap-3 sm:grid-cols-2">
           <template v-for="boat in filteredBoats" :key="boat.id">
-            <BoatEditor v-if="isAdmin && editingBoatId === boat.id" :boat="boat" @save="saveBoat" @cancel="editingBoatId = null" />
+            <BoatEditor v-if="isAdmin && editingBoatId === boat.id" :boat="boat.directoryOnly ? { ...boat, id: null } : boat" @save="saveBoat" @cancel="editingBoatId = null" />
 
             <article v-else class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition hover:border-white/20">
               <div class="aspect-[16/8] bg-slate-900">
-                <img v-if="boat.photoUrl" :src="boat.photoUrl" :alt="boat.name" class="h-full w-full object-cover" />
+                <img loading="lazy" decoding="async" v-if="boat.photoUrl" :src="boat.photoUrl" :alt="boat.photoAlt || boat.name" width="800" height="450" class="h-full w-full object-cover" />
                 <div v-else class="flex h-full items-center justify-center text-3xl text-slate-600">⌁</div>
+              </div>
+              <div v-if="boat.photoSourceUrl" class="flex items-center justify-between gap-2 border-t border-white/10 bg-black/20 px-3 py-1.5 text-[10px] text-slate-400">
+                <span>{{ boat.photoKind === 'fleet' ? 'Vlootfoto · niet boot-specifiek' : 'Bootfoto' }}</span>
+                <a :href="boat.photoSourceUrl" target="_blank" rel="noopener noreferrer" class="text-sky-300 hover:underline">Fotobron ↗</a>
               </div>
               <div class="p-3">
                 <div class="flex items-center gap-2">
@@ -115,18 +141,18 @@
                 </div>
                 <p class="m-0 mt-1 text-[10px] text-slate-500">{{ aisLastSeenLabel(boat) }}</p>
                 <dl class="mt-3 grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-black/20 p-2 text-[11px]">
-                  <div><dt class="text-slate-400">Driver</dt><dd v-if="auth.user" class="mt-0.5 font-semibold text-slate-100">{{ boatPlanningDetails(boat).driver }}</dd><dd v-else><button type="button" class="mt-0.5 text-left font-semibold text-sky-300" @click="requestPlanningLogin">Sign in to see</button></dd></div>
-                  <div><dt class="text-slate-400">Shift</dt><dd v-if="auth.user" class="mt-0.5 font-semibold text-slate-100">{{ boatPlanningDetails(boat).shift }}</dd><dd v-else><button type="button" class="mt-0.5 text-left font-semibold text-sky-300" @click="requestPlanningLogin">Sign in to see</button></dd></div>
-                  <div><dt class="text-slate-400">Location</dt><dd v-if="auth.user" class="mt-0.5 font-semibold text-slate-100">{{ boatPlanningDetails(boat).location }}</dd><dd v-else><button type="button" class="mt-0.5 text-left font-semibold text-sky-300" @click="requestPlanningLogin">Sign in to see</button></dd></div>
+                  <div><dt class="text-slate-400">Driver</dt><dd v-if="canReadPlanning" class="mt-0.5 font-semibold text-slate-100">{{ boatPlanningDetails(boat).driver }}</dd><dd v-else><span v-if="auth.user" class="text-xs text-slate-400">Alleen Flagship employees</span><button v-else type="button" class="mt-0.5 text-left font-semibold text-sky-300" @click="requestPlanningLogin">Sign in to see</button></dd></div>
+                  <div><dt class="text-slate-400">Shift</dt><dd v-if="canReadPlanning" class="mt-0.5 font-semibold text-slate-100">{{ boatPlanningDetails(boat).shift }}</dd><dd v-else><span v-if="auth.user" class="text-xs text-slate-400">Alleen Flagship employees</span><button v-else type="button" class="mt-0.5 text-left font-semibold text-sky-300" @click="requestPlanningLogin">Sign in to see</button></dd></div>
+                  <div><dt class="text-slate-400">Location</dt><dd v-if="canReadPlanning" class="mt-0.5 font-semibold text-slate-100">{{ boatPlanningDetails(boat).location }}</dd><dd v-else><span v-if="auth.user" class="text-xs text-slate-400">Alleen Flagship employees</span><button v-else type="button" class="mt-0.5 text-left font-semibold text-sky-300" @click="requestPlanningLogin">Sign in to see</button></dd></div>
                 </dl>
                 <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
-                  <div><dt>Type</dt><dd>{{ boat.boat_type || (boat.open_boat ? 'Open boat' : 'Covered boat') }}</dd></div>
+                  <div><dt>Type</dt><dd>{{ boat.boat_type || (boat.directoryOnly ? 'Unknown' : boat.open_boat ? 'Open boat' : 'Covered boat') }}</dd></div>
                   <div><dt>Licence</dt><dd>{{ boat.license_required || 'Not specified' }}</dd></div>
                   <div><dt>Dimensions</dt><dd>{{ dimensionsLabel(boat) }}</dd></div>
                   <div><dt>Capacity</dt><dd>{{ boat.capacity ? `${boat.capacity} passengers` : 'Unknown' }}</dd></div>
                   <div><dt>Propulsion</dt><dd>{{ boat.propulsion || 'Unknown' }}</dd></div>
                   <div><dt>Home dock</dt><dd>{{ boat.home_dock || 'Not set' }}</dd></div>
-                  <div><dt>Toilet</dt><dd>{{ boat.has_toilet ? 'Yes' : 'No' }}</dd></div>
+                  <div><dt>Toilet</dt><dd>{{ boat.has_toilet == null ? 'Unknown' : boat.has_toilet ? 'Yes' : 'No' }}</dd></div>
                   <div><dt>Niceness</dt><dd>{{ boat.niceness_rating ? `${boat.niceness_rating} rating` : 'Not rated' }}</dd></div>
                 </dl>
                 <p v-if="boat.notes" class="m-0 mt-3 border-t border-white/10 pt-2 text-xs leading-relaxed text-slate-300">{{ boat.notes }}</p>
@@ -141,20 +167,40 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { canReadFlagshipPlanning } from '../../shared/account-access.mjs'
+import { useMobileMapPanel } from '../scripts/useMobileMapPanel.js'
+import { computed, inject, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { buildOperatorDirectories } from '../../shared/vessel-operators.mjs'
 import BoatEditor from './BoatEditor.vue'
 import WhatsAppSetup from './WhatsAppSetup.vue'
 
 const emit = defineEmits(['show-on-map'])
 const auth = inject('auth')
+const canReadPlanning = computed(() => canReadFlagshipPlanning(auth.user))
 const isAdmin = computed(() => auth.user?.role === 'admin')
 
 const open = ref(false)
+useMobileMapPanel('fleet', open)
+const compact = ref(false)
+const fleetViewKey = () => `boat-tracker-fleet-view:${auth.user?.id ?? 'guest'}`
+watch(() => auth.user?.id, () => {
+  compact.value = localStorage.getItem(fleetViewKey()) === 'compact'
+}, { immediate: true })
+function toggleCompact() {
+  compact.value = !compact.value
+  localStorage.setItem(fleetViewKey(), compact.value ? 'compact' : 'expanded')
+}
 const boatSearch = ref('')
 const creatingBoat = ref(false)
 const fleetSettingsOpen = ref(false)
 const filtersOpen = ref(false)
 const editingBoatId = ref(null)
+const operatorGroups = ref([])
+const operatorAssignments = ref({})
+const selectedOperator = ref('all')
+watch(selectedOperator, () => { editingBoatId.value = null; creatingBoat.value = false; loadLeaderboard() })
+const directories = computed(() => buildOperatorDirectories(summary.boats, operatorGroups.value, operatorAssignments.value))
+const directoryBoats = computed(() => selectedOperator.value === 'all' ? directories.value.flatMap((directory) => directory.boats) : directories.value.find((item) => item.id === selectedOperator.value)?.boats || [])
 const summary = reactive({ boats: [], planning: [] })
 const error = ref('')
 const todayAmsterdam = currentRaceDate()
@@ -173,13 +219,14 @@ function refreshFleetDirectory() {
 onMounted(() => window.addEventListener('fleet-directory-updated', refreshFleetDirectory))
 onBeforeUnmount(() => window.removeEventListener('fleet-directory-updated', refreshFleetDirectory))
 
-const availableLicences = computed(() => [...new Set(summary.boats.map((boat) => boat.license_required).filter(Boolean))].sort())
+const availableLicences = computed(() => [...new Set(directoryBoats.value.map((boat) => boat.license_required).filter(Boolean))].sort())
+const compactBoats = computed(() => [...directoryBoats.value].sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'nl')))
 const hasActiveFilters = computed(() => Object.values(filters).some(Boolean))
 const activeFilterCount = computed(() => Object.values(filters).filter(Boolean).length)
 
 const filteredBoats = computed(() => {
   const query = boatSearch.value.trim().toLowerCase()
-  return summary.boats.filter((boat) => {
+  return directoryBoats.value.filter((boat) => {
     if (query && !`${boat.name} ${boat.mmsi || ''} ${boat.boat_type || ''}`.toLowerCase().includes(query)) return false
     if (filters.capacity && Number(boat.capacity || 0) < Number(filters.capacity)) return false
     if (filters.licence && boat.license_required !== filters.licence) return false
@@ -205,7 +252,9 @@ async function request(url, options) {
 
 async function loadBoats() {
   try {
-    const data = await request('/api/fleet/summary')
+    const [data, operators] = await Promise.all([request('/api/fleet/summary'), request('/api/map/operator-groups')])
+    operatorGroups.value = operators.groups || []
+    operatorAssignments.value = operators.assignments || {}
     summary.boats = data.boats
     summary.planning = Array.isArray(data.planning) ? data.planning : []
   } catch (requestError) {
@@ -218,7 +267,7 @@ async function loadLeaderboard() {
   leaderboardError.value = ''
   leaderboardCoverage.value = null
   try {
-    const data = await request(`/api/fleet/leaderboard?date=${encodeURIComponent(leaderboardDate.value)}`)
+    const data = await request(`/api/fleet/leaderboard?date=${encodeURIComponent(leaderboardDate.value)}&operator=${encodeURIComponent(selectedOperator.value)}`)
     leaderboard.value = Array.isArray(data.entries) ? data.entries.filter((entry) => Number(entry.distanceKm) > 0) : []
     leaderboardCoverage.value = Number.isFinite(Number(data.coveragePercent)) ? Number(data.coveragePercent) : null
     leaderboardComplete.value = Boolean(data.complete)
@@ -295,6 +344,7 @@ async function saveBoat(form, photo) {
       body: JSON.stringify(form),
     })
     if (photo) await uploadBoatPhoto(boat.id, photo)
+    window.dispatchEvent(new Event('fleet-directory-updated'))
     creatingBoat.value = false
     editingBoatId.value = null
     await loadBoats()
@@ -332,6 +382,10 @@ function aisLastSeenLabel(boat) {
   if (!boat.aisLastSeenAt) return 'No AIS signal recorded'
   const minutes = Math.max(0, Math.floor((Date.now() - boat.aisLastSeenAt) / 60000))
   if (minutes < 1) return 'Last signal less than a minute ago'
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60)
+    return `Last signal ${hours} hour${hours === 1 ? '' : 's'} ago`
+  }
   return `Last signal ${minutes} minute${minutes === 1 ? '' : 's'} ago`
 }
 

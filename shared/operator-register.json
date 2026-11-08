@@ -1,0 +1,1240 @@
+{
+  "sourceUrl": "https://www.amsterdam.nl/ondernemen/passagiers-beroepsvaart/beroepsvaart/register-passagiersvaart-amsterdam/",
+  "sourceUpdatedAt": "2026-10-22",
+  "reviewedAt": "2026-10-31",
+  "ambiguousNames": [
+    "PAX",
+    "ROOS",
+    "APOLLO",
+    "FRANSHALS"
+  ],
+  "entries": [
+    {
+      "owner": "B.V. Algemene Amsterdamse Rederij Noord-Zuid",
+      "name": "Barlaeus",
+      "operatorId": "blue-boat"
+    },
+    {
+      "owner": "B.V. Algemene Amsterdamse Rederij Noord-Zuid",
+      "name": "Byzantium",
+      "operatorId": "blue-boat"
+    },
+    {
+      "owner": "B.V. Algemene Amsterdamse Rederij Noord-Zuid",
+      "name": "City of Amsterdam",
+      "operatorId": "blue-boat"
+    },
+    {
+      "owner": "B.V. Algemene Amsterdamse Rederij Noord-Zuid",
+      "name": "Edison",
+      "operatorId": "blue-boat"
+    },
+    {
+      "owner": "B.V. Algemene Amsterdamse Rederij Noord-Zuid",
+      "name": "Faraday",
+      "operatorId": "blue-boat"
+    },
+    {
+      "owner": "B.V. Algemene Amsterdamse Rederij Noord-Zuid",
+      "name": "Flying Dutchman",
+      "operatorId": "blue-boat"
+    },
+    {
+      "owner": "B.V. Algemene Amsterdamse Rederij Noord-Zuid",
+      "name": "Lido",
+      "operatorId": "blue-boat"
+    },
+    {
+      "owner": "B.V. Algemene Amsterdamse Rederij Noord-Zuid",
+      "name": "Paradiso",
+      "operatorId": "blue-boat"
+    },
+    {
+      "owner": "B.V. Algemene Amsterdamse Rederij Noord-Zuid",
+      "name": "Vossius",
+      "operatorId": "blue-boat"
+    },
+    {
+      "owner": "Canal Bus B.V.",
+      "name": "Albert Cuyp",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Bus B.V.",
+      "name": "J. Vermeer",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Bus B.V.",
+      "name": "P.J.H. Cuypers",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Admiraal Heijn",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Agatha",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Amelie Zahra",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Amigo",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Apsara",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Atlantis",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Barracuda",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Bartolotti",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Creusen 1",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Dirck van Os",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Dutchman",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Eve",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Eveline",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Fayén",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Flagship",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Fleur",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Freewilly",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Gast",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Green Marine",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Griffioen",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Harry Slinger",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Herman Brood",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Hilda",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Iris",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Jan van de Heijden",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Koning",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Perfecta",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Lucky Stripper",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Majestic",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Mana",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Manhattan",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Meike",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Naut",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Nomag",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Old Queen",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Johanna",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Papi",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Pax",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Pierre Cuypers",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Roos",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Rosalie",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Rose",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Royalty",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Russian Star",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Saloonsloep",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Simon",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Sloepvrienden",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Sofia",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Stella Maris",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Swaen",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "The Dude",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Theo Kok",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Titanic",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Vibe",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Vörding",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Wolk",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Zonneboot",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Flagship Holding B.V.",
+      "name": "Fadam 2",
+      "operatorId": "flagship"
+    },
+    {
+      "owner": "Pure Boats B.V.",
+      "name": "Geertje",
+      "operatorId": "pure-boats"
+    },
+    {
+      "owner": "Pure Boats B.V.",
+      "name": "Lucy",
+      "operatorId": "pure-boats"
+    },
+    {
+      "owner": "Pure Boats B.V.",
+      "name": "Pure Spirit",
+      "operatorId": "pure-boats"
+    },
+    {
+      "owner": "Pure Boats B.V.",
+      "name": "Schollevaar",
+      "operatorId": "pure-boats"
+    },
+    {
+      "owner": "Pure Boats B.V.",
+      "name": "Stan Huygens",
+      "operatorId": "pure-boats"
+    },
+    {
+      "owner": "Rederij E.E. Plas B.V.",
+      "name": "Hilda IV",
+      "operatorId": "plas"
+    },
+    {
+      "owner": "Rederij E.E. Plas B.V.",
+      "name": "Koningin Emma",
+      "operatorId": "plas"
+    },
+    {
+      "owner": "Rederij E.E. Plas B.V.",
+      "name": "Koningin Wilhelmina",
+      "operatorId": "plas"
+    },
+    {
+      "owner": "Rederij E.E. Plas B.V.",
+      "name": "Nelson Mandela",
+      "operatorId": "plas"
+    },
+    {
+      "owner": "Rederij E.E. Plas B.V.",
+      "name": "Pax",
+      "operatorId": "plas"
+    },
+    {
+      "owner": "Rederij E.E. Plas B.V.",
+      "name": "Prins Hendrik",
+      "operatorId": "plas"
+    },
+    {
+      "owner": "Rederij E.E. Plas B.V.",
+      "name": "Prins Willem van Oranje",
+      "operatorId": "plas"
+    },
+    {
+      "owner": "Rederij E.E. Plas B.V.",
+      "name": "Prinses Alexia",
+      "operatorId": "plas"
+    },
+    {
+      "owner": "Rederij E.E. Plas B.V.",
+      "name": "Prinses Ariane",
+      "operatorId": "plas"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Achilles",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Aimée",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "André van Duin",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Apollo",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Athene",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Berlin",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Bern",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Boedapest",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Atlas",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Brussels",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Caesar",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "BZN 2",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "BZN 3",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "BZN 4",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "BZN 5",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "BZN 6",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Gladiator",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Olympus",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Phoenix",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Copenhagen",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Cornelis Schuyt",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Dublin",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Flying Enterprise",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Gaudi",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Helsinki",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Henri Matisse",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Hercules",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Jannes Lovers",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Lissabon",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Madrid",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Michelangelo",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Monaco",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Moskou",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Nemo",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "New York",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Nicolaas Maes",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Oslo",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "P.C. Hooft",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Pierre Janssen",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Praag",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Rome",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Simon Carmiggelt",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Spartacus",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Sydney",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Titan",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Toon Hermans",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Washington",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Wien",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Wim Kan",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij Lovers B.V.",
+      "name": "Wim Sonneveld",
+      "operatorId": "lovers"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Albert",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Albert Pieter",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Folke Bernadotte",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Frans Hals",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Frederik Albert Pieter",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Gerarda Johanna",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Jan Steen",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Koning Willem Alexander",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Koningin Fabiola",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Koningin Juliana",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Koningin Maxima",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Pieter",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "President J.F. Kennedy",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Prins Bernhard",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Prins Constantijn",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Prins Johan Friso",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Prinses Beatrix",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Prinses Catharina Amalia",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Prinses Christina",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Prinses Irene",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Rederij P. Kooij B.V.",
+      "name": "Prinses Margriet",
+      "operatorId": "p-kooij"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "Albert Einstein",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "Churchill",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "City Tender Couperus",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "City Tender Vondel",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "Drukwerk",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "Frans Hals",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "Frans van Mieris",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "Jan Luijken",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "Mona Lisa",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "Mooie Nel",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "Rinske",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "Roosevelt",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "'t Smidtje",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "Terra Nova",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Smidtje Beheer B.V.",
+      "name": "Wilhelmus",
+      "operatorId": "smidtje"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "A. van Eijk",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "André Hazes",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Breitner",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Corneille",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Daniël Stalpaert",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "De Amstel",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "F. van Dongen",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Ferdinand Bol",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "H. Hertzberger",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "H.P. Berlage",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Hannie Schaft",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Hendrick de Keyser",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "J. Coenen",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "J.F. Staal",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "J.H. Mulder",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Jacob van Ruysdael",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Jeroen Krabbé",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Josephine",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Judith Leyster",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "M. de Klerk",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "M.C. Escher",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Mondriaan",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Oboot",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "P. Vingboons",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Piet Kramer",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Stromma Nederland B.V.",
+      "name": "Rembrandt",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Beau",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Booking.com",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Boot2go 17",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Gangster",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Gappy",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Jochie",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Liene",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Mamacita",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Mon Ami",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Ouwe",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Papichulo",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Rijk de Gooyer",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Shadow",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "Shiner",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Boot2go B.V.",
+      "name": "The Dream",
+      "operatorId": "kinboat"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Abel Tasman",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Aert van Nes",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Anton Dreesmann",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Dr. Albert Heijn",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Henry Hudson",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Horatio Nelson",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Ir. Frits Fentener van Vlissingen",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Jan van Riebeeck",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Michiel de Ruyter",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Olivier van Noort",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Pieter Heijn I",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Pieter Heijn II",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Canal Rondvaart B.V.",
+      "name": "Pieter Heijn III",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Meijer's Rondvaarten B.V.",
+      "name": "Charles Gounod",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Meijer's Rondvaarten B.V.",
+      "name": "Dr. Albert Schweitzer",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Meijer's Rondvaarten B.V.",
+      "name": "Franz Lehar",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Meijer's Rondvaarten B.V.",
+      "name": "Johann Strauss",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Meijer's Rondvaarten B.V.",
+      "name": "Ludwig van Beethoven",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Meijer's Rondvaarten B.V.",
+      "name": "W.A. Mozart",
+      "operatorId": "stromma"
+    },
+    {
+      "owner": "Those Dam Boat Guys B.V.",
+      "name": "Apollo",
+      "operatorId": "those-dam-boat-guys"
+    },
+    {
+      "owner": "Those Dam Boat Guys B.V.",
+      "name": "De Blauwe Draeck",
+      "operatorId": "those-dam-boat-guys"
+    },
+    {
+      "owner": "Those Dam Boat Guys B.V.",
+      "name": "Jackson 1",
+      "operatorId": "those-dam-boat-guys"
+    },
+    {
+      "owner": "Those Dam Boat Guys B.V.",
+      "name": "Jackson 2",
+      "operatorId": "those-dam-boat-guys"
+    },
+    {
+      "owner": "Those Dam Boat Guys B.V.",
+      "name": "Jackson 3",
+      "operatorId": "those-dam-boat-guys"
+    },
+    {
+      "owner": "Those Dam Boat Guys B.V.",
+      "name": "Jackson 4",
+      "operatorId": "those-dam-boat-guys"
+    },
+    {
+      "owner": "Those Dam Boat Guys B.V.",
+      "name": "Jackson 5",
+      "operatorId": "those-dam-boat-guys"
+    },
+    {
+      "owner": "RDN-Holding B.V.",
+      "name": "Najade",
+      "operatorId": "de-nederlanden"
+    },
+    {
+      "owner": "RDN-Holding B.V.",
+      "name": "Proost van St. Jan",
+      "operatorId": "de-nederlanden"
+    },
+    {
+      "owner": "RDN-Holding B.V.",
+      "name": "Wan-Hoop",
+      "operatorId": "de-nederlanden"
+    },
+    {
+      "owner": "Rederij de Nederlanden B.V.",
+      "name": "Bredero",
+      "operatorId": "de-nederlanden"
+    },
+    {
+      "owner": "Rederij de Nederlanden B.V.",
+      "name": "Hildebrand",
+      "operatorId": "de-nederlanden"
+    },
+    {
+      "owner": "Rederij de Nederlanden B.V.",
+      "name": "Jacob van Lennep",
+      "operatorId": "de-nederlanden"
+    },
+    {
+      "owner": "Rederij de Nederlanden B.V.",
+      "name": "Multatuli",
+      "operatorId": "de-nederlanden"
+    }
+  ],
+  "ownerMappingNotes": {
+    "Boot2go B.V.": "KINboat affiliation supplied by application owner; vessel names from municipal register.",
+    "Those Dam Boat Guys B.V.": "Legal operator plus official website Jackson 1-5.",
+    "Canal Rondvaart B.V.": "Stromma affiliate; municipal berth selection document.",
+    "Meijer's Rondvaarten B.V.": "Stromma affiliate; municipal berth selection document.",
+    "RDN-Holding B.V.": "Najade, Proost van St. Jan and Wan-Hoop individually match the official Rederij de Nederlanden fleet; mapping limited to published vessel names."
+  }
+}

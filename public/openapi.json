@@ -1,0 +1,411 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Boottracker public Amsterdam route planner",
+    "version": "1.0.0",
+    "description": "Read-only public route planning. Ask for actual vessel dimensions. Never assume sample boat dimensions. Unknown clearances are not verified. Always surface warnings. No authentication required."
+  },
+  "servers": [
+    {
+      "url": "https://boottracker.nl"
+    }
+  ],
+  "security": [],
+  "paths": {
+    "/api/routeplanner/route": {
+      "get": {
+        "operationId": "planAmsterdamBoatRoute",
+        "summary": "Plan a route for a boat through Amsterdam waterways",
+        "description": "Use 2–8 [longitude, latitude] points, including optional waypoints. All four vessel dimensions are required. Respect known dimensions, canal profiles, directions and available full closures. Virtual gaps and zone 3 are excluded. Does not confirm permits, bridge openings, current depth or live water-level clearance. Temporary dimensional restrictions are not automatically enforced.",
+        "parameters": [
+          {
+            "name": "points",
+            "in": "query",
+            "required": true,
+            "description": "JSON array of 2–8 WGS84 [longitude, latitude] pairs in Amsterdam. Never reverse coordinate order.",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            },
+            "example": "[[4.8920164,52.3792362],[4.8975988,52.3650949]]"
+          },
+          {
+            "name": "heightMeters",
+            "in": "query",
+            "required": true,
+            "description": "Actual height above waterline",
+            "schema": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 30
+            }
+          },
+          {
+            "name": "widthMeters",
+            "in": "query",
+            "required": true,
+            "description": "Actual vessel beam",
+            "schema": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 30
+            }
+          },
+          {
+            "name": "lengthMeters",
+            "in": "query",
+            "required": true,
+            "description": "Actual vessel length",
+            "schema": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 150
+            }
+          },
+          {
+            "name": "draftMeters",
+            "in": "query",
+            "required": true,
+            "description": "Actual vessel draft",
+            "schema": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 10
+            }
+          },
+          {
+            "name": "speedKmh",
+            "in": "query",
+            "required": false,
+            "description": "Cruising speed; known local limits applied",
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 12,
+              "default": 6
+            }
+          },
+          {
+            "name": "safetyMarginMeters",
+            "in": "query",
+            "required": false,
+            "description": "Extra vertical clearance margin",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2,
+              "default": 0.15
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Calculation completed. Inspect status and complete: partial/no-route is not success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "apiVersion",
+                    "status",
+                    "complete",
+                    "geometry",
+                    "warnings",
+                    "data"
+                  ],
+                  "properties": {
+                    "apiVersion": {
+                      "type": "string",
+                      "const": "1"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "partial",
+                        "invalid",
+                        "no-network",
+                        "not-on-water",
+                        "no-route"
+                      ]
+                    },
+                    "complete": {
+                      "type": "boolean",
+                      "description": "True only when the destination was reached; not a guarantee of safe passage."
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "distanceMeters": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "durationMinutes": {
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "description": "Estimated moving time, excludes waiting and bridge operation."
+                    },
+                    "geometry": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "type": {
+                          "const": "LineString"
+                        },
+                        "coordinates": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            },
+                            "minItems": 2,
+                            "maxItems": 2
+                          }
+                        }
+                      }
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "calculatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "bridgesFetchedAt": {
+                          "type": [
+                            "number",
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "closuresFetchedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "closuresStale": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "steps": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "segments": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "snapped": {
+                      "type": "array",
+                      "items": {
+                        "type": [
+                          "object",
+                          "null"
+                        ]
+                      }
+                    },
+                    "partialRoute": {
+                      "type": [
+                        "object",
+                        "null"
+                      ]
+                    },
+                    "input": {
+                      "type": "object"
+                    },
+                    "documentation": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid, unknown, duplicate or missing input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Use GET",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Busy; retry using Retry-After",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Required route or restriction data unavailable; use Retry-After",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shared-routes/{token}": {
+      "get": {
+        "operationId": "readSharedBoatRoute",
+        "summary": "Read a shared route snapshot without JavaScript",
+        "description": "Read the stored route; never recalculate it implicitly. Default JSON route.result.coordinates uses [latitude, longitude]. With format=geojson, returns a GeoJSON Feature with [longitude, latitude] geometry and readable properties including matched map reporting points. Matches are not a legally verified complete VTS list. Route links expire seven days after creation.",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{20,40}$"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "geojson"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stored shared route. Check status/complete and warnings; current restrictions are not recalculated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "route",
+                    "createdAt",
+                    "expiresAt"
+                  ]
+                }
+              },
+              "application/geo+json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "geometry",
+                    "properties"
+                  ],
+                  "properties": {
+                    "type": {
+                      "const": "Feature"
+                    },
+                    "geometry": {
+                      "type": "object"
+                    },
+                    "properties": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invalid, unknown, deleted or expired shared route"
+          },
+          "400": {
+            "description": "Unknown format"
+          },
+          "500": {
+            "description": "Shared route data unavailable"
+          }
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "url": "https://boottracker.nl/routeplanner-api"
+  }
+}

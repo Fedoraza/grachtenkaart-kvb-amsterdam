@@ -62,3 +62,26 @@ test('loads only regional messages and deduplicates detail requests', async () =
   assert.equal(data.stale, false)
   assert.match(calls[0], /limitationGroup=ALL/)
 })
+
+test('failed individual details retain only their valid previous warnings; withdrawn notices disappear', async () => {
+  const previous = { features: normalizeClosureMessage(message, now) }
+  const fresh = structuredClone(message); fresh.ntsNumber.number = 2
+  const summaries = [message, fresh].map(m => ({ ntsNumber: m.ntsNumber, location: [{ lon: 4.9, lat: 52.37 }] }))
+  const data = await loadCurrentClosures({ now, previous, fetchImpl: async url => {
+    if (url.includes('/summaries?')) return { ok: true, json: async () => summaries }
+    return { ok: true, json: async () => url.endsWith('-1') ? {} : fresh }
+  } })
+  assert.equal(data.partial, true)
+  assert.equal(data.failedDetails, 1)
+  assert.equal(data.retainedFeatures, 1)
+  assert.equal(data.features.find(f => f.properties.noticeNumber.endsWith('-1')).properties.sourceStale, true)
+  const withdrawn = await loadCurrentClosures({ now, previous, fetchImpl: async () => ({ ok: true, json: async () => [] }) })
+  assert.deepEqual(withdrawn.features, [])
+})
+test('unrecognized official limitations remain visible as information', () => {
+  const copy = structuredClone(message)
+  copy.subjectLimitations[0].limitations[0].limitationCode = 'NEWCODE'
+  const [feature] = normalizeClosureMessage(copy, now)
+  assert.match(feature.properties.type, /NEWCODE/)
+  assert.equal(feature.properties.blocksRouting, false)
+})

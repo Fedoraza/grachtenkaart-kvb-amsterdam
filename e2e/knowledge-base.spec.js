@@ -1,0 +1,51 @@
+import { test, expect } from '@playwright/test'
+
+test('knowledge base searches full articles, filters categories and keeps shareable URLs', async ({ page }) => {
+  const errors=[];page.on('pageerror',e=>errors.push(e.message))
+  await page.goto('/kennisbank')
+  await expect(page.locator('[data-knowledge-card]:visible')).toHaveCount(16)
+  const query=page.getByRole('searchbox',{name:'Zoek in de kennisbank'})
+  await query.fill('brughoogte')
+  await expect(page.locator('[data-knowledge-card]:visible')).toHaveCount(1)
+  await expect(page.locator('[data-knowledge-card]:visible')).toContainText('NAP en waterstand')
+  await expect(page).toHaveURL(/q=brughoogte/)
+  await query.fill('zzzznoresults')
+  await expect(page.locator('[data-knowledge-empty]')).toBeVisible()
+  await query.fill('')
+  await page.getByLabel('Onderwerp',{exact:true}).selectOption('communicatie')
+  await expect(page.locator('[data-knowledge-card]:visible')).toHaveCount(2)
+  await page.reload()
+  await expect(page.locator('[data-knowledge-card]:visible')).toHaveCount(2)
+  await expect(page.getByLabel('Onderwerp',{exact:true})).toHaveValue('communicatie')
+  await page.getByRole('link',{name:'Marifoon en meldpunten: bereid je communicatie voor',exact:true}).click()
+  await expect(page.getByRole('heading',{level:1})).toHaveText('Marifoon en meldpunten: bereid je communicatie voor')
+  await expect(page.getByRole('navigation',{name:'In dit artikel'})).toBeVisible()
+  await expect(page.getByRole('link',{name:/Port of Amsterdam · Marifoonkanalen/})).toHaveAttribute('href','https://www.portofamsterdam.com/nl/scheepvaart/marifoonkanalen')
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  expect(errors).toEqual([])
+})
+
+test('knowledge search and article contents work with JavaScript disabled', async ({ browser, baseURL }) => {
+  const context=await browser.newContext({javaScriptEnabled:false,baseURL})
+  try {
+    const page=await context.newPage()
+    await page.goto('/kennisbank?q=brughoogte&categorie=bruggen')
+    await expect(page.locator('[data-knowledge-card]:visible')).toHaveCount(1)
+    await page.getByRole('searchbox',{name:'Zoek in de kennisbank'}).fill('AIS')
+    await page.getByLabel('Onderwerp',{exact:true}).selectOption('kaart')
+    await page.getByRole('button',{name:'Zoeken',exact:true}).press('Enter')
+    await expect(page.locator('[data-knowledge-card]:visible')).toContainText(['AIS-posities begrijpen'])
+    await page.getByRole('link',{name:'AIS-posities begrijpen: live, laatst bekend of ontbrekend',exact:true}).press('Enter')
+    await expect(page.getByRole('heading',{name:'Waarom ontbreekt een boot?',exact:true})).toBeVisible()
+  } finally {await context.close()}
+})
+
+test('knowledge overview and illustrated article fit the viewport', async ({ page },testInfo) => {
+  await page.goto('/kennisbank')
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.screenshot({path:`/tmp/boottracker-knowledge-${testInfo.project.name}.png`,fullPage:true})
+  await page.goto('/kennisbank/bootafmetingen')
+  await expect(page.getByRole('img',{name:/Schematische boot/})).toBeVisible()
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.screenshot({path:`/tmp/boottracker-knowledge-article-${testInfo.project.name}.png`,fullPage:true})
+})

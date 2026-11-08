@@ -10,18 +10,18 @@
 
       <div class="flex-1 overflow-auto p-4 sm:p-6">
         <form v-if="isAdmin" class="mb-5 grid gap-2 rounded-2xl border border-amber-300/20 bg-amber-400/5 p-3 sm:grid-cols-[1fr_1fr_auto]" @submit.prevent="assignBoat">
-          <label class="duty-label relative">Persoon zoeken
-            <input v-model="assignment.userQuery" class="duty-input" type="search" inputmode="search" autocomplete="off" required placeholder="Typ een naam…" @focus="activePicker = 'user'" @input="assignment.userId = ''" />
+          <div class="duty-label relative"><label for="duty-user-search">Persoon zoeken</label>
+            <input id="duty-user-search" v-model="assignment.userQuery" class="duty-input" type="search" inputmode="search" autocomplete="off" required placeholder="Typ een naam…" @focus="activePicker = 'user'" @input="assignment.userId = ''" @keydown.escape="activePicker = ''" />
             <div v-if="activePicker === 'user' && filteredUsers.length" class="picker-results">
-              <button v-for="user in filteredUsers" :key="user.id" type="button" @click="selectUser(user)"><strong>{{ user.name }}</strong><span>{{ roleLabel(user.role) }}</span></button>
+              <button v-for="user in filteredUsers" :key="user.id" type="button" @click.stop="selectUser(user)"><strong>{{ user.name }}</strong><span>{{ roleLabel(user.role) }}</span></button>
             </div>
-          </label>
-          <label class="duty-label relative">Boot zoeken
-            <input v-model="assignment.boatQuery" class="duty-input" type="search" inputmode="search" autocomplete="off" required placeholder="Typ een bootnaam…" @focus="activePicker = 'boat'" @input="assignment.boatId = ''" />
+          </div>
+          <div class="duty-label relative"><label for="duty-boat-search">Boot zoeken</label>
+            <input id="duty-boat-search" v-model="assignment.boatQuery" class="duty-input" type="search" inputmode="search" autocomplete="off" required placeholder="Typ een bootnaam…" @focus="activePicker = 'boat'" @input="assignment.boatId = ''" @keydown.escape="activePicker = ''" />
             <div v-if="activePicker === 'boat' && filteredBoats.length" class="picker-results">
-              <button v-for="boat in filteredBoats" :key="boat.id" type="button" @click="selectBoat(boat)"><strong>{{ boat.name }}</strong></button>
+              <button v-for="boat in filteredBoats" :key="boat.id" type="button" @click.stop="selectBoat(boat)"><strong>{{ boat.name }}</strong></button>
             </div>
-          </label>
+          </div>
           <button class="self-end rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-black text-slate-950">Toewijzen</button>
         </form>
 
@@ -62,10 +62,13 @@
 </template>
 
 <script setup>
+import { useMobileMapPanel } from '../scripts/useMobileMapPanel.js'
 import { computed, inject, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
 const auth = inject('auth')
+const language = inject('language')
 const open = ref(false)
+useMobileMapPanel('duty', open)
 const loading = ref(false)
 const date = ref(new Date().toLocaleDateString('sv-SE'))
 const assignments = ref([])
@@ -108,7 +111,7 @@ function assignmentStatusStyle(item) {
   return 'border-red-400/80 border-l-4 border-l-red-500 bg-red-950/75 shadow-[inset_0_0_28px_rgb(239_68_68/0.14)]'
 }
 function assignmentStatusDot(item) { return item.serviced_at ? 'bg-emerald-300 ring-4 ring-emerald-400/20' : item.submitted_at ? 'bg-amber-300 ring-4 ring-amber-300/25' : 'bg-red-500 ring-4 ring-red-500/25' }
-function formatTime(value) { return new Date(value).toLocaleString('nl-NL', { dateStyle: 'short', timeStyle: 'short' }) }
+function formatTime(value) { return new Date(value).toLocaleString(language?.locale === 'nl' ? 'nl-NL' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' }) }
 function isStaverno(item) { return item.home_dock?.trim().toLowerCase() === 'staverno' }
 function isEh(item) { return item.home_dock?.trim().toLowerCase() === 'eh' }
 function inventoryFor(item) { const query=(item.inventorySearch||'').trim().toLocaleLowerCase(); return inventoryProducts.value.filter(product=>(query||product.show_on_boat_menu)&&(item.inventoryCategory==='all'||(item.inventoryCategory==='uncategorized'?!product.category_id:product.category_id===item.inventoryCategory))&&(!query||`${product.name} ${product.unit} ${product.category_name||''}`.toLocaleLowerCase().includes(query))) }
@@ -211,4 +214,8 @@ async function removeAssignment(item) {
 .picker-results button { display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; border-radius: .55rem; padding: .65rem .7rem; color: white; text-align: left; }
 .picker-results button:hover, .picker-results button:focus { background: rgb(255 255 255 / .1); outline: none; }
 .picker-results span { color: rgb(148 163 184); font-size: .65rem; }
+@media (max-width: 639px) {
+  .picker-results { position: static; max-height: min(40dvh, 18rem); margin-top: 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .picker-results button { min-height: 48px; }
+}
 </style>

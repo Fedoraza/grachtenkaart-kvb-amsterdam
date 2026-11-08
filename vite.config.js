@@ -8,6 +8,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   base: process.env.BASE_PATH || '/',
+  build: {
+    manifest: true,
+    rollupOptions: { input: { app: path.resolve(__dirname, 'index.html'), publicPages: path.resolve(__dirname, 'src/publicPages.js') } },
+  },
   plugins: [vue(), tailwindcss()],
   server: {
     proxy: {

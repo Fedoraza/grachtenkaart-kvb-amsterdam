@@ -23,21 +23,16 @@ export function shouldAcceptPosition(previous, incoming) {
   return true;
 }
 
-export function mergeAisState(existing, update) {
-  const merged = { ...existing };
-  for (const [key, value] of Object.entries(update || {})) {
-    if (value !== null && value !== undefined && value !== "") merged[key] = value;
-  }
-  return merged;
-}
+export { mergeAisState } from '../shared/ais-state.mjs';
 
 export function staleAfterMs(vessel, movingMs, stationaryMs) {
   return Number(vessel?.speed) > 0.5 ? movingMs : stationaryMs;
 }
 
-export function feedState({ configured, open, messageAgeMs, watchdogMs }) {
+export function feedState({ configured, open, messageAgeMs, positionAgeMs = messageAgeMs, watchdogMs }) {
   if (!configured) return { status: "offline", reason: "AISStream API key is not configured" };
   if (!open) return { status: "reconnecting", reason: "AISStream connection is not open" };
+  if (positionAgeMs > watchdogMs / 2) return { status: "degraded", reason: "AISStream is connected but no recent vessel positions are arriving" };
   if (messageAgeMs > watchdogMs / 2) return { status: "degraded", reason: "AISStream is connected but data is delayed" };
   return { status: "live", reason: "AISStream is delivering messages" };
 }

@@ -1,3 +1,4 @@
+import { waterwayProfileForFeature } from './waterwayProfiles.js';
 import { withSupplementalWaterways } from "./supplementalWaterways.js";
 
 const GRID_SIZE = 0.002;
@@ -128,23 +129,38 @@ export function generateCanalLoopRoute(start, network, options = {}) {
   const speedKmh = Number(options.speedKmh || 6);
   const requestedDistance = Math.max(350, speedKmh * 1000 * (targetMinutes / 60));
   const random = seededRandom(options.seed ?? Math.floor(Math.random() * 1_000_000_000));
-  const attempts = Math.max(20, Number(options.attempts || 90));
+  const attempts = Math.max(20, Number(options.attempts || 120));
   let best = null;
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const loopOptions = { ...options, avoidVirtualEdges: true };
-    const outbound = randomWalkOutbound(snapped.node, network, requestedDistance * (0.35 + random() * 0.2), random, loopOptions);
+    const outbound = randomWalkOutbound(snapped.node, network, requestedDistance * (0.45 + random() * 0.35), random, loopOptions);
     const far = outbound.at(-1);
-    if (!far || far.key === snapped.node.key || outbound.length < 3) continue;
-    const returnPath = findShortestPath(network, far, snapped.node, requestedDistance * 0.9 + 600, loopOptions);
-    if (!returnPath?.length || returnPath.length < 2) continue;
-    const route = [...outbound, ...returnPath.slice(1)];
+    if (!far || outbound.length < 3) continue;
+    const routeCandidates = [];
+    // Preserve genuine cycles completed during the exploratory leg. Without
+    // this, the walk may pass its start and continue until its eventual return
+    // path turns the result into an unnecessary out-and-back route.
+    outbound.forEach((node, index) => {
+      if (index >= 3 && node.key === snapped.node.key) routeCandidates.push(outbound.slice(0, index + 1));
+    });
+    if (far.key !== snapped.node.key) {
+      const returnPath = findShortestPath(network, far, snapped.node, requestedDistance * 0.9 + 600, loopOptions);
+      if (returnPath?.length >= 2) routeCandidates.push([...outbound, ...returnPath.slice(1)]);
+    }
+    for (const route of routeCandidates) {
     if (routeUsesVirtualEdge(route, network)) continue;
     const distance = pathDistance(route);
+    const retrace = routeRetraceMetrics(route, network);
+    // A generated "loop" should not simply sail down the same canal and turn
+    // around. A short shared approach to a real loop is acceptable, but reject
+    // candidates where a substantial part of the journey repeats an edge.
+    if (retrace.ratio > 0.42) continue;
     const baseDurationMinutes = Math.max(1, Math.round(pathDurationMinutes(route, network, speedKmh)));
     if (baseDurationMinutes > targetMinutes) continue;
-    const score = Math.abs(targetMinutes - baseDurationMinutes) + repeatedNodePenalty(route) + Math.max(0, targetMinutes * 0.45 - baseDurationMinutes);
-    if (!best || score < best.score) best = { route, distance, baseDurationMinutes, score };
+    const score = targetMinutes - baseDurationMinutes + repeatedNodePenalty(route) + retrace.ratio * targetMinutes * 1.5;
+    if (!best || score < best.score) best = { route, distance, baseDurationMinutes, retrace, score };
+    }
   }
 
   if (!best) return { status: "no-loop", message: `Geen rondje gevonden dat binnen ${targetMinutes} minuten terug is bij het startpunt.` };
@@ -167,6 +183,8 @@ export function generateCanalLoopRoute(start, network, options = {}) {
     to: { latitude: snapped.node.lat, longitude: snapped.node.lng, snapDistanceMeters: Math.round(snapped.distance) },
     virtualSegmentCount: best.route.slice(1).filter((node, index) => network.virtualEdges.has(getEdgeKey(best.route[index].key, node.key))).length,
     warnings: routeConstraintWarnings(best.route, network, options.boatProfile),
+    retracedDistanceMeters: Math.round(best.retrace.distanceMeters),
+    retracedRoutePercent: Math.round(best.retrace.ratio * 100),
   };
 }
 
@@ -175,7 +193,7 @@ function randomWalkOutbound(start, network, targetDistance, random, options = {}
   let distance = 0;
   let previousKey = null;
   const visits = new Map([[start.key, 1]]);
-  while (distance < targetDistance && route.length < 90) {
+  while (distance < targetDistance && route.length < 240) {
     const current = route.at(-1);
     const candidates = [...current.neighbors.entries()]
       .filter(([key, edge]) => isEdgePassable(edge, options.boatProfile) && isEdgeAllowed(current.key, key, edge, network, options))
@@ -200,7 +218,28 @@ function repeatedNodePenalty(route) {
     if (seen.has(node.key)) repeats += 1;
     seen.add(node.key);
   }
-  return repeats * 3;
+  // A few revisits are unavoidable in a canal network. Duration should remain
+  // the main ranking criterion, particularly for two-hour routes.
+  return repeats * 0.15;
+}
+
+function routeRetraceMetrics(route, network) {
+  const traversals = new Map();
+  let totalDistance = 0;
+  for (let index = 1; index < route.length; index += 1) {
+    const from = route[index - 1];
+    const to = route[index];
+    const edge = from.neighbors.get(to.key) || to.neighbors.get(from.key);
+    const distance = edge ? edgeMeters(edge) : distanceMeters(from, to);
+    const key = getEdgeKey(from.key, to.key);
+    const previous = traversals.get(key) || { count: 0, distance };
+    previous.count += 1;
+    traversals.set(key, previous);
+    totalDistance += distance;
+  }
+  const distanceMeters = [...traversals.values()]
+    .reduce((sum, traversal) => sum + Math.max(0, traversal.count - 1) * traversal.distance, 0);
+  return { distanceMeters, ratio: totalDistance > 0 ? distanceMeters / totalDistance : 0 };
 }
 
 function routeUsesVirtualEdge(route, network) {
@@ -306,6 +345,12 @@ function appendConnectedSegment(paths, segment) {
 function connectNearbyComponents(nodes, endpointKeys) {
   const componentByNode = findComponents(nodes);
   const endpoints = Array.from(endpointKeys, (key) => nodes.get(key));
+  const incidentLimits = new Map([...nodes.keys()].map((key) => [key, {}]));
+  for (const node of nodes.values()) for (const [neighborKey, edge] of node.neighbors) {
+    for (const key of [node.key, neighborKey]) for (const field of ['clearanceWidth', 'maxLength', 'maxDraft']) {
+      if (Number.isFinite(edge[field]) && edge[field] > 0) incidentLimits.get(key)[field] = Math.min(incidentLimits.get(key)[field] ?? Infinity, edge[field]);
+    }
+  }
   const virtualEdges = new Set();
   // Gap repairs must never add a reverse lane to a real one-way waterway.
   const physicalNeighbors = new Map([...nodes.keys()].map(key => [key, new Set()]));
@@ -344,8 +389,13 @@ function connectNearbyComponents(nodes, endpointKeys) {
     }
     if (!nearest) continue;
 
-    endpoint.neighbors.set(nearest.key, { distance: nearestDistance, name: "kaartverbinding", virtual: true });
-    nearest.neighbors.set(endpoint.key, { distance: nearestDistance, name: "kaartverbinding", virtual: true });
+    const limits = {};
+    for (const field of ['clearanceWidth', 'maxLength', 'maxDraft']) {
+      const limit = Math.min(incidentLimits.get(endpoint.key)[field] ?? Infinity, incidentLimits.get(nearest.key)[field] ?? Infinity);
+      if (Number.isFinite(limit)) limits[field] = limit;
+    }
+    endpoint.neighbors.set(nearest.key, { distance: nearestDistance, name: "kaartverbinding", virtual: true, ...limits });
+    nearest.neighbors.set(endpoint.key, { distance: nearestDistance, name: "kaartverbinding", virtual: true, ...limits });
     virtualEdges.add(getEdgeKey(endpoint.key, nearest.key));
   }
 
@@ -507,12 +557,16 @@ function buildPath(network, previous, goalKey) {
 
 function createEdge(distance, feature) {
   const properties = feature?.properties || {};
+  const profile = waterwayProfileForFeature(feature);
+  const minimum = (...values) => { const known = values.filter((v) => Number.isFinite(v) && v > 0); return known.length ? Math.min(...known) : null; };
   return {
     distance,
     name: properties.name || properties.alt_name || properties.old_name || properties["@id"] || "Naamloos water",
     maxspeed: Number.parseFloat(properties.maxspeed) || null,
     clearanceHeight: parseMeters(properties["seamark:bridge:clearance_height"] ?? properties.maxheight ?? properties.clearance_height),
-    clearanceWidth: parseMeters(properties["seamark:bridge:clearance_width"] ?? properties.maxwidth ?? properties.clearance_width),
+    clearanceWidth: minimum(parseMeters(properties["seamark:bridge:clearance_width"]), parseMeters(properties.maxwidth), parseMeters(properties.clearance_width), profile?.maxWidth),
+    maxLength: minimum(parseMeters(properties.maxlength), profile?.maxLength),
+    navigationProfile: profile?.code || null,
     maxDraft: parseMeters(properties.maxdraft ?? properties["seamark:waterway:maxdraft"]),
     zone: properties.navigationZone || properties.zone || null,
     closed: isClosedForRouting(feature),
@@ -529,12 +583,15 @@ function parseMeters(value) {
 
 function isEdgePassable(edge, boatProfile = {}) {
   if (!edge || typeof edge !== "object") return true;
+  boatProfile ||= {};
   const height = Number(boatProfile.heightMeters);
   const width = Number(boatProfile.widthMeters);
+  const length = Number(boatProfile.lengthMeters);
   const draft = Number(boatProfile.draftMeters);
   const safetyMargin = Number.isFinite(Number(boatProfile.safetyMarginMeters)) ? Number(boatProfile.safetyMarginMeters) : 0.15;
   if (Number.isFinite(height) && edge.clearanceHeight !== null && edge.clearanceHeight !== undefined && height + safetyMargin > edge.clearanceHeight) return false;
   if (Number.isFinite(width) && edge.clearanceWidth !== null && edge.clearanceWidth !== undefined && width > edge.clearanceWidth) return false;
+  if (Number.isFinite(length) && edge.maxLength != null && length > edge.maxLength) return false;
   if (Number.isFinite(draft) && edge.maxDraft !== null && edge.maxDraft !== undefined && draft > edge.maxDraft) return false;
   return true;
 }
@@ -622,17 +679,22 @@ function pathDurationMinutes(route, network, requestedSpeedKmh) {
 function routeConstraintWarnings(route, network, boatProfile = {}) {
   const warnings = [];
   if (routeUsesZone(route, network, "zone3")) warnings.push("Zone 3 / IJ: alleen varen als schipper en boot hiervoor bevoegd zijn");
-  if (!boatProfile || (!Number(boatProfile.heightMeters) && !Number(boatProfile.widthMeters) && !Number(boatProfile.draftMeters))) return warnings;
+  if (!boatProfile || (!Number(boatProfile.heightMeters) && !Number(boatProfile.widthMeters) && !Number(boatProfile.draftMeters) && !Number(boatProfile.lengthMeters))) return warnings;
   const constrained = new Map();
+  const unknownProfiles = new Set();
   for (let index = 1; index < route.length; index += 1) {
     const edge = network.nodes.get(route[index - 1].key)?.neighbors.get(route[index].key);
     if (!edge || typeof edge !== "object") continue;
     const parts = [];
+    if (!edge.navigationProfile && !edge.virtual && (Number(boatProfile.widthMeters) || Number(boatProfile.lengthMeters))) unknownProfiles.add(edge.name);
+    if (edge.navigationProfile) parts.push(`vaarprofiel ${edge.navigationProfile}`);
+    if (edge.maxLength != null) parts.push(`lengte ${edge.maxLength} m`);
     if (edge.clearanceHeight !== null && edge.clearanceHeight !== undefined) parts.push(`hoogte ${edge.clearanceHeight} m`);
     if (edge.clearanceWidth !== null && edge.clearanceWidth !== undefined) parts.push(`breedte ${edge.clearanceWidth} m`);
     if (edge.maxDraft !== null && edge.maxDraft !== undefined) parts.push(`diepgang ${edge.maxDraft} m`);
     if (parts.length) constrained.set(edge.name, parts.join(", "));
   }
+  if (unknownProfiles.size) warnings.push(`Vaarprofiel onbekend voor: ${[...unknownProfiles].slice(0, 4).join(", ")}${unknownProfiles.size > 4 ? ", …" : ""}. Lengte en breedte zijn daar alleen op beschikbare lokale beperkingen gecontroleerd.`);
   for (const [name, text] of constrained) warnings.push(`${name}: beperking ${text}`);
   return warnings.slice(0, 6);
 }

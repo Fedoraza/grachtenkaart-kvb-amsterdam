@@ -1,7 +1,8 @@
+import { closureSnapshot } from '../shared/closure-snapshot.mjs'
 const API = 'https://vaarweginformatie.nl/frp/api/messages'
 const DAY = 86400000
 const LOOKAHEAD_DAYS = 30
-const AMSTERDAM_BOUNDS = { west: 4.70, east: 5.02, south: 52.28, north: 52.46 }
+const AMSTERDAM_BOUNDS = { west: 4.65, east: 5.15, south: 52.20, north: 52.50 }
 const limitationTypes = {
   OBSTRU: { label: 'Volledige stremming', category: 'blocked', blocksRouting: true },
   NOSERV: { label: 'Geen bediening', category: 'service', blocksRouting: false },
@@ -79,8 +80,8 @@ export function normalizeClosureMessage(message, now = Date.now()) {
     const coordinates = (object.coordinates || []).filter(p => Number.isFinite(p.lon) && Number.isFinite(p.lat)).map(p => [p.lon, p.lat])
     if (!coordinates.some(([lon, lat]) => lon >= AMSTERDAM_BOUNDS.west && lon <= AMSTERDAM_BOUNDS.east && lat >= AMSTERDAM_BOUNDS.south && lat <= AMSTERDAM_BOUNDS.north)) continue
     for (const [limitationIndex, limitation] of (subject.limitations || []).entries()) {
-      const limitationType = limitationTypes[limitation.limitationCode]
-      if (!limitationType) continue
+      const limitationType = limitationTypes[limitation.limitationCode] || { label: `Vaarweghindering (${limitation.limitationCode || 'onbekend'})`, category: 'information', blocksRouting: false }
+
       const periods = limitation.limitationPeriods?.length ? limitation.limitationPeriods : [{
         startDate: message.validityStart, endDate: message.validityEnd, interval: 'CON',
       }]
@@ -129,7 +130,7 @@ export function normalizeClosureMessage(message, now = Date.now()) {
   return [...selected.values()]
 }
 
-export async function loadCurrentClosures({ fetchImpl = fetch, now = Date.now() } = {}) {
+export async function loadCurrentClosures({ fetchImpl = fetch, now = Date.now(), previous = null } = {}) {
   const json = async url => {
     const response = await fetchImpl(url, { signal: AbortSignal.timeout(15000), headers: { Accept: 'application/json' } })
     if (!response.ok) throw new Error(`Vaarweginformatie returned ${response.status}`)
@@ -143,21 +144,30 @@ export async function loadCurrentClosures({ fetchImpl = fetch, now = Date.now() 
   const keys = [...new Set(summaries.filter(row => row.location?.some(p => p.lon >= AMSTERDAM_BOUNDS.west && p.lon <= AMSTERDAM_BOUNDS.east && p.lat >= AMSTERDAM_BOUNDS.south && p.lat <= AMSTERDAM_BOUNDS.north))
     .map(row => `${row.ntsNumber.organisation}-${row.ntsNumber.year}-${row.ntsNumber.number}`))]
   const features = []
-  let failedDetails = 0
+  const failedNotices = []
   // Detail calls are bounded so Vaarweginformatie is not overloaded. A single
   // broken notice no longer hides every other current notice from the map.
   for (let i = 0; i < keys.length; i += 8) {
     const results = await Promise.allSettled(keys.slice(i, i + 8).map(key => json(`${API}/ftm/${encodeURIComponent(key)}`)))
-    for (const result of results) {
-      if (result.status === 'rejected') { failedDetails += 1; continue }
-      const message = result.value
-      if (!message.ntsNumber || !Array.isArray(message.subjectLimitations)) throw new Error('Incomplete closure detail')
-      features.push(...normalizeClosureMessage(message, now))
+    for (const [index, result] of results.entries()) {
+      const key = keys[i + index]
+      if (result.status === 'rejected' || !result.value?.ntsNumber || !Array.isArray(result.value.subjectLimitations)) {
+        failedNotices.push(key)
+        continue
+      }
+      try { features.push(...normalizeClosureMessage(result.value, now)) }
+      catch { failedNotices.push(key) }
     }
   }
+  const failedDetails = failedNotices.length
   if (keys.length && failedDetails === keys.length) throw new Error('No Vaarweginformatie details could be loaded')
+  // Keep only still-valid records for notices that explicitly failed. A notice
+  // absent from a successful summary is withdrawn and must disappear.
+  const retained = closureSnapshot(previous || { features: [] }, now).features
+    .filter(feature => failedNotices.includes(feature.properties?.noticeNumber))
+    .map(feature => ({ ...feature, properties: { ...feature.properties, sourceStale: true } }))
   return {
-    type: 'FeatureCollection', features, fetchedAt: new Date(now).toISOString(), stale: false,
-    partial: failedDetails > 0, failedDetails, noticeCount: keys.length,
+    type: 'FeatureCollection', features: [...features, ...retained], fetchedAt: new Date(now).toISOString(), stale: false,
+    partial: failedDetails > 0, failedDetails, failedNotices, retainedFeatures: retained.length, noticeCount: keys.length, refreshIntervalSeconds: 60, source: 'Rijkswaterstaat Vaarweginformatie',
   }
 }

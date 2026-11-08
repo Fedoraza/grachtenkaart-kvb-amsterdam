@@ -1,8 +1,8 @@
 import L from 'leaflet'
 
 export async function loadNavigationLayer(id) {
-  const query = new URLSearchParams({ layer: id, refresh: String(Date.now()) })
-  const response = await fetch(`/api/map/navigation-layer?${query}`, { cache: 'no-store' })
+  const query = new URLSearchParams({ layer: id })
+  const response = await fetch(`/api/map/navigation-layer?${query}`, { cache: 'no-cache' })
   const data = await response.json()
   if (!response.ok) throw new Error(data.error || `Could not load ${id}`)
   return data
@@ -263,6 +263,7 @@ function closurePopup(properties) {
     <div class="closure-popup__period"><b>${isUpcoming ? 'Vanaf' : 'Geldig'}</b><span>${escapeHtml(formatDate(properties.start) || 'Nu')} – ${escapeHtml(end)}</span></div>
     ${value ? `<div class="closure-popup__impact"><b>Beperking</b><span>${escapeHtml(value)}</span></div>` : ''}
     ${properties.reason ? `<div class="closure-popup__impact"><b>Reden</b><span>${escapeHtml(properties.reason)}</span></div>` : ''}
+    ${properties.sourceStale ? '<p>Dit bericht kon niet worden vernieuwd. De laatst bekende gegevens worden getoond.</p>' : ''}
     ${properties.description ? `<p>${escapeHtml(properties.description)}</p>` : ''}
     <div class="closure-popup__route">${properties.blocksRouting ? 'Routeplanner vermijdt deze locatie.' : 'Informatie en waarschuwing; route blijft beschikbaar.'}</div>
     ${sourceUrl ? `<a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener">Open officieel bericht bij Vaarweginformatie ↗</a>` : ''}

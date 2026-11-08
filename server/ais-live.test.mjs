@@ -30,3 +30,13 @@ test("static AIS fields do not erase the latest dynamic position", () => {
   assert.equal(merged.latitude, 52.37);
   assert.equal(merged.sourceReceivedAt, position.sourceReceivedAt);
 });
+
+
+test('class-B part B and position messages with blank identity preserve the known boat', () => {
+  const previous = { name: 'LOVERS 1', mmsi: '244123456', latitude: 52.37, longitude: 4.9, sourceReceivedAt: '2026-10-31T10:00:00Z' }
+  const merged = mergeAisState(previous, { type: 'vessel-static', name: '', callSign: 'TEST', latitude: null })
+  assert.equal(merged.name, 'LOVERS 1')
+  assert.equal(merged.latitude, previous.latitude)
+  assert.equal(merged.sourceReceivedAt, previous.sourceReceivedAt)
+  assert.equal(feedState({ configured: true, open: true, messageAgeMs: 100, positionAgeMs: 180000, watchdogMs: 120000 }).status, 'degraded')
+})

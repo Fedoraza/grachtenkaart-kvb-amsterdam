@@ -1,0 +1,259 @@
+{
+  "source": "Rijkswaterstaat FIS VNDS, retrieved 2026-11-07",
+  "bridges": [
+    {
+      "type": "Feature",
+      "id": "brug.1122",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.9109073,
+          52.37617689
+        ]
+      },
+      "geometry_name": "shape",
+      "properties": {
+        "id": 26960,
+        "geotype": "bridge",
+        "geogeneration": 4706,
+        "name": "Oosterdoksdraaibrug (Brug 2270)",
+        "foreigncode": null,
+        "routeid": 7029,
+        "fairwaysectionid": 54263,
+        "isrsid": 9074190,
+        "fairwayid": 9782,
+        "canopen": "Yes",
+        "hasopeningonotherfairway": "No",
+        "isremotecontrolled": "No",
+        "referencelevel": "NAP",
+        "mhwreferencelevel": "CANAL",
+        "voyageplanningpoint": "Yes",
+        "vincode": "65146442",
+        "routekmbegin": 0.371,
+        "routekmend": 0.37136959,
+        "city": "Amsterdam",
+        "administrationid": 23978,
+        "numberofopenings": 2,
+        "phonenumber": "088 - 9394095",
+        "relatedbuildingcomplexname": null,
+        "rotation": -85,
+        "length": null,
+        "width": null,
+        "operatingtimesid": 28181,
+        "condition": "CONSTRUCTED",
+        "mhwoffset": null,
+        "note": null
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "brug.1628",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.91078408,
+          52.37689418
+        ]
+      },
+      "geometry_name": "shape",
+      "properties": {
+        "id": 38832,
+        "geotype": "bridge",
+        "geogeneration": 4015,
+        "name": "Oosterdoksspoorbrug",
+        "foreigncode": null,
+        "routeid": 7029,
+        "fairwaysectionid": 54263,
+        "isrsid": 9068088,
+        "fairwayid": 9782,
+        "canopen": "Yes",
+        "hasopeningonotherfairway": "No",
+        "isremotecontrolled": "Yes",
+        "referencelevel": "KP",
+        "mhwreferencelevel": "CANAL",
+        "voyageplanningpoint": "Yes",
+        "vincode": "4789",
+        "routekmbegin": 0.296,
+        "routekmend": 0.29643264,
+        "city": "Amsterdam",
+        "administrationid": 23024,
+        "numberofopenings": 2,
+        "phonenumber": "0900 9394",
+        "relatedbuildingcomplexname": null,
+        "rotation": -85,
+        "length": null,
+        "width": null,
+        "operatingtimesid": 38491,
+        "condition": "CONSTRUCTED",
+        "mhwoffset": null,
+        "note": null
+      }
+    }
+  ],
+  "openings": [
+    {
+      "type": "Feature",
+      "id": "opening.1582",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.91067947,
+          52.37688437
+        ]
+      },
+      "geometry_name": "shape",
+      "properties": {
+        "id": 30416,
+        "geotype": "opening",
+        "geogeneration": 3832,
+        "name": "Doorvaartopening 1 (vast) Oosterdoksspoorbrug",
+        "routeid": 7029,
+        "routekmbegin": 0.296,
+        "routekmend": 0.29577657,
+        "isrsid": 9068089,
+        "fairwayid": 9782,
+        "fairwaysectionid": 54263,
+        "parentid": 38832,
+        "parentgeotype": "bridge",
+        "note": null,
+        "number": 1,
+        "orientation": null,
+        "type": "VST",
+        "width": 17,
+        "widthconvoy": 15.5,
+        "silldepth": null,
+        "passagedurationm": 0,
+        "heightclosed": 4.7,
+        "condition": "CONSTRUCTED",
+        "clearanceheightclosed": 5.1,
+        "heightopened": null,
+        "clearanceheightopened": null,
+        "foreigncode": null,
+        "vincode": "4790"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "opening.1892",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.91081285,
+          52.37615796
+        ]
+      },
+      "geometry_name": "shape",
+      "properties": {
+        "id": 36520,
+        "geotype": "opening",
+        "geogeneration": 4451,
+        "name": "Doorvaartopening 1 (beweegbaar) Oosterdoksdraaibrug",
+        "routeid": 7029,
+        "routekmbegin": 0.377,
+        "routekmend": 0.37730533,
+        "isrsid": 9074144,
+        "fairwayid": 9782,
+        "fairwaysectionid": 54263,
+        "parentid": 26960,
+        "parentgeotype": "bridge",
+        "note": null,
+        "number": 1,
+        "orientation": null,
+        "type": "DR",
+        "width": 19.9,
+        "widthconvoy": 19.9,
+        "silldepth": null,
+        "passagedurationm": 0,
+        "heightclosed": 2.85,
+        "condition": "CONSTRUCTED",
+        "clearanceheightclosed": 3.25,
+        "heightopened": null,
+        "clearanceheightopened": null,
+        "foreigncode": null,
+        "vincode": "57964"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "opening.2420",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.91111837,
+          52.37691697
+        ]
+      },
+      "geometry_name": "shape",
+      "properties": {
+        "id": 46508,
+        "geotype": "opening",
+        "geogeneration": 3832,
+        "name": "Doorvaartopening 2 (beweegbaar) Oosterdoksspoorbrug",
+        "routeid": 7029,
+        "routekmbegin": 0.299,
+        "routekmend": 0.29946157,
+        "isrsid": 9068087,
+        "fairwayid": 9782,
+        "fairwaysectionid": 54263,
+        "parentid": 38832,
+        "parentgeotype": "bridge",
+        "note": null,
+        "number": 2,
+        "orientation": null,
+        "type": "BC",
+        "width": 19,
+        "widthconvoy": 19,
+        "silldepth": null,
+        "passagedurationm": 10,
+        "heightclosed": 4.7,
+        "condition": "CONSTRUCTED",
+        "clearanceheightclosed": 5.1,
+        "heightopened": null,
+        "clearanceheightopened": null,
+        "foreigncode": null,
+        "vincode": "4791"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "opening.2789",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.91130028,
+          52.3763312
+        ]
+      },
+      "geometry_name": "shape",
+      "properties": {
+        "id": 52978,
+        "geotype": "opening",
+        "geogeneration": 4413,
+        "name": "Doorvaartopening 2 (beweegbaar) Oosterdoksdraaibrug",
+        "routeid": 7029,
+        "routekmbegin": 0.366,
+        "routekmend": 0.36643283,
+        "isrsid": 9074389,
+        "fairwayid": 9782,
+        "fairwaysectionid": 54263,
+        "parentid": 26960,
+        "parentgeotype": "bridge",
+        "note": null,
+        "number": 2,
+        "orientation": null,
+        "type": "DR",
+        "width": 15.5,
+        "widthconvoy": 15.5,
+        "silldepth": null,
+        "passagedurationm": 0,
+        "heightclosed": 2.85,
+        "condition": "CONSTRUCTED",
+        "clearanceheightclosed": 3.25,
+        "heightopened": null,
+        "clearanceheightopened": null,
+        "foreigncode": null,
+        "vincode": "57965"
+      }
+    }
+  ]
+}

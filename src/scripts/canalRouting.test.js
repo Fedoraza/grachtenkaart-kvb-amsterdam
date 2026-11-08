@@ -173,6 +173,26 @@ test('generates a loop route that returns to the start within the requested time
   assert.ok(result.durationMinutes <= 20)
   assert.ok(result.coordinates.length >= 4)
   assert.deepEqual(result.coordinates[0], result.coordinates.at(-1))
+  assert.ok(result.retracedRoutePercent <= 42)
+})
+
+test('does not present a single waterway sailed out and back as a loop', () => {
+  const network = buildCanalRoutingNetwork({
+    type: 'FeatureCollection',
+    features: [{
+      type: 'Feature',
+      geometry: { type: 'LineString', coordinates: [[4.9000, 52.3700], [4.9010, 52.3700], [4.9020, 52.3700], [4.9030, 52.3700]] },
+      properties: { name: 'Doodlopende rechte lijn' },
+    }],
+  }, { respectRestrictions: true, includeSupplementalOpenWater: false })
+
+  const result = generateCanalLoopRoute(
+    { latitude: 52.3700, longitude: 4.9000 },
+    network,
+    { targetMinutes: 20, speedKmh: 6, seed: 4, attempts: 60 },
+  )
+
+  assert.equal(result.status, 'no-loop')
 })
 
 test('generated loop routes do not use virtual map-gap connectors', () => {
@@ -193,6 +213,18 @@ test('generated loop routes do not use virtual map-gap connectors', () => {
   )
 
   assert.equal(result.status, 'no-loop')
+})
+
+test('a two-hour Amsterdam loop stays close to the requested duration', () => {
+  const exportGeoJson = JSON.parse(readFileSync(new URL('../../public/export.geojson', import.meta.url), 'utf8'))
+  const network = buildCanalRoutingNetwork(exportGeoJson, { respectRestrictions: true })
+  const result = generateCanalLoopRoute(
+    { latitude: 52.3692, longitude: 4.9206 }, network,
+    { targetMinutes: 120, speedKmh: 6, seed: 2 },
+  )
+  assert.equal(result.status, 'ok')
+  assert.ok(result.durationMinutes >= 110 && result.durationMinutes <= 120)
+  assert.equal(result.virtualSegmentCount, 0)
 })
 
 test('manual route ETA ignores live AIS traffic', () => {

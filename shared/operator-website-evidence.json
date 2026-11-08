@@ -1,0 +1,607 @@
+[
+  {
+    "name": "G-Star",
+    "operatorId": "kinboat",
+    "sourceUrl": "https://kinboat.com/veelgestelde-vragen/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "KIN12",
+    "aliases": [
+      "KIN 12"
+    ],
+    "operatorId": "kinboat",
+    "sourceUrl": "https://kinboat.com/veelgestelde-vragen/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Jackson 1",
+    "operatorId": "those-dam-boat-guys",
+    "sourceUrl": "https://www.thosedamboatguys.com/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Jackson 2",
+    "operatorId": "those-dam-boat-guys",
+    "sourceUrl": "https://www.thosedamboatguys.com/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Jackson 3",
+    "operatorId": "those-dam-boat-guys",
+    "sourceUrl": "https://www.thosedamboatguys.com/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Jackson 4",
+    "operatorId": "those-dam-boat-guys",
+    "sourceUrl": "https://www.thosedamboatguys.com/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Jackson 5",
+    "operatorId": "those-dam-boat-guys",
+    "sourceUrl": "https://www.thosedamboatguys.com/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "City Tender Vondel",
+    "aliases": [
+      "Vondel"
+    ],
+    "operatorId": "smidtje",
+    "sourceUrl": "https://smidtje.nl/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Wilhelmus",
+    "aliases": [
+      "De Wilhelmus"
+    ],
+    "operatorId": "smidtje",
+    "sourceUrl": "https://smidtje.nl/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "'t Smidtje",
+    "operatorId": "smidtje",
+    "sourceUrl": "https://smidtje.nl/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Rinske",
+    "aliases": [
+      "Tjalk Rinske"
+    ],
+    "operatorId": "smidtje",
+    "sourceUrl": "https://smidtje.nl/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Mooie Nel",
+    "operatorId": "smidtje",
+    "sourceUrl": "https://smidtje.nl/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Mona Lisa",
+    "operatorId": "smidtje",
+    "sourceUrl": "https://smidtje.nl/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Terra Nova",
+    "operatorId": "smidtje",
+    "sourceUrl": "https://smidtje.nl/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "City Tender Couperus",
+    "aliases": [
+      "Couperus"
+    ],
+    "operatorId": "smidtje",
+    "sourceUrl": "https://smidtje.nl/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Geertje",
+    "operatorId": "pure-boats",
+    "sourceUrl": "https://pureboats.com/nl/what-boats-does-pure-boats-use-for-the-light-festival-cruise/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Schollevaar",
+    "operatorId": "pure-boats",
+    "sourceUrl": "https://pureboats.com/nl/what-boats-does-pure-boats-use-for-the-light-festival-cruise/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Pure Spirit",
+    "operatorId": "pure-boats",
+    "sourceUrl": "https://pureboats.com/nl/what-boats-does-pure-boats-use-for-the-light-festival-cruise/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Stan Huygens",
+    "operatorId": "pure-boats",
+    "sourceUrl": "https://pureboats.com/nl/what-boats-does-pure-boats-use-for-the-light-festival-cruise/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Lucy",
+    "operatorId": "pure-boats",
+    "sourceUrl": "https://pureboats.com/nl/what-boats-does-pure-boats-use-for-the-light-festival-cruise/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Danique",
+    "operatorId": "pure-boats",
+    "sourceUrl": "https://pureboats.com/nl/what-boats-does-pure-boats-use-for-the-light-festival-cruise/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Saloonsloep",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Rosé",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Old Queen",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Eveline",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Bartolotti",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Iris",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Roos",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Griffioen",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Swaen",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Wolk",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Agatha",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Titanic",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Vibe",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Naut",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Lucky Strike",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Dutchman",
+    "aliases": [
+      "The Dutchman"
+    ],
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Green Marine",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Vording",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Nomag",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Apsara",
+    "operatorId": "flagship",
+    "sourceUrl": "https://flagshipamsterdam.com/our-boats/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Corneille",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Jeroen Krabbé",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Rembrandt",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Dr. Albert Heijn",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Anton Dreesmann",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31",
+    "aliases": [
+      "Dr. Anton Dreesmann"
+    ]
+  },
+  {
+    "name": "Pieter Heijn I",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Pieter Heijn II",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Pieter Heijn III",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Ir. Frits Fentener van Vlissingen",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Albert Cuyp",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Breitner",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Ferdinand Bol",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "J. Vermeer",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31",
+    "aliases": [
+      "Johannes Vermeer"
+    ]
+  },
+  {
+    "name": "Jacob van Ruysdael",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31",
+    "aliases": [
+      "Jacob van Ruisdael"
+    ]
+  },
+  {
+    "name": "Mondriaan",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Abel Tasman",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Michiel de Ruyter",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Henry Hudson",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "M.C. Escher",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Judith Leyster",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Jan van Riebeeck",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Aert van Nes",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Horatio Nelson",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Dr. Albert Schweitzer",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Johann Strauss",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Olivier van Noort",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Charles Gounod",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Franz Lehar",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Ludwig van Beethoven",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31",
+    "aliases": [
+      "Ludwig von Beethoven"
+    ]
+  },
+  {
+    "name": "W.A. Mozart",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "De Amstel",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Josephine",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Oboot",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "André Hazes",
+    "operatorId": "stromma",
+    "sourceUrl": "https://www.stromma.com/globalassets/netherlands/amsterdam/product_menus/groups_charter/our-fleet-vlootoverzicht-2022/2022-strommanl-vlootoverzicht_nl-def.pdf",
+    "sourcePublishedYear": 2022,
+    "sourceLinkedFrom": "https://www.stromma.com/nl-nl/amsterdam/groepen-events/vloot/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Najade",
+    "operatorId": "de-nederlanden",
+    "sourceUrl": "https://denederlanden.com/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Proost van St. Jan",
+    "aliases": [
+      "Proost van Sint Jan"
+    ],
+    "operatorId": "de-nederlanden",
+    "sourceUrl": "https://denederlanden.com/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Bredero",
+    "operatorId": "de-nederlanden",
+    "sourceUrl": "https://denederlanden.com/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Multatuli",
+    "operatorId": "de-nederlanden",
+    "sourceUrl": "https://denederlanden.com/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Jacob van Lennep",
+    "operatorId": "de-nederlanden",
+    "sourceUrl": "https://denederlanden.com/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Hildebrand",
+    "operatorId": "de-nederlanden",
+    "sourceUrl": "https://denederlanden.com/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Peter de Grote",
+    "operatorId": "de-nederlanden",
+    "sourceUrl": "https://denederlanden.com/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Wapen van Amsterdam",
+    "operatorId": "de-nederlanden",
+    "sourceUrl": "https://denederlanden.com/boten/",
+    "reviewedAt": "2026-10-31"
+  },
+  {
+    "name": "Wan-Hoop",
+    "operatorId": "de-nederlanden",
+    "sourceUrl": "https://denederlanden.com/boten/",
+    "reviewedAt": "2026-10-31"
+  }
+]

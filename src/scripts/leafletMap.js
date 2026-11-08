@@ -111,12 +111,16 @@ export function createMap(el) {
   map.getPane("tooltipPane").style.zIndex = "690";
   map.getPane("popupPane").style.zIndex = "800";
 
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  const streetLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors",
     className: "base-map-layer",
     referrerPolicy: "strict-origin-when-cross-origin",
+    updateWhenIdle: true,
+    updateWhenZooming: false,
+    keepBuffer: 1,
     maxZoom: 19,
   }).addTo(map);
+  map.baseMapLayers = { street: streetLayer };
 
   addCombinedScaleControl(map);
   closePopupOnZoom(map);
@@ -124,6 +128,31 @@ export function createMap(el) {
   persistMapView(map);
 
   return map;
+}
+
+export function setBaseMapStyle(map, style) {
+  if (!map) return;
+  const layers = map.baseMapLayers || {};
+  if (!layers.aerial) {
+    layers.aerial = L.tileLayer.wms("https://service.pdok.nl/hwh/luchtfotorgb/wms/v1_0", {
+      layers: "Actueel_ortho25",
+      format: "image/jpeg",
+      transparent: false,
+      updateWhenIdle: true,
+      updateWhenZooming: false,
+      keepBuffer: 1,
+      attribution: 'Luchtfoto: <a href="https://www.pdok.nl/">PDOK</a> / Samenwerkingsverband Beeldmateriaal (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>)',
+      maxZoom: 19,
+    });
+  }
+  map.baseMapLayers = layers;
+  if (style === "aerial") {
+    map.removeLayer(layers.street);
+    layers.aerial.addTo(map);
+  } else {
+    map.removeLayer(layers.aerial);
+    layers.street.addTo(map);
+  }
 }
 
 function addCombinedScaleControl(map) {
@@ -345,7 +374,7 @@ export async function addCanals(map, canalsData) {
   layer.featureLayerByKey = buildCanalFeatureLayerLookup(layer);
   layer.highlightOverlayByKey = new Map();
   if (!map.hasSavedView) {
-    map.fitBounds(layer.getBounds());
+    map.fitBounds(layer.getBounds(), { animate: false });
   }
   addOnewayDirectionArrows(map, layer);
 

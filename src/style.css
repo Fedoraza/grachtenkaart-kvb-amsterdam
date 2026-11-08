@@ -68,41 +68,86 @@ body {
 .ais-vessel {
   align-items: center;
   display: flex;
-  height: 30px;
+  height: 36px;
   justify-content: center;
-  transition: transform 300ms ease;
+  position: relative;
   width: 30px;
 }
 
-.ais-vessel span {
-  background: #0f172a;
-  border: 2px solid white;
-  box-shadow: 0 2px 9px rgb(15 23 42 / 0.45);
-  clip-path: polygon(50% 0, 88% 88%, 50% 70%, 12% 88%);
+.ais-vessel__hull {
   display: block;
-  height: 25px;
-  width: 19px;
+  filter: drop-shadow(0 2px 3px rgb(15 23 42 / .55));
+  height: 36px;
+  transition: transform 300ms ease;
+  width: 28px;
 }
 
-.ais-vessel--company span {
-  background: #f97316;
-  border-color: #fff7ed;
-  box-shadow:
-    0 0 0 3px rgb(249 115 22 / 0.25),
-    0 2px 10px rgb(124 45 18 / 0.55);
+.ais-vessel-marker.ais-vessel--updated .ais-vessel__hull {
+  animation: ais-position-glow 1.2s ease-out;
 }
 
-.ais-vessel--nt span {
-  background: #a855f7;
-  border-color: #faf5ff;
-  box-shadow: 0 0 0 4px rgb(168 85 247 / 0.3), 0 2px 12px rgb(88 28 135 / 0.65);
+.ais-vessel--company { --ais-position-glow: rgb(251 146 60 / .85); }
+.ais-vessel--nt { --ais-position-glow: rgb(168 85 247 / .85); }
+.ais-vessel--police { --ais-position-glow: rgb(37 99 235 / .85); }
+
+@keyframes ais-position-glow {
+  0%, 100% { filter: drop-shadow(0 2px 3px rgb(15 23 42 / .55)); }
+  30% { filter: drop-shadow(0 0 8px var(--ais-position-glow, rgb(56 189 248 / .85))) drop-shadow(0 0 3px var(--ais-position-glow, rgb(56 189 248 / .85))); }
 }
 
-.ais-vessel--police span {
-  background: #2563eb;
-  border-color: #eff6ff;
-  box-shadow: 0 0 0 4px rgb(37 99 235 / 0.32), 0 2px 12px rgb(30 58 138 / 0.7);
+@media (prefers-reduced-motion: reduce) {
+  .ais-vessel-marker.ais-vessel--updated .ais-vessel__hull { animation: none; }
 }
+
+.ais-vessel__hull svg { display: block; height: 100%; width: 100%; }
+.ais-vessel__outline { fill: #38bdf8; stroke: #e0f2fe; stroke-width: 2.2; }
+.ais-vessel__deck { fill: #0c4a6e; }
+.ais-vessel__window { fill: #bae6fd; opacity: .95; }
+.ais-vessel__stern { fill: none; stroke: #e0f2fe; stroke-linecap: round; stroke-width: 1.7; }
+
+.ais-vessel--company .ais-vessel__hull {
+  filter: drop-shadow(0 2px 3px rgb(124 45 18 / .55));
+  height: 38px;
+  width: 30px;
+}
+.ais-vessel--company .ais-vessel__outline { fill: #fb923c; stroke: #fff7ed; }
+.ais-vessel--company .ais-vessel__deck { fill: #9a3412; }
+.ais-vessel--company .ais-vessel__window { fill: #ffedd5; }
+
+.ais-vessel__name {
+  background: #fff7ed;
+  border: 1px solid rgb(124 45 18 / .32);
+  border-radius: 7px;
+  box-shadow: 0 2px 9px rgb(15 23 42 / .28);
+  color: #7c2d12;
+  font-size: 10px;
+  font-weight: 850;
+  left: 32px;
+  letter-spacing: .01em;
+  line-height: 1.15;
+  max-width: 130px;
+  overflow: hidden;
+  padding: 4px 6px;
+  pointer-events: none;
+  position: absolute;
+  text-overflow: ellipsis;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  width: max-content;
+}
+
+.ais-vessel--nt .ais-vessel__hull {
+  filter: drop-shadow(0 2px 3px rgb(88 28 135 / .6));
+}
+.ais-vessel--nt .ais-vessel__outline { fill: #a855f7; stroke: #faf5ff; }
+.ais-vessel--nt .ais-vessel__deck { fill: #581c87; }
+
+.ais-vessel--police .ais-vessel__hull {
+  filter: drop-shadow(0 2px 3px rgb(30 58 138 / .65));
+}
+.ais-vessel--police .ais-vessel__outline { fill: #2563eb; stroke: #eff6ff; }
+.ais-vessel--police .ais-vessel__deck { fill: #1e3a8a; }
 
 .ais-vessel--stale {
   opacity: 0.45;
@@ -289,6 +334,12 @@ body {
 /* Mobile is the primary operating surface: controls must remain usable with one
    hand on a moving boat, without precise taps or browser zoom on form fields. */
 @media (max-width: 639px) {
+  /* A pinch starting on floating controls must not zoom the browser page.
+     Keep the Leaflet map itself free to handle pinch zoom. */
+  .map-shell > :not(.map) {
+    touch-action: pan-x pan-y;
+  }
+
   .map-shell button,
   .map-shell [role="button"],
   .map-shell input:not([type="checkbox"]):not([type="radio"]),
@@ -391,11 +442,11 @@ body {
 /* Keep company boats discoverable while making old positions distinct. */
 .ais-company-marker.ais-vessel--stale { opacity: 0.8; }
 .ais-company-marker.ais-vessel--offline { opacity: 0.7; filter: none; }
-.ais-company-marker.ais-vessel--offline .ais-vessel span {
-  background: #78350f;
-  border-color: #fbbf24;
-  border-style: dashed;
-}
+.ais-company-marker.ais-vessel--offline .ais-vessel__hull { filter: drop-shadow(0 2px 3px rgb(87 83 78 / .5)); }
+.ais-company-marker.ais-vessel--offline .ais-vessel__outline { fill: #a8a29e; stroke: #ffedd5; }
+.ais-company-marker.ais-vessel--offline .ais-vessel__deck { fill: #57534e; }
+.ais-company-marker.ais-vessel--offline .ais-vessel__name { background: #f5f5f4; border-color: #d6d3d1; color: #57534e; }
+@media (max-width: 640px) { .ais-vessel__name { max-width: 90px; font-size: 9px; padding: 3px 5px; } }
 
 .closure-popup { color: #0f172a; display: grid; gap: 9px; min-width: min(280px, 70vw); }
 .closure-popup__top { align-items: center; color: #475569; display: flex; font-size: 11px; font-weight: 800; gap: 7px; text-transform: uppercase; }
@@ -407,3 +458,16 @@ body {
 .closure-popup p { line-height: 1.45; margin: 0; white-space: pre-line; }
 .closure-popup__route { background: #fff7ed; border-left: 3px solid #f97316; border-radius: 5px; font-size: 11px; font-weight: 700; padding: 7px 8px; }
 .closure-popup a { color: #0369a1; font-size: 11px; font-weight: 800; }
+
+/* Every operator uses the same marker geometry and its catalog color. */
+.ais-vessel[style*="--operator-color"] .ais-vessel__outline { fill: var(--operator-color); stroke: #f8fafc; }
+.ais-vessel[style*="--operator-color"] .ais-vessel__deck { fill: #334155; }
+.ais-vessel[style*="--operator-color"] .ais-vessel__window { fill: #f8fafc; }
+.ais-vessel[style*="--operator-color"] .ais-vessel__name { background: #f8fafc; border-color: var(--operator-color); color: #0f172a; }
+
+.waterway-live-status { position: absolute; z-index: 1100; bottom: 110px; left: 12px; display: grid; gap: 2px; max-width: min(280px, calc(100vw - 24px)); padding: 8px 10px; border: 1px solid #ffffff26; border-radius: 12px; background: #0f172aee; color: #e2e8f0; box-shadow: 0 4px 16px #0003; font-size: 10px; }
+.waterway-live-status button { text-align: left; font-size: 12px; font-weight: 800; color: #a7f3d0; cursor: pointer; }
+.waterway-live-status p { margin: 3px 0 0; color: #fde68a; }
+.waterway-live-status--warning button { color: #fde68a; }
+
+@media (min-width: 640px) { .waterway-live-status { top: 120px; bottom: auto; } }

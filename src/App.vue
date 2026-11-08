@@ -1,9 +1,7 @@
 <template>
   <div ref="appRoot" class="h-full w-full">
-    <div v-if="isTestEnvironment" class="pointer-events-none fixed left-1/2 top-2 z-[4000] -translate-x-1/2 rounded-full border border-amber-200/70 bg-amber-400 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-950 shadow-lg">
-      Boat Tracker · Testversie
-    </div>
-    <KmLeaderboardPage v-if="isLeaderboardPage" />
+    <FleetStatisticsPage v-if="isStatisticsPage" />
+    <KmLeaderboardPage v-else-if="isLeaderboardPage" />
     <div v-else-if="auth.loading" class="flex h-full items-center justify-center bg-slate-950 text-sm text-slate-300">Loading map…</div>
     <LeafletMap v-else :key="mapSession" />
     <dialog ref="loginDialog" class="fixed inset-0 z-[3000] m-auto max-h-[95dvh] w-[min(32rem,95vw)] overflow-auto rounded-3xl border border-white/20 bg-slate-950 p-0 text-white backdrop:bg-black/60" @close="loginRequested = false">
@@ -19,13 +17,17 @@
 </template>
 
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, provide, reactive, ref } from 'vue'
-import AuthScreen from './components/AuthScreen.vue'
+import { defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from 'vue'
+import { visibleInterval } from './scripts/networkUsage.js'
+import { startUsageAnalytics } from './scripts/usageAnalytics.js'
+const AuthScreen = defineAsyncComponent(() => import('./components/AuthScreen.vue'))
 import LeafletMap from './components/LeafletMap.vue'
-import KmLeaderboardPage from './components/KmLeaderboardPage.vue'
+const FleetStatisticsPage = defineAsyncComponent(() => import('./components/FleetStatisticsPage.vue'))
+const KmLeaderboardPage = defineAsyncComponent(() => import('./components/KmLeaderboardPage.vue'))
 import { createLanguage, installDomTranslations } from './i18n.js'
 
 const appRoot = ref(null)
+const isStatisticsPage = window.location.pathname.replace(/\/+$/, '') === '/vlootstatistieken'
 const isLeaderboardPage = window.location.pathname.replace(/\/+$/, '') === '/km-leaderboard'
 const isTestEnvironment = import.meta.env.DEV
 const loginDialog = ref(null)
@@ -51,6 +53,7 @@ const auth = reactive({
   logout,
   requireLogin,
 })
+let usageTracker
 let authTimer
 let stopTranslations
 provide('auth', auth)
@@ -62,7 +65,7 @@ async function loadAuth() {
     const data = await response.json()
     auth.needsSetup = Boolean(data.needsSetup)
     auth.setupTokenRequired = Boolean(data.setupTokenRequired)
-    if (auth.user && !data.authenticated) mapSession.value++
+    if (auth.user && (!data.authenticated || auth.user.role !== data.user?.role || auth.user.id !== data.user?.id)) mapSession.value++
     auth.user = data.authenticated ? data.user : null
     language.setUser(auth.user)
   } catch {
@@ -89,11 +92,14 @@ async function logout() {
   language.setUser(null)
 }
 
-onMounted(() => {
-  if (isTestEnvironment && !isLeaderboardPage) document.title = 'Boat Tracker · Testversie'
+watch(() => auth.user?.id, () => usageTracker?.identityChanged())
+
+onMounted(async () => {
+  if (isTestEnvironment && !isLeaderboardPage && !isStatisticsPage) document.title = 'Boottracker · Testversie'
   stopTranslations = installDomTranslations(appRoot.value, language)
-  loadAuth()
-  authTimer = window.setInterval(loadAuth, 60_000)
+  await loadAuth()
+  usageTracker = startUsageAnalytics(isStatisticsPage ? 'fleet-statistics' : isLeaderboardPage ? 'leaderboard' : 'map')
+  authTimer = visibleInterval(loadAuth, 60_000)
 })
-onBeforeUnmount(() => { window.clearInterval(authTimer); stopTranslations?.() })
+onBeforeUnmount(() => { usageTracker?.stop(); authTimer?.(); stopTranslations?.() })
 </script>

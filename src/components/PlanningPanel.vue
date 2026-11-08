@@ -8,8 +8,8 @@
     <section v-else class="pointer-events-auto fixed inset-2 flex flex-col overflow-hidden rounded-3xl border border-white/15 bg-slate-950/97 text-white shadow-2xl backdrop-blur-xl sm:inset-5">
       <header class="flex items-center gap-3 border-b border-white/10 px-4 py-3 sm:px-6 sm:py-4">
         <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-400/15"><CalendarDays class="h-5 w-5 text-emerald-300" /></span>
-        <div class="min-w-0 flex-1"><p class="m-0 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300">Manual image import</p><h1 class="m-0 text-lg font-black">Boat schedule</h1></div>
-        <button type="button" class="rounded-xl bg-white/10 p-2 text-slate-300 hover:bg-white/20" @click="open = false"><X class="h-5 w-5" /></button>
+        <div class="min-w-0 flex-1"><p class="m-0 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300">{{ isAdmin ? 'Manual image import' : 'Planning' }}</p><h1 class="m-0 text-lg font-black">Boat schedule</h1></div>
+        <button type="button" class="rounded-xl bg-white/10 p-2 text-slate-300 hover:bg-white/20" aria-label="Planning sluiten" @click="open = false"><X class="h-5 w-5" /></button>
       </header>
 
       <div class="border-b border-white/10 px-4 py-3 sm:px-6">
@@ -23,6 +23,10 @@
       </div>
 
       <div class="schedule-scroll flex-1 overflow-y-auto overscroll-contain p-3 sm:p-5">
+        <aside role="note" class="mx-auto mb-4 max-w-5xl rounded-2xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-amber-100">
+          <strong class="block text-sm">Let op: planning kan afwijken</strong>
+          <p class="mb-0 mt-1 text-xs leading-relaxed">Deze planning wordt automatisch uit gedeelde planningsafbeeldingen gelezen. Daarbij kunnen namen en tijden verkeerd worden herkend en latere wijzigingen ontbreken. Controleer de actuele planning bij de organisator.</p>
+        </aside>
         <section v-if="isAdmin" class="mx-auto mb-5 max-w-5xl overflow-hidden rounded-3xl border border-sky-300/15 bg-sky-400/[0.04]">
           <button type="button" class="flex w-full items-center gap-3 p-4 text-left" @click="uploadOpen = !uploadOpen">
             <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-400/15"><ImageUp class="h-5 w-5 text-sky-200" /></span>
@@ -89,7 +93,7 @@
 
         <div v-if="loading" class="flex h-40 items-center justify-center text-sm text-slate-400">Loading schedule…</div>
         <div v-else-if="error" class="mx-auto max-w-xl rounded-2xl bg-red-500/15 p-4 text-sm text-red-200">{{ error }}</div>
-        <div v-else-if="!locationSchedules.length" class="mx-auto max-w-xl rounded-3xl border border-dashed border-white/15 p-10 text-center"><CalendarDays class="mx-auto h-8 w-8 text-slate-600" /><h2 class="mb-1 mt-3 text-base font-bold">No schedule for this day</h2><p class="m-0 text-xs text-slate-400">Upload an image above and assign it to a location.</p></div>
+        <div v-else-if="!locationSchedules.length" class="mx-auto max-w-xl rounded-3xl border border-dashed border-white/15 p-10 text-center"><CalendarDays class="mx-auto h-8 w-8 text-slate-600" /><h2 class="mb-1 mt-3 text-base font-bold">No schedule for this day</h2><p class="m-0 text-xs text-slate-400">{{ isAdmin ? 'Upload an image above and assign it to a location.' : 'Choose another day to view its schedule.' }}</p></div>
         <div v-else class="mx-auto max-w-5xl space-y-2 pb-8">
           <section class="rounded-3xl border border-violet-300/15 bg-violet-400/[0.06] p-4">
             <div class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-400/15 text-violet-200">OPS</span><div><span class="block text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300">Day operations</span><strong class="text-sm">OPS for {{ dateHeading }}</strong></div></div>
@@ -124,6 +128,7 @@
 </template>
 
 <script setup>
+import { useMobileMapPanel } from '../scripts/useMobileMapPanel.js'
 import { computed, inject, onUnmounted, ref } from 'vue'
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ImageUp, LoaderCircle, RotateCw, ScanText, Trash2, X } from '@lucide/vue'
 
@@ -131,6 +136,7 @@ const emit = defineEmits(['show-boat', 'show-tour-route', 'schedule-updated'])
 const auth = inject('auth')
 const isAdmin = computed(() => auth.user?.role === 'admin')
 const open = ref(false)
+useMobileMapPanel('planning', open)
 const uploadOpen = ref(false)
 const today = localDateString(new Date())
 const selectedDate = ref(today)
@@ -159,7 +165,7 @@ const rescanError = ref(false)
 const expandedLocations = ref(new Set())
 const expandedBoats = ref(new Set())
 let scheduleRequestId = 0
-const scheduleRefreshTimer = window.setInterval(() => { if (open.value && !loading.value) loadSchedule({ silent: true }) }, 30_000)
+const scheduleRefreshTimer = window.setInterval(() => { if (document.visibilityState !== 'hidden' && open.value && !loading.value) loadSchedule({ silent: true }) }, 30_000)
 onUnmounted(() => window.clearInterval(scheduleRefreshTimer))
 
 const dateHeading = computed(() => new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: selectedDate.value.slice(0, 4) !== today.slice(0, 4) ? 'numeric' : undefined }).format(new Date(`${selectedDate.value}T12:00:00`)))

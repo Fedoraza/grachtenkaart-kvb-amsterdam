@@ -14,15 +14,12 @@ import QRCode from "qrcode";
 const logger = pino({ level: "silent" });
 const authDirectory = process.env.WHATSAPP_AUTH_DIRECTORY || join(process.cwd(), "data", "whatsapp-auth");
 
-export function createWhatsAppConnector({ enabled = true, isChatEnabled, onChats, onGroupMessage, onPlanningMessage, onLocationStaffMessage, onVerificationMessage, onReady }) {
+export function createWhatsAppConnector({ enabled = true, isChatEnabled, onChats, onGroupMessage, onPlanningMessage, onLocationStaffMessage, onReady }) {
   let socket = null;
   let reconnectTimer = null;
   let generation = 0;
   let processingQueue = Promise.resolve();
   const chatMetadata = new Map();
-  const eligiblePhones = new Set();
-  const eligiblePhoneKeys = new Set();
-  const phoneByJid = new Map();
   const recentPlanningText = new Map();
   const pendingPlanningImages = new Map();
   let credentials = null;
@@ -89,7 +86,7 @@ export function createWhatsAppConnector({ enabled = true, isChatEnabled, onChats
     const nextSocket = makeWASocket({
       auth,
       version: webVersion,
-      browser: Browsers.macOS("Boat Tracker"),
+      browser: Browsers.macOS("Boottracker"),
       logger,
       markOnlineOnConnect: false,
       syncFullHistory: true,
@@ -122,7 +119,7 @@ export function createWhatsAppConnector({ enabled = true, isChatEnabled, onChats
         state = {
           ...state,
           status: "connected",
-          message: "Connected for employee account verification.",
+          message: "Connected for read-only planning imports.",
           qrDataUrl: null,
           account: nextSocket.user?.id || null,
           lastError: null,
@@ -144,7 +141,7 @@ export function createWhatsAppConnector({ enabled = true, isChatEnabled, onChats
           message: loggedOut
             ? "WhatsApp was logged out. Pair it again."
             : connectionReplaced
-              ? "This WhatsApp session is active in another Boat Tracker instance. Stop that instance, then select Reconnect."
+              ? "This WhatsApp session is active in another Boottracker instance. Stop that instance, then select Reconnect."
               : "Connection lost; reconnecting…",
           qrDataUrl: null,
           account: loggedOut ? null : state.account,
@@ -244,22 +241,6 @@ export function createWhatsAppConnector({ enabled = true, isChatEnabled, onChats
       const chats = [...combined.values()].map(normalizeChatMetadata);
       for (const chat of chats) chatMetadata.set(chat.id, chat);
       onChats(chats);
-      eligiblePhones.clear();
-      eligiblePhoneKeys.clear();
-      phoneByJid.clear();
-      for (const group of combined.values()) {
-        const metadata = normalizeChatMetadata(group);
-        if (metadata.isCommunity || metadata.isAnnouncement || !await isChatEnabled(metadata.id, metadata)) continue;
-        for (const participant of group.participants || []) {
-          const phone = await resolveParticipantPhone(activeSocket, participant);
-          if (!phone) continue;
-          eligiblePhones.add(phone);
-          for (const key of comparablePhoneKeys(phone)) eligiblePhoneKeys.add(key);
-          for (const jid of [participant.id, participant.lid, participant.phoneNumber]) {
-            if (jid) phoneByJid.set(jidKey(jid), phone);
-          }
-        }
-      }
     } catch (error) {
       console.error("Could not load WhatsApp groups", error.message);
     }
@@ -272,19 +253,7 @@ export function createWhatsAppConnector({ enabled = true, isChatEnabled, onChats
     const imageDocument = String(content.documentMessage?.mimetype || "").startsWith("image/") ? content.documentMessage : null;
     const plainText = content.conversation || content.extendedTextMessage?.text || content.imageMessage?.caption
       || imageDocument?.caption || "";
-    if (!chatId.endsWith("@g.us")) {
-      if (message.key.fromMe) return;
-      const senderPhone = resolveDirectSenderPhone(message.key, phoneByJid);
-      if (senderPhone && plainText.trim()) {
-        await onVerificationMessage?.({
-          phone: senderPhone,
-          text: plainText.trim(),
-          externalMessageId: message.key.id,
-          receivedAt: Number(message.messageTimestamp || 0) * 1000 || Date.now(),
-        });
-      }
-      return;
-    }
+    if (!chatId.endsWith("@g.us")) return;
     let metadata = chatMetadata.get(chatId);
     if (!metadata) {
       try {
@@ -377,17 +346,6 @@ export function createWhatsAppConnector({ enabled = true, isChatEnabled, onChats
     logout,
     refreshGroups,
     rescanHistory,
-    isEligiblePhone: async (phone) => {
-      if (!enabled) return false;
-      const matches = () => comparablePhoneKeys(phone).some((key) => eligiblePhoneKeys.has(key));
-      if (!matches() && socket) await refreshGroups(socket);
-      return matches();
-    },
-    getVerificationInfo: () => ({
-      connected: enabled && state.status === "connected",
-      phone: phoneFromJid(state.account) || configuredVerificationPhone(),
-      eligibleMemberCount: eligiblePhones.size,
-    }),
     getState: () => ({ ...state }),
   };
 }
@@ -420,63 +378,4 @@ function unwrapMessage(message) {
       || current.documentWithCaptionMessage?.message || current.editedMessage?.message;
   }
   return current || {};
-}
-
-function resolveDirectSenderPhone(key, phoneByJid) {
-  for (const jid of [key.remoteJidAlt, key.participantAlt, key.remoteJid, key.participant]) {
-    if (!jid) continue;
-    const direct = phoneFromJid(jid);
-    if (direct) return direct;
-    const mapped = phoneByJid.get(jidKey(jid));
-    if (mapped) return mapped;
-  }
-  return null;
-}
-
-function phoneFromJid(jid) {
-  const value = String(jid || "");
-  if (value.includes("@lid") || (value.includes("@") && !value.includes("@s.whatsapp.net") && !value.includes("@hosted"))) return null;
-  let digits = value.split("@")[0].split(":")[0].replace(/\D/g, "");
-  if (digits.startsWith("00")) digits = digits.slice(2);
-  if (/^0\d{9}$/.test(digits)) digits = `31${digits.slice(1)}`;
-  return digits.length >= 8 && digits.length <= 15 ? `+${digits}` : null;
-}
-
-async function resolveParticipantPhone(activeSocket, participant) {
-  for (const candidate of [participant.phoneNumber, participant.id]) {
-    const phone = phoneFromJid(candidate);
-    if (phone) return phone;
-  }
-  for (const candidate of [participant.lid, participant.id]) {
-    if (!String(candidate || "").includes("@lid")) continue;
-    try {
-      const phoneJid = await activeSocket.signalRepository?.lidMapping?.getPNForLID(jidKey(candidate));
-      const phone = phoneFromJid(phoneJid);
-      if (phone) return phone;
-    } catch {
-      // Some privacy IDs have no locally cached phone mapping.
-    }
-  }
-  return null;
-}
-
-function comparablePhoneKeys(value) {
-  let digits = String(value || "").replace(/\D/g, "");
-  if (digits.startsWith("00")) digits = digits.slice(2);
-  if (/^0\d{9}$/.test(digits)) digits = `31${digits.slice(1)}`;
-  const keys = new Set([digits]);
-  if (digits.startsWith("31") && digits.length === 11) {
-    keys.add(`0${digits.slice(2)}`);
-    keys.add(digits.slice(2));
-  }
-  return [...keys].filter(Boolean);
-}
-
-function jidKey(jid) {
-  return String(jid || "").replace(/:\d+@/, "@");
-}
-
-function configuredVerificationPhone() {
-  const digits = String(process.env.WHATSAPP_VERIFICATION_NUMBER || "").replace(/\D/g, "");
-  return digits.length >= 8 && digits.length <= 15 ? `+${digits}` : null;
 }

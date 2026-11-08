@@ -1,0 +1,368 @@
+[
+  {
+    "boatName": "AGATHA",
+    "mmsi": "244130609",
+    "file": "244130609.webp",
+    "sha256": "535c672dc9af8920c84f57743984809a6d305675bdd675781bbeea94e5004c10",
+    "sourceTitle": "Agatha",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/02/Agatha-1-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "AMELIE ZAHRA",
+    "mmsi": "244032287",
+    "file": "244032287.webp",
+    "sha256": "57448c2c3503bcd53a3f94284d24be8003cdace4b275e7193b9825e8d9014ff2",
+    "sourceTitle": "Amelie-Zahra-in-de-gracht",
+    "sourcePage": "https://amsterdamboatexperience.com/amelie-zahra-in-de-gracht/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/04/Amelie-Zahra-in-de-gracht.jpg",
+    "evidence": "named-official-media",
+    "evidencePage": "https://amsterdamboatexperience.com/wp-json/wp/v2/media?search=AMELIE+ZAHRA&per_page=20&_fields=id%2Ctitle%2Calt_text%2Csource_url%2Clink"
+  },
+  {
+    "boatName": "APSARA",
+    "mmsi": "244090957",
+    "file": "244090957.webp",
+    "sha256": "422b086505137e53af151a6299eda633ef25e7069ca28aaa8eb32178cc9fdd52",
+    "sourceTitle": "APSARA",
+    "sourcePage": "https://amsterdamboatexperience.com/boat/apsara/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/02/Alle-boten-Flagship-april-2020-65-1-scaled.avif",
+    "evidence": "named-official-gallery"
+  },
+  {
+    "boatName": "ATLANTIS",
+    "mmsi": "244014141",
+    "file": "244014141.webp",
+    "sha256": "f952ee46c73a127dd86dab4611605b9c106140030d2f843e6854ab2e4e99207e",
+    "sourceTitle": "ATLANTIS",
+    "sourcePage": "https://flagshipamsterdam.com/wp-json/wp/v2/media/34773",
+    "imageUrl": "https://flagshipamsterdam.com/wp-content/uploads/2026/08/Atlantis-Open-Boat-47-min-scaled.jpg",
+    "evidence": "named-official-gallery",
+    "evidencePage": "https://amsterdamboatcenter.com/wp-json/wp/v2/media?per_page=100&page=9&media_type=image&_fields=id%2Ctitle%2Calt_text%2Csource_url%2Clink"
+  },
+  {
+    "boatName": "BARRACUDA",
+    "mmsi": "244780138",
+    "file": "244780138.webp",
+    "sha256": "b7e2cfa92326e9dcd14da3ba9c8a10b8b1a51f20412cacccb0c01a794bcc879d",
+    "sourceTitle": "Barracudasloep",
+    "sourcePage": "https://sloepvrienden.nl/barracudasloep/",
+    "imageUrl": "https://sloepvrienden.nl/wp-content/uploads/2026/09/Barracudasloep.webp",
+    "evidence": "named-official-media",
+    "evidencePage": "https://sloepvrienden.nl/wp-json/wp/v2/media?per_page=100&page=2&media_type=image&_fields=id%2Ctitle%2Calt_text%2Csource_url%2Clink"
+  },
+  {
+    "boatName": "BARTOLOTTI",
+    "mmsi": "244199316",
+    "file": "244199316.webp",
+    "sha256": "7e7586ec7e652d1ac9a96727b3da3bff87e2e2a61ab0cd7548dadd8fe3c927ad",
+    "sourceTitle": "Bartolotti",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/03/Flagship-Morning-cruise-final-19-2048x1366-1-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "DUTCHMAN",
+    "mmsi": "244130638",
+    "file": "244130638.webp",
+    "sha256": "6ac84e7ac0187f78447b02746541341baaae5f039bf40b521a0c11c27d16e709",
+    "sourceTitle": "The Dutchman",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/02/AB6A3878-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "ELISABETH",
+    "mmsi": "244830842",
+    "file": "244830842.webp",
+    "sha256": "307fc83252ff7d7cd5723504397e5825eeaa97015b1d6777524d6064c2b74f53",
+    "sourceTitle": "Elisabeth",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2024/09/RCB_4869-1-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "EVE",
+    "mmsi": "244727948",
+    "file": "244727948.webp",
+    "sha256": "cc7afae7dbebd9f20266723a9256065467ba51f4797322ad4d5fe9cfd4a59607",
+    "sourceTitle": "Eve voor aanzicht schuin (2)",
+    "sourcePage": "https://flagshipamsterdam.com/eve-voor-aanzicht-schuin-2-2/",
+    "imageUrl": "https://flagshipamsterdam.com/wp-content/uploads/2025/04/Eve-voor-aanzicht-schuin-2-scaled.jpg",
+    "evidence": "named-official-media",
+    "evidencePage": "https://flagshipamsterdam.com/wp-json/wp/v2/media?search=EVE&per_page=20&_fields=id%2Ctitle%2Calt_text%2Csource_url%2Clink"
+  },
+  {
+    "boatName": "EVELINE",
+    "mmsi": "244717092",
+    "file": "244717092.webp",
+    "sha256": "d550f01de2384e613c1b0f63adadb85927a3b1ed34083f36f345d7c4c3e7cb62",
+    "sourceTitle": "Eveline",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2023/02/FA-10-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "FAYEN",
+    "mmsi": "244034442",
+    "file": "244034442.webp",
+    "sha256": "f9e39c2f746bbf4a9cfaa4be4bebcacbab48cbc7c6d466266411371d0ff1b460",
+    "sourceTitle": "Fayen",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2023/06/Fayen2-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "FLEUR",
+    "mmsi": "244820613",
+    "file": "244820613.webp",
+    "sha256": "d2d51ec04b5390c1b47bb863816fa028e804f5739f6395fcb296b467e8bfef08",
+    "sourceTitle": "Amsterdam Boat Center",
+    "sourcePage": "https://amsterdamboatcenter.com/12-persoons-sloep-fleur/amsterdam-boat-center-13/",
+    "imageUrl": "https://amsterdamboatcenter.com/wp-content/uploads/2021/01/Sloep_Fleur_Amsterdam_Boat_Center_1280-scaled.jpg",
+    "evidence": "named-official-media",
+    "evidencePage": "https://amsterdamboatcenter.com/wp-json/wp/v2/media?per_page=100&page=8&media_type=image&_fields=id%2Ctitle%2Calt_text%2Csource_url%2Clink"
+  },
+  {
+    "boatName": "GREEN MARINE",
+    "mmsi": "244070951",
+    "file": "244070951.webp",
+    "sha256": "3a7d91cd24e6ff84c139f1eef90abae2e5e0e946aedabb33fe961fa938536023",
+    "sourceTitle": "Green Marine",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/02/A97A2797-2-scaled.avif",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "GRIFFIOEN",
+    "mmsi": "244070982",
+    "file": "244070982.webp",
+    "sha256": "71cdc4b2489f751dfa34253f80fb8c4b390d344bcde2ba79ad14cbbfbac195fd",
+    "sourceTitle": "Griffioen",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/03/Griffioen1-1-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "IRIS",
+    "mmsi": "244820333",
+    "file": "244820333.webp",
+    "sha256": "f47f8c53fb212914754637dd128f92e732a6a10f59407b12afb8cb0ea7306118",
+    "sourceTitle": "Iris",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/03/Iris-2-3-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "JOHANNA",
+    "mmsi": "244740846",
+    "file": "244740846.webp",
+    "sha256": "3e700e637f1e202afd661c528305dd90b002aea249297da973ee4a298b04711f",
+    "sourceTitle": "Johanna",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2026/04/RCB_4028-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "MANHATTAN",
+    "mmsi": "244780137",
+    "file": "244780137.webp",
+    "sha256": "449c2ee70ab1583ac7c383356b0eb334f32c15e0f8840384cc3240ac4db539d0",
+    "sourceTitle": "Manhattan",
+    "sourcePage": "https://amsterdamboatexperience.com/canal-cruise-amsterdam/manhattan/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/07/Manhattan-scaled.jpg",
+    "evidence": "named-official-media",
+    "evidencePage": "https://amsterdamboatexperience.com/wp-json/wp/v2/media?search=MANHATTAN&per_page=20&_fields=id%2Ctitle%2Calt_text%2Csource_url%2Clink"
+  },
+  {
+    "boatName": "MONNE DE MIRANDA",
+    "mmsi": "244780373",
+    "file": "244780373.webp",
+    "sha256": "67358050a47f308a3ecf59f4fda0a00129d5d4dcdab9751cb27e34d236c160ed",
+    "sourceTitle": "Monne de Miranda",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2024/09/RCB_4647-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "NOMAG",
+    "mmsi": "244850891",
+    "file": "244850891.webp",
+    "sha256": "be753f9182ec3f8a7556425b0b944c4797990726e5a24cd13c93e73ed73ce126",
+    "sourceTitle": "NOMAG",
+    "sourcePage": "https://flagshipamsterdam.com/boat/nomag/",
+    "imageUrl": "https://flagshipamsterdam.com/wp-content/uploads/2022/02/Nomag-800x746.png",
+    "evidence": "named-official-gallery"
+  },
+  {
+    "boatName": "OLD QUEEN",
+    "mmsi": "244780563",
+    "file": "244780563.webp",
+    "sha256": "f443bb2f67579ceba989e584a8116b3593219ae3d32342202ef5a0de0a838b5b",
+    "sourceTitle": "Old Queen",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2023/02/Old-Queen-1-2-800x450.png",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "PAX",
+    "mmsi": "244154960",
+    "file": "244154960.webp",
+    "sha256": "b634666fb14f9018626f3558a7e866844e61d504669af92aa8bbc1226c1983a3",
+    "sourceTitle": "Pax",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2024/09/Salonboot-Pax-1080-2-Amsterdam-Boat-Center-800x450.avif",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "ROOS",
+    "mmsi": "244126390",
+    "file": "244126390.webp",
+    "sha256": "0793868d81e04858bb30c24fdffd04a7356bda5a4303330caf7598c76e530690",
+    "sourceTitle": "Roos",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/03/Roos-1-12-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "ROSE",
+    "mmsi": "244615958",
+    "file": "244615958.webp",
+    "sha256": "dd204e7f2e099c969309e7b3ebd38ff5547858d9c36285903f5e62647903b2b8",
+    "sourceTitle": "Rosé",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2023/02/flagship-rose-2282-1-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "SALOONSLOEP",
+    "mmsi": "244236663",
+    "file": "244236663.webp",
+    "sha256": "e08cbf578c82e557ec39265ba3b04c06bdc30d98a76df93dcb8446d1b9225a5f",
+    "sourceTitle": "Passenger boat Saloonsloep",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2024/01/Wintershoot-24-34-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "SIMON",
+    "mmsi": "244013317",
+    "file": "244013317.webp",
+    "sha256": "28dac9cb7e2a13d5991ff6e0ddb05d474c18ae3f883fc3bce75fdcd244522276",
+    "sourceTitle": "Simon",
+    "sourcePage": "https://sloepvrienden.nl/",
+    "imageUrl": "https://sloepvrienden.nl/wp-content/uploads/2026/09/WhatsApp-Image-2026-03-27-at-13.42.30-1-1-640x480.webp",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "SLOEPVRIENDEN",
+    "mmsi": "244820708",
+    "file": "244820708.webp",
+    "sha256": "3f27feabf2eabc0a006185ad1730486126447c810ed3a3fbf6710c48cc13f36b",
+    "sourceTitle": "Sloepvrienden",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2026/03/AB6A4234-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "SOFIA",
+    "mmsi": "244070371",
+    "file": "244070371.webp",
+    "sha256": "df0bf4c0af0ba9102a6ecd119164980e376446570b27a33cdd2d94f66832248f",
+    "sourceTitle": "Salonboot Sofia",
+    "sourcePage": "https://sloepvrienden.nl/",
+    "imageUrl": "https://sloepvrienden.nl/wp-content/uploads/2026/09/Sloepvrienden-sloep-huren-in-amsterdam-640x480.webp",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "STELLA MARIS",
+    "mmsi": "244850452",
+    "file": "244850452.webp",
+    "sha256": "24220987ef69971121756a0f918dbd1b215781f06c6b863387462b40bd08b2fc",
+    "sourceTitle": "STELLA MARIS",
+    "sourcePage": "https://www.rederijmokum.nl/en/stella-maris-salon-boat-36-persons/",
+    "imageUrl": "https://www.rederijmokum.nl/wp-content/uploads/2024/04/Stella-Maris-salonboot-Amsterdam.webp",
+    "evidence": "named-official-gallery"
+  },
+  {
+    "boatName": "SWAEN",
+    "mmsi": "244830009",
+    "file": "244830009.webp",
+    "sha256": "fb4805214e5a8719e02d5f00519cd9b891788064ceaea463606586f23e494b9d",
+    "sourceTitle": "Swaen",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/03/SWrederijgriffioen_swaen-groot-12-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "THEO KOK",
+    "mmsi": "244850451",
+    "file": "244850451.webp",
+    "sha256": "b03a07377852469f1e470c511d10cf886ee0dc5db7e1507775ad4e62ebe98ef0",
+    "sourceTitle": "THEO KOK",
+    "sourcePage": "https://www.rederijmokum.nl/en/riverboat-theo-kok-32-person/",
+    "imageUrl": "https://www.rederijmokum.nl/wp-content/uploads/2024/04/Theo_Kok_zijaanzicht.webp",
+    "evidence": "named-official-gallery"
+  },
+  {
+    "boatName": "TIJD ZAL HET LEREN",
+    "mmsi": "244740843",
+    "file": "244740843.webp",
+    "sha256": "ff0fdadbb2f30db733a78e347d996dfb77e1b58b06ea67711032cefb0367b32f",
+    "sourceTitle": "Tijd zal het leeren",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2026/04/Elke-Smit-Photography-2-2_websize-800x450.webp",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "TITANIC",
+    "mmsi": "244022178",
+    "file": "244022178.webp",
+    "sha256": "e7e9d89302c5782e8f9a7e6deb951861d2960044db52e13775939d07916814db",
+    "sourceTitle": "Titanic",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/02/WhatsApp-Image-2020-06-19-at-11.58.47-800x450.jpeg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "VIBE",
+    "mmsi": "244130608",
+    "file": "244130608.webp",
+    "sha256": "7ad702c719c950cbf9d651091754feb201109a8786463a8cce338125ee353e5f",
+    "sourceTitle": "Vibe",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/02/small-6825-2-scaled.avif",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "VORDING",
+    "mmsi": "244130871",
+    "file": "244130871.webp",
+    "sha256": "babb01c02f16cdc06eab97f9d05524c58bd0d16236b2a07dca22546e69569fc0",
+    "sourceTitle": "Vording",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/02/Compressed-800x450.jpg",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "WOLK",
+    "mmsi": "244780372",
+    "file": "244780372.webp",
+    "sha256": "5c0b187c571be14f64c57eba1fe9f4cabddb2f9c2346c52b5fa1b3d05dc3fba1",
+    "sourceTitle": "Wolk",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2022/02/Wolk-2-800x450.png",
+    "evidence": "heading-container"
+  },
+  {
+    "boatName": "ZONNE BOOT",
+    "mmsi": "244780034",
+    "file": "244780034.webp",
+    "sha256": "64ab14cbc0c8185923adba37cd23c58f5fb7159a133cd74c172b84215bbc11b4",
+    "sourceTitle": "The Zonneboot",
+    "sourcePage": "https://amsterdamboatexperience.com/our-fleet/",
+    "imageUrl": "https://amsterdamboatexperience.com/wp-content/uploads/sites/2/2024/09/E-Boats-Zonneboot-6-800x450.avif",
+    "evidence": "heading-container"
+  }
+]

@@ -5,6 +5,10 @@
       <span class="text-[10px] font-bold uppercase tracking-wider text-sky-300">Edit mode</span>
     </div>
     <input v-model="form.name" required class="fleet-input" placeholder="Boat name" />
+    <select v-model="form.operatorId" class="fleet-input" aria-label="Rederij van de boot">
+      <option :value="null">Nog niet gekoppeld</option>
+      <option v-for="operator in sortOperatorsByBoatCount(VESSEL_OPERATORS)" :key="operator.id" :value="operator.id">{{ operator.name }}</option>
+    </select>
     <input v-model="form.mmsi" class="fleet-input" inputmode="numeric" maxlength="9" placeholder="MMSI" />
     <input v-model="form.registration" class="fleet-input" placeholder="Registration" />
     <input v-model="form.capacity" class="fleet-input" inputmode="numeric" placeholder="Passenger capacity" />
@@ -49,6 +53,7 @@
 </template>
 
 <script setup>
+import { VESSEL_OPERATORS, sortOperatorsByBoatCount } from '../../shared/vessel-operators.mjs'
 import { reactive, ref } from 'vue'
 
 const props = defineProps({ boat: { type: Object, default: null } })
@@ -59,6 +64,7 @@ const dockChoice = ref(['EH', 'Staverno'].includes(savedDock) ? savedDock : save
 const customDock = ref(dockChoice.value === 'other' ? savedDock : '')
 const form = reactive({
   id: props.boat?.id || null,
+  operatorId: props.boat?.operator_id || null,
   name: props.boat?.name || '',
   mmsi: props.boat?.mmsi || '',
   registration: props.boat?.registration || '',

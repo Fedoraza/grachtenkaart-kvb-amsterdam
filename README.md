@@ -1,6 +1,6 @@
 ## Development and production
 
-Run `npm run dev` on the laptop for the local **Boat Tracker · Testversie**. The
+Run `npm run dev` on the laptop for the local **Boottracker · Testversie**. The
 test label is displayed in the interface and the browser tab. Local development
 uses the laptop's `.env` and `data/ais.sqlite`; it does not update the production
 server.
@@ -83,7 +83,7 @@ proxies HTTP and WebSocket traffic to the application. Before starting it:
 2. Forward TCP 80 and TCP/UDP 443 from the router to the VM's fixed LAN IP.
 3. Allow only SSH, HTTP, and HTTPS through the VM and Proxmox firewalls.
 4. Generate `AUTH_SETUP_TOKEN` with `openssl rand -hex 32` and configure the AIS
-   key and WhatsApp verification number.
+   key and optional WhatsApp planning connection.
 
 Check the deployment with:
 
@@ -157,25 +157,72 @@ ignored `data/planning-images/` directory. Image recognition may take longer on
 the first upload while the OCR worker starts.
 
 The optional WhatsApp linked-device connection can read schedule images from
-enabled day groups and verify employee phone numbers. History synchronization
+enabled day groups. History synchronization
 is read-only: the application does not send chat messages or automatic replies.
 
 ## Accounts and roles
 
-On the first visit, the app asks you to create the initial administrator. No
-default password is generated. Administrators can manage boats, WhatsApp setup,
-and other accounts. Viewers can read fleet, planning, map, and AIS information,
-but server write endpoints reject their changes.
+Initial setup creates the first administrator (protected by `AUTH_SETUP_TOKEN`).
+After setup, anyone can register with name, email and a password of at least 12
+characters through `POST /api/auth/register`. New accounts always have the
+`viewer` role; client-supplied roles are ignored. There is no WhatsApp or
+employment verification. Existing email/password and phone/password logins remain
+valid. The retired verification endpoints return HTTP 410.
 
-Sessions use an HttpOnly SameSite cookie and expire after 30 days. Passwords are
-stored as salted scrypt hashes and require at least 12 characters. When
-deploying behind HTTPS, set
-`AUTH_SECURE_COOKIE=true` in `.env`.
+Roles:
+- `viewer`: normal account; public fleet/map/AIS information and personal routes,
+  without internal planning, crew, boat-duty or inventory access.
+- `flagship_employee`: Flagship planning and crew information, plus assigned
+  boat-duty tasks. An administrator assigns this role in Account → Accounts.
+- `harbour`: existing harbour/inventory permissions; no Flagship planning access.
+- `admin`: full management access, including role assignment and planning imports.
 
-Employees can also create a read-only account with their name and phone number.
-The number must occur in an enabled community day-chat member list. The website
-then displays a one-time code which the employee sends privately to the linked
-WhatsApp account. The connector never sends replies or confirmation messages;
-the website detects the inbound message and then requires the employee to set
-and confirm a password. Future sign-ins use the verified phone number and that
-password without requiring another WhatsApp message.
+Planning is enforced by the server and hidden in the UI for ordinary accounts.
+Fleet summaries omit assignments, personnel and internal notes for ordinary
+accounts. Role changes take effect immediately for API requests and at the next
+authentication refresh in the UI (up to one visible minute). Existing accounts
+keep their roles during the schema migration; no automatic employee promotion.
+
+Sessions use an HttpOnly SameSite cookie and expire after 30 days. Passwords use
+salted scrypt hashes. Set `AUTH_SECURE_COOKIE=true` behind HTTPS. Registration
+is rate limited. The role migration preserves IDs, passwords, phone logins and
+sessions, and runs on startup. Existing verification records are retained only
+until normal retention cleanup; they no longer grant access.
+
+### Usage analytics
+
+Administrators can open **Account → Gebruiksstatistieken** for today's usage or
+7, 30 and 90 day reports. The panel shows visits, unique signed-in accounts,
+unique guest browsers, page views, foreground activity, currently active users,
+a daily breakdown and usage of the map and kilometer leaderboard.
+
+The first-party `/api/analytics/usage` endpoint accepts a page view when the app
+opens and a heartbeat every 30 seconds while the page is visible and has been
+used in the past two minutes. API polling and live AIS traffic do not count as
+page views. Identity is determined by the server's existing authentication
+session; clients cannot label themselves as logged-in users. Reports at
+`GET /api/admin/usage?days=7` require an administrator account.
+
+A random HttpOnly `boat_usage` cookie identifies guest browsers for up to 90
+days; only its hash is stored. Sessions expire after 30 minutes without a signal
+and change groups on login/logout. Signed-in users are deduplicated by account;
+guests by browser, so a person can occur in both groups. No IP address, full
+URL, search text, location, email or user-agent is collected. SQLite stores the
+records for 90 days and hourly maintenance removes old data. Historical usage
+before this feature was enabled is unavailable. Blocking cookies or requests
+can affect the figures.
+
+
+### Mobiele zoekbalk testen
+
+`npm run test:mobile` voert browserregressietests uit tegen de lokale ontwikkelserver (poort 5173). Een bestaande lokale server wordt hergebruikt. Installeer de testbrowsers indien nodig met `npx playwright install chromium webkit`.
+
+De tests gebruiken WebKit met iPhone 13- en iPhone SE-instellingen, Chrome met Android-instellingen en desktop Chrome. Ze controleren koud laden zonder Vue-fouten, aanraken, invoerfocus, typen, resultaten selecteren, opnieuw openen, Enter, wissen, paneelwisselingen en desktop/mobiel wisselen. De kleinere schermruimte door een toetsenbord wordt via `visualViewport` nagebootst. Dit test geen echt iOS-schermtoetsenbord; daarvoor blijft Safari op een iPhone of een geïnstalleerde iOS-simulator nodig. Screenshots en fouttraces staan in `test-results/`.
+
+### Mobiel dataverbruik
+
+Voor niet-ingelogde bezoekers op mobiele schermen staat **Dataspaarstand** standaard aan. Voor ingelogde gebruikers staat deze standaard uit. De instelling staat onder **Instellingen**, bereikbaar via het Boottracker-menu en via Account. Een handmatige keuze wordt op het apparaat afzonderlijk voor gasten en per account bewaard. Live bootposities worden daarin ongeveer elke vijf seconden gebundeld; volledige AIS-historie blijft op de server behouden. De live verbinding sluit wanneer het tabblad naar de achtergrond gaat en haalt bij terugkeer een actuele momentopname op. Periodieke controles voor planning, vaarlijnen, stremmingen, waterstand en de aanmeldstatus pauzeren eveneens op de achtergrond.
+
+AIS-berichten gebruiken WebSocket-compressie waar de browser dit ondersteunt. De productieserver comprimeert tekstbestanden en JSON; kaartgegevens worden opnieuw gevalideerd en krijgen een lege 304-respons wanneer niets is veranderd. Gewijzigde brug- en kaartgegevens krijgen direct een nieuwe ETag. Kaarttegels laden na een sleep- of zoombeweging met een kleinere tegelbuffer; vlootfoto’s laden pas wanneer ze in de buurt van het zichtbare paneel komen. Externe kaarttegels en luchtfoto’s blijven data gebruiken wanneer je rondkijkt.
+
+`npm run test:mobile` controleert ook de mobiele standaardinstelling, het onthouden van de voorkeur en het pauzeren/hervatten van de live verbinding. Dit zijn lokale tests, zonder publicatie naar productie.
