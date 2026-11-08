@@ -28,6 +28,7 @@
         </div>
         <div class="water-level-labels"><span>−60</span><span>−55</span><span>−40</span><span>−30</span><span>−20</span></div>
         <p class="water-level-explanation">Normale beheerband: <strong>−55 tot −30 cm NAP</strong>. Streefpeil: <strong>−40 cm NAP</strong>.</p>
+        <p v-if="correction.raiseMeters > 0" class="water-level-explanation"><strong>{{ Math.round(correction.raiseMeters * 100) }} cm</strong> minder doorvaarthoogte onder grachtbruggen dan bij streefpeil. De routeplanner rekent hiermee.</p>
         <p class="water-level-time">Gemeten {{ formattedTime }}<span v-if="isStale"> · mogelijk verouderd</span></p>
       </template>
       <p v-else class="water-level-error">{{ error || 'De actuele waterstand wordt geladen…' }}</p>
@@ -41,8 +42,8 @@
 </template>
 
 <script setup>
-import { visibleInterval } from '../scripts/networkUsage.js'
-import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useWaterLevel } from '../scripts/useWaterLevel.js'
+import { computed, inject, ref, watch } from 'vue'
 import { Waves } from '@lucide/vue'
 
 const language = inject('language')
@@ -52,10 +53,7 @@ const open = ref(false)
 watch(() => props.routePlannerOpen, (plannerOpen) => {
   if (plannerOpen) open.value = false
 })
-const loading = ref(true)
-const error = ref('')
-const level = ref(null)
-let refreshTimer
+const { level, error, loading, correction, reload: loadLevel } = useWaterLevel()
 
 const markerPosition = computed(() => Math.max(0, Math.min(100, ((level.value?.valueCmNap + 60) / 40) * 100)))
 const statusLabel = computed(() => ({ low: 'Laag', normal: 'Normaal', high: 'Boven beheerband' }[level.value?.status] || 'Onbekend'))
@@ -66,25 +64,6 @@ function formatLevel(value) {
   return new Intl.NumberFormat(displayLocale.value, { maximumFractionDigits: 1 }).format(value)
 }
 
-async function loadLevel() {
-  loading.value = true
-  error.value = ''
-  try {
-    const response = await fetch('/api/water-level/surinamekade')
-    if (!response.ok) throw new Error('Actuele waterstand niet beschikbaar')
-    level.value = await response.json()
-  } catch (loadError) {
-    error.value = loadError.message || 'Actuele waterstand niet beschikbaar'
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(() => {
-  loadLevel()
-  refreshTimer = visibleInterval(loadLevel, 5 * 60_000)
-})
-onUnmounted(() => refreshTimer?.())
 </script>
 
 <style scoped>

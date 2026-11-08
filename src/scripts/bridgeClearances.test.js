@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { buildCanalRoutingNetwork, planCanalRoute } from './canalRouting.js'
 import { applyBridgeClearances } from './bridgeClearances.js'
+import { waterLevelCorrection } from '../../shared/water-level-correction.mjs'
 
 const line = (coordinates, name) => ({ type: 'Feature', geometry: { type: 'LineString', coordinates }, properties: { name } })
 const bridge = (properties) => ({
@@ -165,3 +166,33 @@ for (const source of ['passageWidth', 'fisPassageWidthMeters']) {
     assert.equal(reverse.steps.some((step) => step.name === 'Direct canal'), false)
   })
 }
+
+test('high water at Surinamekade diverts a boat that only fits at target level', () => {
+  const network = buildCanalRoutingNetwork({ type: 'FeatureCollection', features: [
+    line([[4.9000, 52.3700], [4.9010, 52.3700], [4.9020, 52.3700]], 'Direct canal'),
+    line([[4.9000, 52.3700], [4.9000, 52.3710], [4.9020, 52.3710], [4.9020, 52.3700]], 'Detour canal'),
+  ] }, { respectRestrictions: true, includeSupplementalOpenWater: false })
+  // 1.20 NAP above a -0.40 boezem: 1.60 m free height at target level.
+  applyBridgeClearances(network, [bridge({ clearanceNap: 1.2, winterWaterLevelNap: -0.4 })])
+  const start = { latitude: 52.3700, longitude: 4.9000 }
+  const end = { latitude: 52.3700, longitude: 4.9020 }
+  const boatProfile = { heightMeters: 1.4, safetyMarginMeters: 0.15 }
+  const measuredAt = new Date().toISOString()
+  const atTarget = planCanalRoute(start, end, network, { boatProfile, waterLevelCorrection: waterLevelCorrection({ valueCmNap: -40, measuredAt }) })
+  const high = planCanalRoute(start, end, network, { boatProfile, waterLevelCorrection: waterLevelCorrection({ valueCmNap: -30, measuredAt }) })
+  assert.ok(atTarget.steps.some((step) => step.name === 'Direct canal'))
+  assert.equal(high.steps.some((step) => step.name === 'Direct canal'), false)
+  assert.ok(high.warnings.some((warning) => warning.includes('10 cm lager')))
+})
+
+test('water level correction ignores bridges on another reference level', () => {
+  const network = buildCanalRoutingNetwork({ type: 'FeatureCollection', features: [
+    line([[4.9000, 52.3700], [4.9010, 52.3700], [4.9020, 52.3700]], 'Polder canal'),
+  ] }, { respectRestrictions: true, includeSupplementalOpenWater: false })
+  applyBridgeClearances(network, [bridge({ clearanceNap: -0.5, winterWaterLevelNap: -2.1 })])
+  const route = planCanalRoute({ latitude: 52.3700, longitude: 4.9000 }, { latitude: 52.3700, longitude: 4.9020 }, network, {
+    boatProfile: { heightMeters: 1.4, safetyMarginMeters: 0.15 },
+    waterLevelCorrection: waterLevelCorrection({ valueCmNap: -20, measuredAt: new Date().toISOString() }),
+  })
+  assert.equal(route.status, 'ok')
+})

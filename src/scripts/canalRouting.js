@@ -1,5 +1,6 @@
 import { waterwayProfileForFeature } from './waterwayProfiles.js';
 import { withSupplementalWaterways } from "./supplementalWaterways.js";
+import { waterLevelWarning } from "../../shared/water-level-correction.mjs";
 
 const GRID_SIZE = 0.002;
 const MAX_SNAP_DISTANCE_METERS = 50;
@@ -96,7 +97,7 @@ export function planCanalRouteVia(points, network, options = {}) {
   const durationMinutes = baseDurationMinutes;
   const coordinates = route.map((node) => [node.lat, node.lng]);
   const virtualSegmentCount = route.slice(1).filter((node, index) => network.virtualEdges.has(getEdgeKey(route[index].key, node.key))).length;
-  const warnings = routeConstraintWarnings(route, network, options.boatProfile);
+  const warnings = routeConstraintWarnings(route, network, options.boatProfile, options.waterLevelCorrection);
   return {
     status: partialRoute ? "partial" : "ok",
     message: partialRoute ? `Geen volledige waterroute gevonden; route gaat tot ${partialRoute.distanceToTargetMeters} m van de bestemming.` : "Route found.",
@@ -182,7 +183,7 @@ export function generateCanalLoopRoute(start, network, options = {}) {
     from: { latitude: snapped.node.lat, longitude: snapped.node.lng, snapDistanceMeters: Math.round(snapped.distance) },
     to: { latitude: snapped.node.lat, longitude: snapped.node.lng, snapDistanceMeters: Math.round(snapped.distance) },
     virtualSegmentCount: best.route.slice(1).filter((node, index) => network.virtualEdges.has(getEdgeKey(best.route[index].key, node.key))).length,
-    warnings: routeConstraintWarnings(best.route, network, options.boatProfile),
+    warnings: routeConstraintWarnings(best.route, network, options.boatProfile, options.waterLevelCorrection),
     retracedDistanceMeters: Math.round(best.retrace.distanceMeters),
     retracedRoutePercent: Math.round(best.retrace.ratio * 100),
   };
@@ -196,7 +197,7 @@ function randomWalkOutbound(start, network, targetDistance, random, options = {}
   while (distance < targetDistance && route.length < 240) {
     const current = route.at(-1);
     const candidates = [...current.neighbors.entries()]
-      .filter(([key, edge]) => isEdgePassable(edge, options.boatProfile) && isEdgeAllowed(current.key, key, edge, network, options))
+      .filter(([key, edge]) => isEdgePassable(edge, options.boatProfile, options.waterLevelCorrection) && isEdgeAllowed(current.key, key, edge, network, options))
       .map(([key, edge]) => ({ key, edge, node: network.nodes.get(key), visits: visits.get(key) || 0 }))
       .filter((candidate) => candidate.node && (current.neighbors.size <= 1 || candidate.key !== previousKey))
       .sort((a, b) => a.visits - b.visits || random() - 0.5);
@@ -497,7 +498,7 @@ function findShortestPath(network, start, goal, maximumDistance, options = {}) {
     if (currentDistance > maximumDistance) continue;
 
     for (const [neighborKey, edge] of current.neighbors) {
-      if (!isEdgePassable(edge, options.boatProfile) || !isEdgeAllowed(current.key, neighborKey, edge, network, options)) continue;
+      if (!isEdgePassable(edge, options.boatProfile, options.waterLevelCorrection) || !isEdgeAllowed(current.key, neighborKey, edge, network, options)) continue;
       const edgeDistance = edgeRoutingCost(edge);
       const nextDistance = currentDistance + edgeDistance;
       if (nextDistance >= (distance.get(neighborKey) ?? Infinity) || nextDistance > maximumDistance) continue;
@@ -530,7 +531,7 @@ function findClosestReachablePath(network, start, goal, maximumDistance, options
     if (currentDistance > maximumDistance) continue;
 
     for (const [neighborKey, edge] of current.neighbors) {
-      if (!isEdgePassable(edge, options.boatProfile) || !isEdgeAllowed(current.key, neighborKey, edge, network, options)) continue;
+      if (!isEdgePassable(edge, options.boatProfile, options.waterLevelCorrection) || !isEdgeAllowed(current.key, neighborKey, edge, network, options)) continue;
       const nextDistance = currentDistance + edgeRoutingCost(edge);
       if (nextDistance >= (distance.get(neighborKey) ?? Infinity) || nextDistance > maximumDistance) continue;
       distance.set(neighborKey, nextDistance);
@@ -581,7 +582,16 @@ function parseMeters(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function isEdgePassable(edge, boatProfile = {}) {
+// Free height under the edge's lowest bridge, after lowering boezem-referenced
+// clearances by how far the measured water stands above target level.
+export function effectiveClearanceHeight(edge, waterLevelCorrection) {
+  if (!edge || edge.clearanceHeight === null || edge.clearanceHeight === undefined) return null;
+  const raise = Math.max(0, Number(waterLevelCorrection?.raiseMeters) || 0);
+  if (!raise || edge.waterLevelClearanceHeight == null) return edge.clearanceHeight;
+  return Math.round(Math.min(edge.clearanceHeight, edge.waterLevelClearanceHeight - raise) * 100) / 100;
+}
+
+function isEdgePassable(edge, boatProfile = {}, waterLevelCorrection = null) {
   if (!edge || typeof edge !== "object") return true;
   boatProfile ||= {};
   const height = Number(boatProfile.heightMeters);
@@ -589,7 +599,8 @@ function isEdgePassable(edge, boatProfile = {}) {
   const length = Number(boatProfile.lengthMeters);
   const draft = Number(boatProfile.draftMeters);
   const safetyMargin = Number.isFinite(Number(boatProfile.safetyMarginMeters)) ? Number(boatProfile.safetyMarginMeters) : 0.15;
-  if (Number.isFinite(height) && edge.clearanceHeight !== null && edge.clearanceHeight !== undefined && height + safetyMargin > edge.clearanceHeight) return false;
+  const clearanceHeight = effectiveClearanceHeight(edge, waterLevelCorrection);
+  if (Number.isFinite(height) && clearanceHeight !== null && height + safetyMargin > clearanceHeight) return false;
   if (Number.isFinite(width) && edge.clearanceWidth !== null && edge.clearanceWidth !== undefined && width > edge.clearanceWidth) return false;
   if (Number.isFinite(length) && edge.maxLength != null && length > edge.maxLength) return false;
   if (Number.isFinite(draft) && edge.maxDraft !== null && edge.maxDraft !== undefined && draft > edge.maxDraft) return false;
@@ -676,7 +687,7 @@ function pathDurationMinutes(route, network, requestedSpeedKmh) {
   return totalMinutes;
 }
 
-function routeConstraintWarnings(route, network, boatProfile = {}) {
+function routeConstraintWarnings(route, network, boatProfile = {}, waterLevelCorrection = null) {
   const warnings = [];
   if (routeUsesZone(route, network, "zone3")) warnings.push("Zone 3 / IJ: alleen varen als schipper en boot hiervoor bevoegd zijn");
   if (!boatProfile || (!Number(boatProfile.heightMeters) && !Number(boatProfile.widthMeters) && !Number(boatProfile.draftMeters) && !Number(boatProfile.lengthMeters))) return warnings;
@@ -689,10 +700,15 @@ function routeConstraintWarnings(route, network, boatProfile = {}) {
     if (!edge.navigationProfile && !edge.virtual && (Number(boatProfile.widthMeters) || Number(boatProfile.lengthMeters))) unknownProfiles.add(edge.name);
     if (edge.navigationProfile) parts.push(`vaarprofiel ${edge.navigationProfile}`);
     if (edge.maxLength != null) parts.push(`lengte ${edge.maxLength} m`);
-    if (edge.clearanceHeight !== null && edge.clearanceHeight !== undefined) parts.push(`hoogte ${edge.clearanceHeight} m`);
+    const clearanceHeight = effectiveClearanceHeight(edge, waterLevelCorrection);
+    if (clearanceHeight !== null) parts.push(`hoogte ${Math.round(clearanceHeight * 100) / 100} m`);
     if (edge.clearanceWidth !== null && edge.clearanceWidth !== undefined) parts.push(`breedte ${edge.clearanceWidth} m`);
     if (edge.maxDraft !== null && edge.maxDraft !== undefined) parts.push(`diepgang ${edge.maxDraft} m`);
     if (parts.length) constrained.set(edge.name, parts.join(", "));
+  }
+  if (Number(boatProfile.heightMeters)) {
+    const levelWarning = waterLevelWarning(waterLevelCorrection);
+    if (levelWarning) warnings.push(levelWarning);
   }
   if (unknownProfiles.size) warnings.push(`Vaarprofiel onbekend voor: ${[...unknownProfiles].slice(0, 4).join(", ")}${unknownProfiles.size > 4 ? ", …" : ""}. Lengte en breedte zijn daar alleen op beschikbare lokale beperkingen gecontroleerd.`);
   for (const [name, text] of constrained) warnings.push(`${name}: beperking ${text}`);

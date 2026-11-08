@@ -1,6 +1,7 @@
 import { uniqueBridgeCrossing } from '../../scripts/bridge-crossings.mjs'
 import { waterkaartInfoForBridge } from './waterkaartBridgeInfo.js'
 import { bridgeNavigationWarning } from './bridgeNavigationRules.js'
+import { isBoezemReferencedBridge } from '../../shared/water-level-correction.mjs'
 
 const METERS_PER_DEGREE = 111_320
 const LON_METERS_PER_DEGREE = METERS_PER_DEGREE * Math.cos(52.37 * Math.PI / 180)
@@ -15,6 +16,14 @@ function bridgeClearance(properties) {
   if (Number.isFinite(fisHeight) && fisHeight > 0) return fisHeight
   const waterkaartHeight = Number(waterkaartInfoForBridge(properties)?.clearanceHeightMeters)
   return Number.isFinite(waterkaartHeight) && waterkaartHeight > 0 ? waterkaartHeight : null
+}
+
+// clearanceHeight is the free height at the bridge's own reference level.
+// waterLevelClearanceHeight additionally tracks the lowest clearance that is
+// referenced to the Amsterdam boezem, so routing can lower it for high water.
+function restrictHeight(edge, height, waterLevelSensitive) {
+  edge.clearanceHeight = Math.min(edge.clearanceHeight ?? Infinity, height)
+  if (waterLevelSensitive) edge.waterLevelClearanceHeight = Math.min(edge.waterLevelClearanceHeight ?? Infinity, height)
 }
 
 function bridgeWidth(properties) {
@@ -62,6 +71,7 @@ export function applyBridgeClearances(network, bridgeFeatures = [], bridgeLinks 
     const clearance = bridgeClearance(properties)
     const width = bridgeWidth(properties)
     const navigationBlocked = Boolean(bridgeNavigationWarning(properties))
+    const waterLevelSensitive = isBoezemReferencedBridge(properties)
     if (clearance === null && width === null && !navigationBlocked) continue
     if (feature.geometry?.type === 'Point') {
       // FIS supplies real opening positions, not bridge footprints. Bind each
@@ -83,7 +93,7 @@ export function applyBridgeClearances(network, bridgeFeatures = [], bridgeLinks 
         selected.push(...edges.filter(edge => edge.routeEdges.some(e => e.virtual) && distanceToEdge(location,edge) <= 8))
         for (const edge of selected.flatMap(pair => pair.routeEdges)) {
           if (navigationBlocked) edge.closed = true
-          if (Number(lane.height) > 0) edge.clearanceHeight = Math.min(edge.clearanceHeight ?? Infinity, Number(lane.height))
+          if (Number(lane.height) > 0) restrictHeight(edge, Number(lane.height), waterLevelSensitive)
           if (Number(lane.width) > 0) edge.clearanceWidth = Math.min(edge.clearanceWidth ?? Infinity, Number(lane.width))
           matched = true
         }
@@ -130,7 +140,7 @@ export function applyBridgeClearances(network, bridgeFeatures = [], bridgeLinks 
     for (const edge of matchedEdges) {
       if (navigationBlocked) edge.closed = true
       if (width !== null) edge.clearanceWidth = Math.min(edge.clearanceWidth ?? Infinity, width)
-      if (clearance !== null) edge.clearanceHeight = Math.min(edge.clearanceHeight ?? Infinity, clearance)
+      if (clearance !== null) restrictHeight(edge, clearance, waterLevelSensitive)
     }
     linked += 1
   }

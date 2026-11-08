@@ -3,6 +3,7 @@ import { buildCanalRoutingNetwork, planCanalRouteVia } from '../src/scripts/cana
 import { applyBridgeClearances } from '../src/scripts/bridgeClearances.js'
 import { applyWaterwayEdits } from '../shared/waterway-edits.mjs'
 import { activeClosurePoints } from '../shared/route-closures.mjs'
+import { waterLevelCorrection } from '../shared/water-level-correction.mjs'
 
 export function parseAgentRoute(params) {
   const allowed = new Set(['points', 'heightMeters', 'widthMeters', 'lengthMeters', 'draftMeters', 'speedKmh', 'safetyMarginMeters'])
@@ -28,16 +29,21 @@ export function parseAgentRoute(params) {
 // Runs in the existing background worker. Cache topology only; closures are
 // evaluated for each request. Never include private saved routes or account data.
 let cached
-export function calculateAgentRoute({ input, bridges, links, edits, closures }, source) {
+export function calculateAgentRoute({ input, bridges, links, edits, closures, waterLevel }, source) {
   const key = JSON.stringify([bridges, links, edits])
-  if (!cached || cached.key !== key || source) {
-    const publicSource = new URL('../public/export.geojson', import.meta.url)
-    const geo = source || JSON.parse(readFileSync(existsSync(publicSource) ? publicSource : new URL('../dist/export.geojson', import.meta.url)))
+  const build = geo => {
     const network = buildCanalRoutingNetwork(applyWaterwayEdits(geo, edits || []), { respectRestrictions: true })
     applyBridgeClearances(network, bridges.features, links?.bridges)
-    cached = { key, network }
+    return network
   }
-  const result = planCanalRouteVia(input.points, cached.network, { ...input,
+  // A caller-supplied source (tests) must not replace the cached public network.
+  if (!source && (!cached || cached.key !== key)) {
+    const publicSource = new URL('../public/export.geojson', import.meta.url)
+    cached = { key, network: build(JSON.parse(readFileSync(existsSync(publicSource) ? publicSource : new URL('../dist/export.geojson', import.meta.url)))) }
+  }
+  const network = source ? build(source) : cached.network
+  const correction = waterLevelCorrection(waterLevel)
+  const result = planCanalRouteVia(input.points, network, { ...input, waterLevelCorrection: correction,
     snapDistanceMeters: 120, maximumDistanceMeters: 30_000,
     avoidVirtualEdges: true, allowZone3: false, closurePoints: activeClosurePoints(closures.features),
   })
@@ -51,6 +57,7 @@ export function calculateAgentRoute({ input, bridges, links, edits, closures }, 
     warnings: [...(warnings || []), ...(closures.partial ? ['Some official waterway notices could not be refreshed; retained notices may be outdated.'] : []), ...(closures.stale ? ['Waterway notices are stale; current restrictions could not be retrieved.'] : []), ...(bridges.stale ? ['Bridge source data is stale; current bridge data could not be retrieved.'] : []), 'Indicative route only. Unknown bridge dimensions and depths are not verified; water levels, bridge openings, permits and temporary dimensional restrictions are not guaranteed.'],
     input, data: { calculatedAt: new Date().toISOString(), bridgesFetchedAt: bridges.fetchedAt ?? null,
       closuresFetchedAt: closures.fetchedAt ?? null, closuresStale: Boolean(closures.stale), closuresPartial: Boolean(closures.partial), bridgesStale: Boolean(bridges.stale),
+      waterLevelCmNap: correction.valueCmNap, waterLevelMeasuredAt: correction.measuredAt, waterLevelCorrectionApplied: correction.applied, clearanceReductionMeters: correction.raiseMeters,
       virtualConnectionsAllowed: false, zone3Allowed: false, personalRoutesIncluded: false },
     documentation: 'https://boottracker.nl/routeplanner-api',
   }

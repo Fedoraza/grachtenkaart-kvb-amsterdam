@@ -1,6 +1,7 @@
 import L from 'leaflet'
 import { waterkaartInfoForBridge } from './waterkaartBridgeInfo'
 import { bridgeNavigationWarning } from './bridgeNavigationRules'
+import { isBoezemReferencedBridge } from '../../shared/water-level-correction.mjs'
 
 export async function loadAmsterdamBridges() {
   const response = await fetch('/api/map/bridges')
@@ -37,7 +38,7 @@ export function createBridgeLayer(map, data, options = {}) {
       const center = layer.getBounds?.().getCenter() || layer.getLatLng?.()
       const markerPoint = bridgeMarkerPoint(properties, center, options)
       const routeLinkPoint = markerPoint ? { latitude: markerPoint.lat, longitude: markerPoint.lng } : null
-      layer.bindPopup(() => bridgePopup(properties, `${options.routeLinkPopupHtml?.(properties, routeLinkPoint) || ''}${options.adminObjectHtml?.(feature, routeLinkPoint) || ''}`), popupOptions)
+      layer.bindPopup(() => bridgePopup(properties, options.waterLevelCorrection?.(), `${options.routeLinkPopupHtml?.(properties, routeLinkPoint) || ''}${options.adminObjectHtml?.(feature, routeLinkPoint) || ''}`), popupOptions)
       layer.bindTooltip(`${bridgeTitle(properties)} · ${displayHeight(properties)}${waterkaartInfo?.vhfChannel ? ` · VHF ${waterkaartInfo.vhfChannel}` : ''}`, { sticky: true })
       if (!markerPoint || (!hasHeight(properties) && !navigationBlocked && !/beweeg/i.test(properties.bridgeType || '') && !properties.fisBridgeId)) return
       const marker = L.marker(markerPoint, {
@@ -52,7 +53,7 @@ export function createBridgeLayer(map, data, options = {}) {
         }),
       })
         .on('dragend', (event) => options.onPositionDragEnd?.(properties, event.target.getLatLng()))
-        .bindPopup(() => bridgePopup(properties, `${options.routeLinkPopupHtml?.(properties, markerLatLngToPoint(markerPoint)) || ''}${options.adminObjectHtml?.(feature, markerLatLngToPoint(markerPoint)) || ''}`), popupOptions)
+        .bindPopup(() => bridgePopup(properties, options.waterLevelCorrection?.(), `${options.routeLinkPopupHtml?.(properties, markerLatLngToPoint(markerPoint)) || ''}${options.adminObjectHtml?.(feature, markerLatLngToPoint(markerPoint)) || ''}`), popupOptions)
         .addTo(labels)
       heightMarkers.push({ marker, properties })
     },
@@ -100,8 +101,9 @@ function markerLatLngToPoint(latlng) {
   return latlng ? { latitude: latlng.lat, longitude: latlng.lng } : null
 }
 
-function bridgePopup(properties, routeLinkHtml = '') {
+function bridgePopup(properties, waterLevelCorrection, routeLinkHtml = '') {
   const calculated = calculatedClearance(properties)
+  const currentClearance = currentClearanceHeight(properties, waterLevelCorrection)
   const waterkaartInfo = waterkaartInfoForBridge(properties)
   const navigationWarning = bridgeNavigationWarning(properties)
   const rows = [
@@ -110,6 +112,7 @@ function bridgePopup(properties, routeLinkHtml = '') {
     ['Hoogte bij 4 m breedte t.o.v. NAP', formatMeters(properties.clearanceAt4mNap)],
     ['Winterwaterpeil t.o.v. NAP', formatMeters(properties.winterWaterLevelNap)],
     ['Berekende vrije hoogte bij winterpeil', calculated === null ? null : formatMeters(calculated)],
+    ['Vrije hoogte bij actuele waterstand', currentClearance === null ? null : `${formatMeters(currentClearance)} (Surinamekade ${Math.round(waterLevelCorrection.valueCmNap)} cm NAP)`],
     ['Doorvaartbreedte', formatMeters(properties.passageWidth) || (properties.fisPassageWidthMeters || waterkaartInfo?.passageWidthMeters ? null : 'Onbekend')],
     ['Doorvaarthoogte', hasHeight(properties) ? null : 'Onbekend'],
     ['Type', properties.bridgeType],
@@ -164,6 +167,14 @@ function hasHeight(properties) {
     || Number(properties.fisClearanceMeters) > 0
     || properties.clearanceNap !== null && properties.clearanceNap !== undefined
     || properties.clearanceAt4mNap !== null && properties.clearanceAt4mNap !== undefined
+}
+
+// Only shown when the water stands above target; see shared/water-level-correction.mjs.
+function currentClearanceHeight(properties, waterLevelCorrection) {
+  const raise = Number(waterLevelCorrection?.raiseMeters)
+  if (!(raise > 0) || !isBoezemReferencedBridge(properties)) return null
+  const reference = calculatedClearance(properties) ?? (Number(properties.fisClearanceMeters) > 0 ? Number(properties.fisClearanceMeters) : null)
+  return reference === null ? null : Math.round((reference - raise) * 100) / 100
 }
 
 function calculatedClearance(properties) {

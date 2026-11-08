@@ -480,7 +480,9 @@ const server = createServer(async (req, res) => {
         navigationLayerCache.set('closures', closures);
       }
       const edits = database.prepare("SELECT object_key AS objectKey, action, feature_json FROM map_object_overrides WHERE layer = 'routing-lines'").all().map(row => ({ ...row, feature: row.feature_json ? JSON.parse(row.feature_json) : null }));
-      const result = await databaseReads.run('agent-route', { input, bridges, links: routeLinkStore.read(), edits, closures: applyMapObjectOverrides('closures', closures.data) });
+      // A missing water level is reported in the result; it never blocks routing.
+      const waterLevel = await getSurinamekadeWaterLevel().catch(() => null);
+      const result = await databaseReads.run('agent-route', { input, bridges, links: routeLinkStore.read(), edits, closures: applyMapObjectOverrides('closures', closures.data), waterLevel });
       res.setHeader('Link', '</openapi.json>; rel="service-desc", </routeplanner-api>; rel="service-doc"');
       return sendJson(res, 200, result, 'no-store');
     } catch (error) {
@@ -803,12 +805,11 @@ function finiteNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
-async function handleSurinamekadeWaterLevel(res) {
-  const cacheMaxAgeMs = 5 * 60_000;
-  if (waterLevelCache && Date.now() - waterLevelCache.fetchedAt < cacheMaxAgeMs) {
-    sendJson(res, 200, waterLevelCache.data, "public, max-age=60, s-maxage=300, stale-while-revalidate=900");
-    return;
-  }
+const WATER_LEVEL_CACHE_MAX_AGE_MS = 5 * 60_000;
+// Shared by the public endpoint and the routing API; returns the last good
+// reading marked stale when Rijkswaterstaat is unreachable, or throws.
+async function getSurinamekadeWaterLevel() {
+  if (waterLevelCache && Date.now() - waterLevelCache.fetchedAt < WATER_LEVEL_CACHE_MAX_AGE_MS) return waterLevelCache.data;
   try {
     pendingWaterLevelLoad ||= fetchSurinamekadeWaterLevel()
       .then(data => {
@@ -816,14 +817,19 @@ async function handleSurinamekadeWaterLevel(res) {
         return waterLevelCache.data;
       })
       .finally(() => { pendingWaterLevelLoad = null; });
-    const data = await pendingWaterLevelLoad;
-    sendJson(res, 200, data, "public, max-age=60, s-maxage=300, stale-while-revalidate=900");
+    return await pendingWaterLevelLoad;
+  } catch (error) {
+    if (waterLevelCache) return { ...waterLevelCache.data, stale: true };
+    throw error;
+  }
+}
+
+async function handleSurinamekadeWaterLevel(res) {
+  try {
+    const data = await getSurinamekadeWaterLevel();
+    sendJson(res, 200, data, data.stale ? "public, max-age=30" : "public, max-age=60, s-maxage=300, stale-while-revalidate=900");
   } catch (error) {
     console.error("Surinamekade water level API error", error.message);
-    if (waterLevelCache) {
-      sendJson(res, 200, { ...waterLevelCache.data, stale: true }, "public, max-age=30");
-      return;
-    }
     sendJson(res, 502, { error: "Actuele waterstand Surinamekade kon niet worden geladen" });
   }
 }

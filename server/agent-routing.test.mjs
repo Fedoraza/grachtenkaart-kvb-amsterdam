@@ -55,3 +55,15 @@ test('AI route responses disclose partial and stale waterway notices', () => {
   assert.ok(result.warnings.some(w => /Some official waterway notices/.test(w)))
   assert.ok(result.warnings.some(w => /Waterway notices are stale/.test(w)))
 })
+
+test('AI route responses report the water level used for bridge clearances', () => {
+  const request = args(parseAgentRoute(query()))
+  const missing = calculateAgentRoute(request)
+  assert.equal(missing.data.waterLevelCorrectionApplied, false)
+  assert.equal(missing.data.clearanceReductionMeters, 0)
+  const high = calculateAgentRoute({ ...request, waterLevel: { valueCmNap: -25, measuredAt: new Date().toISOString() } })
+  assert.equal(high.data.waterLevelCmNap, -25)
+  assert.equal(high.data.waterLevelCorrectionApplied, true)
+  assert.equal(high.data.clearanceReductionMeters, 0.15)
+  assert.ok(high.warnings.some(warning => warning.includes('15 cm lager')))
+})

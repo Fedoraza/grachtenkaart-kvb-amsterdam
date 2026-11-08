@@ -199,6 +199,22 @@
                         },
                         "closuresStale": {
                           "type": "boolean"
+                        },
+                        "waterLevelCmNap": {
+                          "type": ["number", "null"],
+                          "description": "Latest Rijkswaterstaat reading at Amsterdam Surinamekade, in cm relative to NAP."
+                        },
+                        "waterLevelMeasuredAt": {
+                          "type": ["string", "null"],
+                          "format": "date-time"
+                        },
+                        "waterLevelCorrectionApplied": {
+                          "type": "boolean",
+                          "description": "False when the reading is missing or older than three hours; clearances then assume target level NAP -0.40 m."
+                        },
+                        "clearanceReductionMeters": {
+                          "type": "number",
+                          "description": "Metres subtracted from bridge clearances referenced to NAP -0.40 m because the water stands above target. Never negative: low water does not add clearance."
                         }
                       }
                     },

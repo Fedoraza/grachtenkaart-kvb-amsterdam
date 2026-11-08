@@ -780,6 +780,7 @@ const BoatDutyPanel = defineAsyncComponent(() => import('./BoatDutyPanel.vue'))
 const InventoryPanel = defineAsyncComponent(() => import('./InventoryPanel.vue'))
 const PlanningPanel = defineAsyncComponent(() => import('./PlanningPanel.vue'))
 import WaterLevelCard from './WaterLevelCard.vue'
+import { useWaterLevel } from '../scripts/useWaterLevel.js'
 import { PLANNING_LOCATION_PINS } from '../../shared/planning-locations.mjs'
 import { translateValue } from '../i18n.js'
 
@@ -873,6 +874,8 @@ const routeClosureLoading = ref(false)
 const routeClosureError = ref('')
 let routeClosureLoad = null
 const routeBoatProfile = ref({ heightMeters: null, widthMeters: null, lengthMeters: null, draftMeters: null })
+// Live Surinamekade level: high water lowers boezem-referenced bridge clearances.
+const { correction: routeWaterLevelCorrection } = useWaterLevel()
 const missingRouteHeight = computed(() => positiveNumberOrNull(routeBoatProfile.value.heightMeters) === null)
 const routeAddressInputs = ref({ start: '', end: '' })
 const routeAddressLoading = ref(null)
@@ -3254,6 +3257,12 @@ function generateRandomLoopRoute() {
     : result.message
 }
 
+// Recalculate an open route when a new reading changes the clearance correction.
+watch(() => [routeWaterLevelCorrection.value.raiseMeters, routeWaterLevelCorrection.value.reason], (next, previous) => {
+  if (next[0] === previous[0] && next[1] === previous[1]) return
+  if (map && routePoints.value.length >= 2 && routeResult.value && positiveNumberOrNull(routeBoatProfile.value.heightMeters) !== null) refreshRouteAfterSettingsChange()
+})
+
 function refreshRouteAfterSettingsChange() {
   if (routeResult.value?.routeType === 'loop') generateRandomLoopRoute()
   else updatePlannedRoute()
@@ -3264,6 +3273,7 @@ function routePlannerOptions() {
     snapDistanceMeters: Infinity,
     speedKmh: routeSpeedKmh.value,
     boatProfile: routeBoatProfileForPlanner(),
+    waterLevelCorrection: routeWaterLevelCorrection.value,
     allowZone3: routeAllowZone3.value,
     avoidVirtualEdges: routeAvoidVirtualEdges.value,
     closurePoints: routeClosurePoints.value,
@@ -5012,6 +5022,7 @@ async function toggleBridgeLayer() {
         isLinked: (properties) => Boolean(routeLinkDisplayNames('bridge', properties) || routeLinkDisplaySegments('bridge', properties)),
         routeLinkPopupHtml: (properties, point) => routeLinkPopupHtml('bridge', properties, point),
         adminObjectHtml: (feature, point) => mapAdminObjectHtml('bridges', feature, point),
+        waterLevelCorrection: () => routeWaterLevelCorrection.value,
       })
       bridgeCount.value = bridgeLayerController.count
     }
@@ -5045,6 +5056,7 @@ async function toggleNavigationLayer(id) {
           isLinked: (properties) => Boolean(routeLinkDisplayNames('bridge', properties) || routeLinkDisplaySegments('bridge', properties)),
         routeLinkPopupHtml: (properties, point) => routeLinkPopupHtml('bridge', properties, point),
           adminObjectHtml: (feature, point) => mapAdminObjectHtml('bridges', feature, point),
+          waterLevelCorrection: () => routeWaterLevelCorrection.value,
         })
         bridgeCount.value = bridgeLayerController.count
       }
