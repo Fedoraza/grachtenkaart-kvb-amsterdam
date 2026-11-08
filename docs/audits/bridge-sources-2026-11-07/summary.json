@@ -1,0 +1,120 @@
+{
+  "date": "2026-11-07",
+  "bounds": [
+    4.65,
+    52.2,
+    5.15,
+    52.5
+  ],
+  "municipalRecords": 1837,
+  "fixedRecords": 1731,
+  "municipalBridgeCount": 1856,
+  "municipalDuplicateRecords": 1712,
+  "fisRecords": 637,
+  "fisOpeningRecords": 763,
+  "fisRepresented": 636,
+  "fisAdded": 207,
+  "fisMatched": 429,
+  "ambiguous": [],
+  "excluded": [
+    {
+      "id": 44037,
+      "name": "Zaanbrug Wormerveer",
+      "reason": "not-constructed"
+    }
+  ],
+  "totalBridges": 2063,
+  "withHeight": 873,
+  "withWidth": 988,
+  "missingGeometry": [],
+  "nearbyDistinctIdentities": [
+    {
+      "fisId": 17878,
+      "name": "Korte Prinsengrachtspoorbrug Amsterdam",
+      "nearby": [
+        {
+          "number": "BRU1901",
+          "name": "Houttuinenspoorbrug",
+          "distanceMeters": 10.3
+        }
+      ]
+    },
+    {
+      "fisId": 21998,
+      "name": "Trambrug in de lijn Amsterdam - Amstelveen",
+      "nearby": [
+        {
+          "number": "BRU1697",
+          "name": "Piet Kranenbergpad",
+          "distanceMeters": 0
+        },
+        {
+          "number": "BRU1634",
+          "name": "Stadiongracht",
+          "distanceMeters": 4.1
+        }
+      ]
+    },
+    {
+      "fisId": 23599,
+      "name": "Spoorbrug Amsterdam (Nieuwe Vaart Oost)",
+      "nearby": [
+        {
+          "number": "BRU0332",
+          "name": "Cruquiusspoorbrug",
+          "distanceMeters": 1
+        }
+      ]
+    },
+    {
+      "fisId": 25773,
+      "name": "Spoorbrug Rozenoord",
+      "nearby": [
+        {
+          "number": "BRU1638",
+          "name": "Rozenoordbrug",
+          "distanceMeters": 0
+        }
+      ]
+    },
+    {
+      "fisId": 33913,
+      "name": "Rozenoordbrug (Metrobrug) (Brug 174-2)",
+      "nearby": [
+        {
+          "number": "BRU1638",
+          "name": "Rozenoordbrug",
+          "distanceMeters": 0
+        }
+      ]
+    },
+    {
+      "fisId": 43600,
+      "name": "Brug in de Gooiseweg Duivendrecht",
+      "nearby": [
+        {
+          "number": "BRU1269",
+          "name": "Gooiseweg",
+          "distanceMeters": 0
+        }
+      ]
+    },
+    {
+      "fisId": 7912135,
+      "name": "Westergasbrug (Brug 193)",
+      "nearby": [
+        {
+          "number": "BRU0463",
+          "name": "Haarlemmervaart",
+          "distanceMeters": 0.8
+        }
+      ]
+    }
+  ],
+  "sourceHashes": {
+    "municipal": "b1298a58ffb015efee77acad8d503d78ab0d02745c0fa144e970c39a33e19af7",
+    "fixed": "b64381dbd0db274489ee406e756717d8f7f6e5de1f30035483bfa7ba538994bb",
+    "brug": "b0ab10286b88a3e8091c9e3b5c5cf0e584226d3b0460044f79338c46bcf81abc",
+    "opening": "0d207f243f2309c1519ac2bd51b995277c9206a3a4711a6770516375b6e072a5"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2026-10-31T10:38:58.741Z",
+  "vesselsScanned": 3156,
+  "catalogEntriesCompared": 251,
+  "duplicateNames": 132,
+  "operators": [
+    {
+      "id": "flagship",
+      "catalogEntries": 60,
+      "classifiedMmsis": 55
+    },
+    {
+      "id": "lovers",
+      "catalogEntries": 50,
+      "classifiedMmsis": 35
+    },
+    {
+      "id": "smidtje",
+      "catalogEntries": 15,
+      "classifiedMmsis": 13
+    },
+    {
+      "id": "stromma",
+      "catalogEntries": 48,
+      "classifiedMmsis": 22
+    },
+    {
+      "id": "p-kooij",
+      "catalogEntries": 21,
+      "classifiedMmsis": 15
+    },
+    {
+      "id": "blue-boat",
+      "catalogEntries": 9,
+      "classifiedMmsis": 9
+    },
+    {
+      "id": "plas",
+      "catalogEntries": 9,
+      "classifiedMmsis": 6
+    },
+    {
+      "id": "pure-boats",
+      "catalogEntries": 6,
+      "classifiedMmsis": 5
+    },
+    {
+      "id": "de-nederlanden",
+      "catalogEntries": 9,
+      "classifiedMmsis": 8
+    },
+    {
+      "id": "those-dam-boat-guys",
+      "catalogEntries": 7,
+      "classifiedMmsis": 5
+    },
+    {
+      "id": "kinboat",
+      "catalogEntries": 17,
+      "classifiedMmsis": 9
+    }
+  ],
+  "notes": [
+    "AIS name matches are candidates, not ownership proof.",
+    "Boot2go affiliation and Jobien identity were confirmed by the application owner.",
+    "Not every operator website publishes individual boat names; absence is not a deletion instruction.",
+    "This report reads the local AIS snapshot; it does not certify complete live fleet coverage."
+  ]
+}

@@ -1,0 +1,5090 @@
+[
+  {
+    "fisId": 2028,
+    "fisName": "Brug in de Jasonstraat (Brug 421)",
+    "number": "BRU0421",
+    "name": "Zuider Amstelkanaal",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 2105,
+    "fisName": "Na Druk Gelukbrug (Brug 696)",
+    "number": "BRU0696",
+    "name": "Na Druk Gelukbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 2347,
+    "fisName": "Lijnderbrug",
+    "number": "FIS-2347",
+    "name": "Lijnderbrug",
+    "status": "added",
+    "openingCount": 3
+  },
+  {
+    "fisId": 2432,
+    "fisName": "Brug in de N201 Diemen",
+    "number": "FIS-2432",
+    "name": "Brug in de N201 Diemen",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 2623,
+    "fisName": "Lekkeresluisbrug (Brug 59)",
+    "number": "BRU0059",
+    "name": "Lekkeresluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3297,
+    "fisName": "Hollandse Brug",
+    "number": "FIS-3297",
+    "name": "Hollandse Brug",
+    "status": "added",
+    "openingCount": 5
+  },
+  {
+    "fisId": 3453,
+    "fisName": "Tolbrug Leimuiden",
+    "number": "FIS-3453",
+    "name": "Tolbrug Leimuiden",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3555,
+    "fisName": "Prins Willem Alexanderbrug Koog aan de Zaan",
+    "number": "FIS-3555",
+    "name": "Prins Willem Alexanderbrug Koog aan de Zaan",
+    "status": "added",
+    "openingCount": 6
+  },
+  {
+    "fisId": 3567,
+    "fisName": "Jan Schaeferbrug (Brug 2000)",
+    "number": "BRU2000",
+    "name": "Jan Schaeferbrug",
+    "status": "matched",
+    "openingCount": 3
+  },
+  {
+    "fisId": 3684,
+    "fisName": "Schinkelbrug (Metrobrug) (Brug 1647)",
+    "number": "BRU1647",
+    "name": "Schinkelmetrobrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3767,
+    "fisName": "Nigtevechtbrug (Brug 7713)",
+    "number": "FIS-3767",
+    "name": "Nigtevechtbrug (Brug 7713)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3860,
+    "fisName": "Bilderdamsebrug",
+    "number": "FIS-3860",
+    "name": "Bilderdamsebrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3861,
+    "fisName": "Kinkerbrug (Brug 266)",
+    "number": "BRU0266",
+    "name": "Kinkerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 4112,
+    "fisName": "Brug over buitenhoofd Mijndense sluis",
+    "number": "FIS-4112",
+    "name": "Brug over buitenhoofd Mijndense sluis",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 4117,
+    "fisName": "Reint Laan Jr brug",
+    "number": "FIS-4117",
+    "name": "Reint Laan Jr brug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 4668,
+    "fisName": "Brug in de verbindingsweg A1/A6 Muiderberg",
+    "number": "FIS-4668",
+    "name": "Brug in de verbindingsweg A1/A6 Muiderberg",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 4806,
+    "fisName": "Botsholsebrug",
+    "number": "FIS-4806",
+    "name": "Botsholsebrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5357,
+    "fisName": "Petemayenbrug (Brug 317)",
+    "number": "BRU0317",
+    "name": "Petemayenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5743,
+    "fisName": "Kortjewantsbrug (Brug 487)",
+    "number": "BRU0487",
+    "name": "Kortjewantsbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5784,
+    "fisName": "Brug in de N232 Nieuwebrug",
+    "number": "FIS-5784",
+    "name": "Brug in de N232 Nieuwebrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5841,
+    "fisName": "Hulksbrug",
+    "number": "FIS-5841",
+    "name": "Hulksbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5922,
+    "fisName": "Brug in de A4 Badhoevedorp",
+    "number": "FIS-5922",
+    "name": "Brug in de A4 Badhoevedorp",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 6134,
+    "fisName": "Jan Blankenbrug Purmerend",
+    "number": "FIS-6134",
+    "name": "Jan Blankenbrug Purmerend",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 6141,
+    "fisName": "Nelson Mandelabrug Purmerend",
+    "number": "FIS-6141",
+    "name": "Nelson Mandelabrug Purmerend",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 6286,
+    "fisName": "Vechtbrug Uitermeer (Brug 9002)",
+    "number": "FIS-6286",
+    "name": "Vechtbrug Uitermeer (Brug 9002)",
+    "status": "added",
+    "openingCount": 3
+  },
+  {
+    "fisId": 6427,
+    "fisName": "Keizersbrug (Brug 286)",
+    "number": "BRU0286",
+    "name": "Keizersbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 6613,
+    "fisName": "Stokkelaarsbrug",
+    "number": "FIS-6613",
+    "name": "Stokkelaarsbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 7069,
+    "fisName": "Dorpsbrug Abcoude (Het Gein)",
+    "number": "FIS-7069",
+    "name": "Dorpsbrug Abcoude (Het Gein)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 7187,
+    "fisName": "Vaz Diasbrug (Brug 238)",
+    "number": "BRU0238",
+    "name": "M.S. Vaz Diasbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 7269,
+    "fisName": "Brug Ouderkerk aan de Amstel",
+    "number": "FIS-7269",
+    "name": "Brug Ouderkerk aan de Amstel",
+    "status": "added",
+    "openingCount": 3
+  },
+  {
+    "fisId": 7384,
+    "fisName": "Spoorbrug Muiderberg (IJmeer)",
+    "number": "FIS-7384",
+    "name": "Spoorbrug Muiderberg (IJmeer)",
+    "status": "added",
+    "openingCount": 5
+  },
+  {
+    "fisId": 7515,
+    "fisName": "Brug in de N201 Loenersloot",
+    "number": "FIS-7515",
+    "name": "Brug in de N201 Loenersloot",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 7755,
+    "fisName": "Schipholbrug",
+    "number": "FIS-7755",
+    "name": "Schipholbrug",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 7932,
+    "fisName": "Korte Ouderkerkerbrug (Brug 1962)",
+    "number": "BRU1962",
+    "name": "Korte Ouderkerkerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 9354,
+    "fisName": "Oude Haagsebrug (Brug 1864)",
+    "number": "BRU1864",
+    "name": "Oude Haagsebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 9402,
+    "fisName": "Rietvinkbrug",
+    "number": "FIS-9402",
+    "name": "Rietvinkbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 9444,
+    "fisName": "Brug in de N201 Hilversum",
+    "number": "FIS-9444",
+    "name": "Brug in de N201 Hilversum",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 10068,
+    "fisName": "Julianabrug Zaandijk",
+    "number": "FIS-10068",
+    "name": "Julianabrug Zaandijk",
+    "status": "added",
+    "openingCount": 3
+  },
+  {
+    "fisId": 10070,
+    "fisName": "Spoorbrug Amsterdam (Nieuwe Vaart West)",
+    "number": "FIS-10070",
+    "name": "Spoorbrug Amsterdam (Nieuwe Vaart West)",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 10407,
+    "fisName": "Donkervlietsebrug",
+    "number": "FIS-10407",
+    "name": "Donkervlietsebrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 10605,
+    "fisName": "Eenhoornsluisbrug (Brug 313)",
+    "number": "BRU0313",
+    "name": "Eenhoornsluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 10716,
+    "fisName": "Spoorbrug Diemen",
+    "number": "FIS-10716",
+    "name": "Spoorbrug Diemen",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 10905,
+    "fisName": "Ad Grimmonbrug (Brug 1915)",
+    "number": "BRU1915",
+    "name": "Ad Grimmonbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 10908,
+    "fisName": "Bosrandbrug",
+    "number": "FIS-10908",
+    "name": "Bosrandbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 10956,
+    "fisName": "Kloosterdijksluisbrug",
+    "number": "FIS-10956",
+    "name": "Kloosterdijksluisbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 11383,
+    "fisName": "Brug in de A9 Haarlemmerliede",
+    "number": "FIS-11383",
+    "name": "Brug in de A9 Haarlemmerliede",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 11631,
+    "fisName": "Weerenbrug",
+    "number": "FIS-11631",
+    "name": "Weerenbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 12624,
+    "fisName": "Voetgangersbrug Oud Gein",
+    "number": "FIS-12624",
+    "name": "Voetgangersbrug Oud Gein",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 12833,
+    "fisName": "Panamabrug (Brug 1966)",
+    "number": "BRU1966",
+    "name": "Nieuwe Vaart",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 12937,
+    "fisName": "Drs. P-brug (Brug 2115)",
+    "number": "BRU2115",
+    "name": "Drs.P-brug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 13156,
+    "fisName": "Jan Benninghbrug",
+    "number": "FIS-13156",
+    "name": "Jan Benninghbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 13731,
+    "fisName": "Irenebrug Mijdrecht",
+    "number": "FIS-13731",
+    "name": "Irenebrug Mijdrecht",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 14743,
+    "fisName": "Spoorbrug Nauernaschevaart",
+    "number": "FIS-14743",
+    "name": "Spoorbrug Nauernaschevaart",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 14802,
+    "fisName": "Berensluisbrug (Brug 65)",
+    "number": "BRU0065",
+    "name": "Berensluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 14820,
+    "fisName": "Voetgangersbrug over benedenhoofd sluis 't Hemeltje",
+    "number": "FIS-14820",
+    "name": "Voetgangersbrug over benedenhoofd sluis 't Hemeltje",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 14821,
+    "fisName": "Nellesteinsebrug",
+    "number": "FIS-14821",
+    "name": "Nellesteinsebrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 14995,
+    "fisName": "Brug in de Haarlemmerhouttuinen (Brug 95)",
+    "number": "BRU0095",
+    "name": "Haarlemmer Houttuinen",
+    "status": "matched",
+    "openingCount": 2
+  },
+  {
+    "fisId": 15204,
+    "fisName": "Jan van Galenbrug (Brug 382)",
+    "number": "BRU0382",
+    "name": "Naam onbekend",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 15326,
+    "fisName": "Van Leer Brug",
+    "number": "FIS-15326",
+    "name": "Van Leer Brug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 15801,
+    "fisName": "Jan Swinkelsbrug",
+    "number": "FIS-15801",
+    "name": "Jan Swinkelsbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 15963,
+    "fisName": "Berlagebrug Amsterdam (Brug 423)",
+    "number": "BRU0423",
+    "name": "Berlagebrug",
+    "status": "matched",
+    "openingCount": 5
+  },
+  {
+    "fisId": 16138,
+    "fisName": "Singelgrachtspoorbruggen (Spoorbrug Westerkanaal) (NS 1)",
+    "number": "FIS-16138",
+    "name": "Singelgrachtspoorbruggen (Spoorbrug Westerkanaal) (NS 1)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 16230,
+    "fisName": "Pelikaanbrug Amsterdam (Brug 277)",
+    "number": "BRU0277",
+    "name": "Pelikaanbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 16652,
+    "fisName": "De Duifbrug (Brug 71)",
+    "number": "BRU0071",
+    "name": "De Duifbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 17020,
+    "fisName": "Brug 1 in de A4 Badhoevedorp",
+    "number": "FIS-17020",
+    "name": "Brug 1 in de A4 Badhoevedorp",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 17271,
+    "fisName": "Rozenoordbrug (Noord-Zuid) (Brug 174P)",
+    "number": "FIS-17271",
+    "name": "Rozenoordbrug (Noord-Zuid) (Brug 174P)",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 17274,
+    "fisName": "Zuiderbrug Broek in Waterland",
+    "number": "FIS-17274",
+    "name": "Zuiderbrug Broek in Waterland",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 17780,
+    "fisName": "Prinses Irenebrug Uithoorn",
+    "number": "FIS-17780",
+    "name": "Prinses Irenebrug Uithoorn",
+    "status": "added",
+    "openingCount": 4
+  },
+  {
+    "fisId": 17878,
+    "fisName": "Korte Prinsengrachtspoorbrug Amsterdam",
+    "number": "FIS-17878",
+    "name": "Korte Prinsengrachtspoorbrug Amsterdam",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 17992,
+    "fisName": "Brug Krommenie Noord",
+    "number": "FIS-17992",
+    "name": "Brug Krommenie Noord",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 18183,
+    "fisName": "Nieuwebrug",
+    "number": "FIS-18183",
+    "name": "Nieuwebrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 18246,
+    "fisName": "Zeilstraatbrug (Brug 348)",
+    "number": "BRU0348",
+    "name": "Zeilstraatbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 18528,
+    "fisName": "Beatrixbrug Zaandam",
+    "number": "FIS-18528",
+    "name": "Beatrixbrug Zaandam",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 18884,
+    "fisName": "Voetangelbrug",
+    "number": "FIS-18884",
+    "name": "Voetangelbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 19079,
+    "fisName": "Prins Bernhardbrug Zaandam",
+    "number": "FIS-19079",
+    "name": "Prins Bernhardbrug Zaandam",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 19139,
+    "fisName": "Westerdokbrug (Brug 314)",
+    "number": "BRU0314",
+    "name": "Westerdoksluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 19148,
+    "fisName": "Sint Antoniesluisbrug (Brug 287)",
+    "number": "BRU0287",
+    "name": "Sint Anthoniesluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 19197,
+    "fisName": "NSM-Brug (Brug 356)",
+    "number": "BRU0356",
+    "name": "NSM-brug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 19348,
+    "fisName": "Draaibrug Weesp",
+    "number": "FIS-19348",
+    "name": "Draaibrug Weesp",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 19372,
+    "fisName": "Schoterbrug (Brug 1)",
+    "number": "FIS-19372",
+    "name": "Schoterbrug (Brug 1)",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 19507,
+    "fisName": "Brug in de Utrechtsestraat Amsterdam (Brug 75)",
+    "number": "BRU0075",
+    "name": "Prinsengracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 19587,
+    "fisName": "Zeeburgerbrug",
+    "number": "FIS-19587",
+    "name": "Zeeburgerbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 19619,
+    "fisName": "Hakkelaarsbrug",
+    "number": "FIS-19619",
+    "name": "Hakkelaarsbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 19834,
+    "fisName": "Zoutkeetsbrug (Brug 318)",
+    "number": "BRU0318",
+    "name": "Zoutkeetsbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 19901,
+    "fisName": "Spoorbrug Weesp (Vechtbrug ProRail)",
+    "number": "FIS-19901",
+    "name": "Spoorbrug Weesp (Vechtbrug ProRail)",
+    "status": "added",
+    "openingCount": 3
+  },
+  {
+    "fisId": 19960,
+    "fisName": "Zandhoeksbrug (Brug 316)",
+    "number": "BRU0316",
+    "name": "Zandhoeksbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 20083,
+    "fisName": "Waarderbrug (Brug 2)",
+    "number": "FIS-20083",
+    "name": "Waarderbrug (Brug 2)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 20147,
+    "fisName": "IJdoornlaanbrug (Brug 970)",
+    "number": "BRU0970",
+    "name": "Naam onbekend",
+    "status": "matched",
+    "openingCount": 3
+  },
+  {
+    "fisId": 20740,
+    "fisName": "Pythonbrug (Brug 1998)",
+    "number": "BRU1998",
+    "name": "Hoge brug",
+    "status": "matched",
+    "openingCount": 2
+  },
+  {
+    "fisId": 20751,
+    "fisName": "Blauwbrug (Brug 236)",
+    "number": "BRU0236",
+    "name": "Blauwbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 21115,
+    "fisName": "Scharrebierbrug (Brug 278)",
+    "number": "BRU0278",
+    "name": "Scharrebiersluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 21755,
+    "fisName": "Schellingwouderbrug",
+    "number": "FIS-21755",
+    "name": "Schellingwouderbrug",
+    "status": "added",
+    "openingCount": 6
+  },
+  {
+    "fisId": 21773,
+    "fisName": "Brug Krommenie Zuid",
+    "number": "FIS-21773",
+    "name": "Brug Krommenie Zuid",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 21998,
+    "fisName": "Trambrug in de lijn Amsterdam - Amstelveen",
+    "number": "FIS-21998",
+    "name": "Trambrug in de lijn Amsterdam - Amstelveen",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 22036,
+    "fisName": "Frans Hendriksz Oetgensbrug (Brug 76)",
+    "number": "BRU0076",
+    "name": "Frans Hendriksz.Oetgensbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 22066,
+    "fisName": "Antiquairsbrug (Brug 69)",
+    "number": "BRU0069",
+    "name": "Prinsengracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 22599,
+    "fisName": "Coenbrug",
+    "number": "FIS-22599",
+    "name": "Coenbrug",
+    "status": "added",
+    "openingCount": 5
+  },
+  {
+    "fisId": 22614,
+    "fisName": "De Heusbrug (Brug 854)",
+    "number": "BRU0854",
+    "name": "De Heusweg",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 22740,
+    "fisName": "Weesperbrug",
+    "number": "FIS-22740",
+    "name": "Weesperbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 22937,
+    "fisName": "Amsterdamsepoortbrug",
+    "number": "FIS-22937",
+    "name": "Amsterdamsepoortbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 23005,
+    "fisName": "Brug over benedenhoofd Keetpoortsluis",
+    "number": "FIS-23005",
+    "name": "Brug over benedenhoofd Keetpoortsluis",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 23292,
+    "fisName": "Schinkelbrug Zuid (Brug 176P)",
+    "number": "FIS-23292",
+    "name": "Schinkelbrug Zuid (Brug 176P)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 23314,
+    "fisName": "Walenweeshuissluisbrug (Brug 70)",
+    "number": "BRU0070",
+    "name": "Walenweeshuissluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 23375,
+    "fisName": "Overtoomsesluisbrug (Brug 199)",
+    "number": "BRU0199",
+    "name": "Overtoomsesluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 23394,
+    "fisName": "P.L. Kramerbrug (Brug 400)",
+    "number": "BRU0400",
+    "name": "P.L. Kramerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 23599,
+    "fisName": "Spoorbrug Amsterdam (Nieuwe Vaart Oost)",
+    "number": "FIS-23599",
+    "name": "Spoorbrug Amsterdam (Nieuwe Vaart Oost)",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 23759,
+    "fisName": "Dorpsbrug Loenen",
+    "number": "FIS-23759",
+    "name": "Dorpsbrug Loenen",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 24126,
+    "fisName": "Brug De Kwakel",
+    "number": "FIS-24126",
+    "name": "Brug De Kwakel",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 24264,
+    "fisName": "Rozenoordbrug (Zuid-Noord) (Brug 174P)",
+    "number": "FIS-24264",
+    "name": "Rozenoordbrug (Zuid-Noord) (Brug 174P)",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 24700,
+    "fisName": "Van Hallbrug (Brug 171)",
+    "number": "BRU0171",
+    "name": "Naam onbekend",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 24704,
+    "fisName": "Wilhelminabrug Driemond",
+    "number": "BRU1490",
+    "name": "Wilhelminabrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 24738,
+    "fisName": "Duivendrechtsebrug (Brug 1267)",
+    "number": "BRU1267",
+    "name": "Duivendrechtsebrug",
+    "status": "matched",
+    "openingCount": 2
+  },
+  {
+    "fisId": 24796,
+    "fisName": "Cronenburgherbrug",
+    "number": "FIS-24796",
+    "name": "Cronenburgherbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 24892,
+    "fisName": "Fietsbrug over bovenhoofd sluis 't Hemeltje",
+    "number": "FIS-24892",
+    "name": "Fietsbrug over bovenhoofd sluis 't Hemeltje",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 25154,
+    "fisName": "Hildo Kropbrug (Brug 419)",
+    "number": "BRU0419",
+    "name": "Hildo Kropbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 25366,
+    "fisName": "Brug over bovenhoofd Uitermeersluis",
+    "number": "FIS-25366",
+    "name": "Brug over bovenhoofd Uitermeersluis",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 25380,
+    "fisName": "Kattenburgerbrug (Brug 274)",
+    "number": "BRU0274",
+    "name": "Kattenburgerbrug",
+    "status": "matched",
+    "openingCount": 3
+  },
+  {
+    "fisId": 25437,
+    "fisName": "Brug in verbindingswegen A10 Duivendrecht",
+    "number": "FIS-25437",
+    "name": "Brug in verbindingswegen A10 Duivendrecht",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 25728,
+    "fisName": "Leimuiderbrug",
+    "number": "FIS-25728",
+    "name": "Leimuiderbrug",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 25773,
+    "fisName": "Spoorbrug Rozenoord",
+    "number": "FIS-25773",
+    "name": "Spoorbrug Rozenoord",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 26161,
+    "fisName": "Brug 1 Het Schouw",
+    "number": "FIS-26161",
+    "name": "Brug 1 Het Schouw",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 26395,
+    "fisName": "Ernst Cahn en Alfred Kohnbrug (Brug 401)",
+    "number": "BRU0401",
+    "name": "Ernst Cahn en Alfred Kohnbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 26484,
+    "fisName": "Draaibrug Abcoude",
+    "number": "FIS-26484",
+    "name": "Draaibrug Abcoude",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 26607,
+    "fisName": "Brug Achillesstraat-Locatellikade (Brug 414)",
+    "number": "BRU0414",
+    "name": "Zuider Amstelkanaal",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 26763,
+    "fisName": "Drechtbrug",
+    "number": "FIS-26763",
+    "name": "Drechtbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 26806,
+    "fisName": "Westerkeersluisbrug (Brug 346)",
+    "number": "BRU0346",
+    "name": "Westerkeersluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 26960,
+    "fisName": "Oosterdoksdraaibrug (Brug 2270)",
+    "number": "BRU2270",
+    "name": "Oosterdoksdraaibrug",
+    "status": "matched",
+    "openingCount": 2
+  },
+  {
+    "fisId": 27322,
+    "fisName": "Jac.C. Keabrug",
+    "number": "FIS-27322",
+    "name": "Jac.C. Keabrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 27499,
+    "fisName": "Brug in de Oude Spoorbaan",
+    "number": "FIS-27499",
+    "name": "Brug in de Oude Spoorbaan",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 27996,
+    "fisName": "Geuzenbrug",
+    "number": "FIS-27996",
+    "name": "Geuzenbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 28133,
+    "fisName": "Vijfhuizerbrug",
+    "number": "FIS-28133",
+    "name": "Vijfhuizerbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 28135,
+    "fisName": "Ophaalbrug Baambrugge",
+    "number": "FIS-28135",
+    "name": "Ophaalbrug Baambrugge",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 28247,
+    "fisName": "Hortusbrug (Brug 239)",
+    "number": "BRU0239",
+    "name": "Hortusbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 28420,
+    "fisName": "Brug Haaldersbroek",
+    "number": "FIS-28420",
+    "name": "Brug Haaldersbroek",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 28570,
+    "fisName": "Heulbrug",
+    "number": "FIS-28570",
+    "name": "Heulbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 28652,
+    "fisName": "Grafelijkheidsluisbrug",
+    "number": "FIS-28652",
+    "name": "Grafelijkheidsluisbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 30335,
+    "fisName": "Schinkelspoorbrug (Brug 83)",
+    "number": "FIS-30335",
+    "name": "Schinkelspoorbrug (Brug 83)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 30370,
+    "fisName": "Brug Het Schouw",
+    "number": "FIS-30370",
+    "name": "Brug Het Schouw",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 30380,
+    "fisName": "Nesciobrug (Brug 2013)",
+    "number": "BRU2013",
+    "name": "Nesciobrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 30467,
+    "fisName": "Brug in de A1 Naarden",
+    "number": "FIS-30467",
+    "name": "Brug in de A1 Naarden",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 30615,
+    "fisName": "Van Cuyckbrug",
+    "number": "FIS-30615",
+    "name": "Van Cuyckbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 30802,
+    "fisName": "Roskambrug (Brug 5046)",
+    "number": "BRU5046",
+    "name": "Roskambrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 31036,
+    "fisName": "Sloterbrug",
+    "number": "FIS-31036",
+    "name": "Sloterbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 31193,
+    "fisName": "Demmerikse brug",
+    "number": "FIS-31193",
+    "name": "Demmerikse brug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 31220,
+    "fisName": "Zanderijbrug",
+    "number": "FIS-31220",
+    "name": "Zanderijbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 31238,
+    "fisName": "Vreelandbrug",
+    "number": "FIS-31238",
+    "name": "Vreelandbrug",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 31391,
+    "fisName": "Brug in de Ambachtsherensingel Mijdrecht",
+    "number": "FIS-31391",
+    "name": "Brug in de Ambachtsherensingel Mijdrecht",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 31694,
+    "fisName": "Engewormerbrug",
+    "number": "FIS-31694",
+    "name": "Engewormerbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 31960,
+    "fisName": "Haaldersbroekerbrug",
+    "number": "FIS-31960",
+    "name": "Haaldersbroekerbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 32041,
+    "fisName": "Brug Driemond",
+    "number": "FIS-32041",
+    "name": "Brug Driemond",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 32100,
+    "fisName": "Latjesbrug (Brug 50)",
+    "number": "BRU0050",
+    "name": "Latjesbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 32507,
+    "fisName": "Omvalbrug (Brug 429)",
+    "number": "BRU0429",
+    "name": "Omvalbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 32623,
+    "fisName": "Buitenhuizerbrug",
+    "number": "FIS-32623",
+    "name": "Buitenhuizerbrug",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 32953,
+    "fisName": "Torontobrug (Brug 350)",
+    "number": "BRU0350",
+    "name": "Torontobrug",
+    "status": "matched",
+    "openingCount": 3
+  },
+  {
+    "fisId": 33537,
+    "fisName": "Middenweteringbrug",
+    "number": "FIS-33537",
+    "name": "Middenweteringbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 33743,
+    "fisName": "Sloterdijkerbrug (Brug 321)",
+    "number": "BRU0321",
+    "name": "Sloterdijkerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 33913,
+    "fisName": "Rozenoordbrug (Metrobrug) (Brug 174-2)",
+    "number": "FIS-33913",
+    "name": "Rozenoordbrug (Metrobrug) (Brug 174-2)",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 34050,
+    "fisName": "Voetgangersbrug Waver",
+    "number": "FIS-34050",
+    "name": "Voetgangersbrug Waver",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 34268,
+    "fisName": "Leliesluisbrug (Brug 61)",
+    "number": "BRU0061",
+    "name": "Leliesluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 34524,
+    "fisName": "Beltbrug (Brug 324)",
+    "number": "BRU0324",
+    "name": "Beltbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 34525,
+    "fisName": "Zaanspoorbrug",
+    "number": "FIS-34525",
+    "name": "Zaanspoorbrug",
+    "status": "added",
+    "openingCount": 4
+  },
+  {
+    "fisId": 34895,
+    "fisName": "Noordhollandschkanaalbrug",
+    "number": "FIS-34895",
+    "name": "Noordhollandschkanaalbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 35086,
+    "fisName": "Dees Postmabrug (Brug 485)",
+    "number": "BRU0485",
+    "name": "Dees Postmabrug",
+    "status": "matched",
+    "openingCount": 2
+  },
+  {
+    "fisId": 35100,
+    "fisName": "Brug in de A9 Spaarndam (over Zijkanaal C)",
+    "number": "FIS-35100",
+    "name": "Brug in de A9 Spaarndam (over Zijkanaal C)",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 35297,
+    "fisName": "Magere Brug (Brug 242)",
+    "number": "BRU0242",
+    "name": "Magere Brug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 35475,
+    "fisName": "Amsterdamsebrug (Brug 54-2)",
+    "number": "FIS-35475",
+    "name": "Amsterdamsebrug (Brug 54-2)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 35774,
+    "fisName": "Kerkbrug Bullewijk",
+    "number": "FIS-35774",
+    "name": "Kerkbrug Bullewijk",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 36350,
+    "fisName": "Brug over bovenhoofd sluis 't Hemeltje",
+    "number": "FIS-36350",
+    "name": "Brug over bovenhoofd sluis 't Hemeltje",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 36511,
+    "fisName": "Brug over bovenhoofd Rijnlandsluizen",
+    "number": "FIS-36511",
+    "name": "Brug over bovenhoofd Rijnlandsluizen",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 36778,
+    "fisName": "Brug in de A9 Amstelveen",
+    "number": "FIS-36778",
+    "name": "Brug in de A9 Amstelveen",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 36907,
+    "fisName": "Brug 1 in de A10 Duivendrecht",
+    "number": "FIS-36907",
+    "name": "Brug 1 in de A10 Duivendrecht",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 37053,
+    "fisName": "Brug 1 in de A9 Haarlemmerliede",
+    "number": "FIS-37053",
+    "name": "Brug 1 in de A9 Haarlemmerliede",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 37083,
+    "fisName": "Busbrug Uithoorn",
+    "number": "FIS-37083",
+    "name": "Busbrug Uithoorn",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 37290,
+    "fisName": "Brug in de A2 Abcoude",
+    "number": "FIS-37290",
+    "name": "Brug in de A2 Abcoude",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 37444,
+    "fisName": "Walter Suskindbrug (Brug 237)",
+    "number": "BRU0237",
+    "name": "Walter Süskindbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 37528,
+    "fisName": "Hefbrug Monnickendam",
+    "number": "FIS-37528",
+    "name": "Hefbrug Monnickendam",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 37738,
+    "fisName": "Hogesluisbrug (Brug 246)",
+    "number": "BRU0246",
+    "name": "Hogesluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 37844,
+    "fisName": "Loenerslootsebrug",
+    "number": "FIS-37844",
+    "name": "Loenerslootsebrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 38025,
+    "fisName": "Brug in de A9 Amsterdam",
+    "number": "FIS-38025",
+    "name": "Brug in de A9 Amsterdam",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 38281,
+    "fisName": "Slachthuisbrug Amsterdam (Brug 262)",
+    "number": "BRU0262",
+    "name": "Slachthuisbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 38832,
+    "fisName": "Oosterdoksspoorbrug",
+    "number": "FIS-38832",
+    "name": "Oosterdoksspoorbrug",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 39361,
+    "fisName": "Spoorbrug Badhoevedorp",
+    "number": "FIS-39361",
+    "name": "Spoorbrug Badhoevedorp",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 40433,
+    "fisName": "Brug zijkanaal E",
+    "number": "FIS-40433",
+    "name": "Brug zijkanaal E",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 40686,
+    "fisName": "Reesluisbrug (Brug 64)",
+    "number": "BRU0064",
+    "name": "Reesluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 40779,
+    "fisName": "Dorpsbrug Baambrugge",
+    "number": "FIS-40779",
+    "name": "Dorpsbrug Baambrugge",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 40929,
+    "fisName": "Nieuwe Amstelbrug (Brug 101)",
+    "number": "BRU0101",
+    "name": "Nieuwe Amstelbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 41027,
+    "fisName": "Waverbrug",
+    "number": "FIS-41027",
+    "name": "Waverbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 41073,
+    "fisName": "Schinkelbrug Noord (Brug 176P)",
+    "number": "FIS-41073",
+    "name": "Schinkelbrug Noord (Brug 176P)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 41203,
+    "fisName": "Venserbrug",
+    "number": "FIS-41203",
+    "name": "Venserbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 41771,
+    "fisName": "Mr. J.J. van der Veldebrug (Brug 1939)",
+    "number": "BRU1939",
+    "name": "Mr. J. J. van der Veldebrug",
+    "status": "matched",
+    "openingCount": 3
+  },
+  {
+    "fisId": 41822,
+    "fisName": "Brug Vrouwenverdriet",
+    "number": "FIS-41822",
+    "name": "Brug Vrouwenverdriet",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42062,
+    "fisName": "Brug in de A2 West Loenersloot",
+    "number": "FIS-42062",
+    "name": "Brug in de A2 West Loenersloot",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42239,
+    "fisName": "Brug in de A6 Muiderberg",
+    "number": "FIS-42239",
+    "name": "Brug in de A6 Muiderberg",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42248,
+    "fisName": "Spoorbrug Nieuwersluis",
+    "number": "FIS-42248",
+    "name": "Spoorbrug Nieuwersluis",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42306,
+    "fisName": "Brug in de N205 Vijfhuizen",
+    "number": "FIS-42306",
+    "name": "Brug in de N205 Vijfhuizen",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42791,
+    "fisName": "Ir. B. Bijvoetbrug (Brug 229)",
+    "number": "BRU0229",
+    "name": "Ir. B. Bijvoetbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43169,
+    "fisName": "Spoorbrug Muiderberg (Naardertrekvaart)",
+    "number": "FIS-43169",
+    "name": "Spoorbrug Muiderberg (Naardertrekvaart)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43349,
+    "fisName": "Veeneikbrug",
+    "number": "FIS-43349",
+    "name": "Veeneikbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43363,
+    "fisName": "Theophile de Bockbrug (Brug 360)",
+    "number": "BRU0360",
+    "name": "Kabouterbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43433,
+    "fisName": "Steffensbrug",
+    "number": "FIS-43433",
+    "name": "Steffensbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43600,
+    "fisName": "Brug in de Gooiseweg Duivendrecht",
+    "number": "FIS-43600",
+    "name": "Brug in de Gooiseweg Duivendrecht",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 43759,
+    "fisName": "Kikkerbilsluisbrug (Brug 279)",
+    "number": "BRU0279",
+    "name": "Kikkerbilssluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43819,
+    "fisName": "Han Lammersbrug (Brug 2202)",
+    "number": "BRU2202",
+    "name": "Han Lammersbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43949,
+    "fisName": "Meeuwenpleinbrug (Brug 491)",
+    "number": "BRU0491",
+    "name": "Naam onbekend",
+    "status": "matched",
+    "openingCount": 2
+  },
+  {
+    "fisId": 43962,
+    "fisName": "Vaartbrug Krommenie",
+    "number": "FIS-43962",
+    "name": "Vaartbrug Krommenie",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 45240,
+    "fisName": "Kattenslootbrug (Brug 155)",
+    "number": "BRU0155",
+    "name": "Kattenslootbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 45440,
+    "fisName": "Utrechtsebrug (Brug 439)",
+    "number": "BRU0439",
+    "name": "Utrechtsebrug",
+    "status": "matched",
+    "openingCount": 3
+  },
+  {
+    "fisId": 45584,
+    "fisName": "Brug in de A10 Duivendrecht",
+    "number": "FIS-45584",
+    "name": "Brug in de A10 Duivendrecht",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 45712,
+    "fisName": "Wiegbrug (Brug 173)",
+    "number": "BRU0173",
+    "name": "Wiegbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 45799,
+    "fisName": "Weesperpoortbrug Muiden",
+    "number": "FIS-45799",
+    "name": "Weesperpoortbrug Muiden",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 45899,
+    "fisName": "Dr. J.M. den Uylbrug Zaandam",
+    "number": "FIS-45899",
+    "name": "Dr. J.M. den Uylbrug Zaandam",
+    "status": "added",
+    "openingCount": 3
+  },
+  {
+    "fisId": 46890,
+    "fisName": "Nauernaschebrug",
+    "number": "FIS-46890",
+    "name": "Nauernaschebrug",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 46963,
+    "fisName": "Sluisbrug Weesp",
+    "number": "BRU5044",
+    "name": "Sluisbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 47131,
+    "fisName": "Heinkuitenbrug",
+    "number": "FIS-47131",
+    "name": "Heinkuitenbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 47249,
+    "fisName": "Pondskoekersluisbrug",
+    "number": "FIS-47249",
+    "name": "Pondskoekersluisbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 47271,
+    "fisName": "Zwaantjesbrug Weesp (Brug 5045)",
+    "number": "BRU5045",
+    "name": "Zwaantjesbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 47353,
+    "fisName": "Gerard Revebrug (Maasbrug) (Brug 403)",
+    "number": "BRU0403",
+    "name": "Gerard Revebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 47756,
+    "fisName": "Riekerhavenbrug (Brug 307)",
+    "number": "BRU0307",
+    "name": "Naam onbekend",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 47793,
+    "fisName": "Geinboogbrug",
+    "number": "FIS-47793",
+    "name": "Geinboogbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 48281,
+    "fisName": "Penbrug",
+    "number": "FIS-48281",
+    "name": "Penbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 48764,
+    "fisName": "Han van Zomerenbrug (Brug 402)",
+    "number": "BRU0402",
+    "name": "Han van Zomerenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 49337,
+    "fisName": "Dageraadsbrug (Brug 353)",
+    "number": "BRU0353",
+    "name": "Dageraadsbrug",
+    "status": "matched",
+    "openingCount": 2
+  },
+  {
+    "fisId": 49549,
+    "fisName": "Lange Vechtbrug (Brug 5043)",
+    "number": "BRU5043",
+    "name": "Lange vechtbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 50505,
+    "fisName": "Aalsmeerderbrug",
+    "number": "FIS-50505",
+    "name": "Aalsmeerderbrug",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 50554,
+    "fisName": "Wilhelminabrug Zaandam",
+    "number": "FIS-50554",
+    "name": "Wilhelminabrug Zaandam",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 50774,
+    "fisName": "Uiverbrug (Brug 2208)",
+    "number": "BRU2208",
+    "name": "Uiverbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 50937,
+    "fisName": "Brug over binnenhoofd Groote Zeesluis Muiden",
+    "number": "FIS-50937",
+    "name": "Brug over binnenhoofd Groote Zeesluis Muiden",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 51262,
+    "fisName": "Gerben Wagenaarbrug (Brug 357)",
+    "number": "BRU0357",
+    "name": "Gerben Wagenaarbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 51655,
+    "fisName": "Brug over Nieuw Wetering",
+    "number": "FIS-51655",
+    "name": "Brug over Nieuw Wetering",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 51973,
+    "fisName": "Vrouwenakkerbrug",
+    "number": "FIS-51973",
+    "name": "Vrouwenakkerbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 52004,
+    "fisName": "Brug 2 in de A9 Haarlemmerliede",
+    "number": "FIS-52004",
+    "name": "Brug 2 in de A9 Haarlemmerliede",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 52052,
+    "fisName": "Lepenbrug",
+    "number": "FIS-52052",
+    "name": "Lepenbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 52896,
+    "fisName": "Brug in de N515 Haaldersbroek",
+    "number": "FIS-52896",
+    "name": "Brug in de N515 Haaldersbroek",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 53146,
+    "fisName": "Buiksloterdraaibrug (Brug 2205)",
+    "number": "BRU2205",
+    "name": "Buiksloterdraaibrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 53231,
+    "fisName": "Muidenbrug",
+    "number": "FIS-53231",
+    "name": "Muidenbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 53395,
+    "fisName": "Joep Langebrug (Brug 417)",
+    "number": "BRU0417",
+    "name": "Joep Langebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 53404,
+    "fisName": "Spoorbrug Amsterdam (Weespertrekvaart)",
+    "number": "FIS-53404",
+    "name": "Spoorbrug Amsterdam (Weespertrekvaart)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 53405,
+    "fisName": "Aldo van Eyckbrug (Brug 413)",
+    "number": "BRU0413",
+    "name": "Aldo van Eyckbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 53472,
+    "fisName": "Duivendrechtsevaartmetrobrug",
+    "number": "BRU1641",
+    "name": "Duivendrechtsevaartmetrobrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 53711,
+    "fisName": "Brug De Uitkomst (Brug 5047)",
+    "number": "BRU5047",
+    "name": "De Uitkomst",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 53803,
+    "fisName": "Schiethavenbrug",
+    "number": "FIS-53803",
+    "name": "Schiethavenbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 53843,
+    "fisName": "Muiderspoorbrug",
+    "number": "FIS-53843",
+    "name": "Muiderspoorbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54234,
+    "fisName": "Brug in de A9 Ouder-Amstel",
+    "number": "FIS-54234",
+    "name": "Brug in de A9 Ouder-Amstel",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54271,
+    "fisName": "Schermersluisbrug",
+    "number": "FIS-54271",
+    "name": "Schermersluisbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54619,
+    "fisName": "Oude spoorbrug De Hoef",
+    "number": "FIS-54619",
+    "name": "Oude spoorbrug De Hoef",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54638,
+    "fisName": "Spoorbrug Purmerend",
+    "number": "FIS-54638",
+    "name": "Spoorbrug Purmerend",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 54871,
+    "fisName": "Prinsensluisbrug (Brug 60)",
+    "number": "BRU0060",
+    "name": "Prinsensluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54912,
+    "fisName": "Blauwehoofdbrug (Brug 163)",
+    "number": "BRU0163",
+    "name": "Blauwehoofdbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 55575,
+    "fisName": "Mariniersbrug (Brug 272)",
+    "number": "BRU0272",
+    "name": "Mariniersbrug",
+    "status": "matched",
+    "openingCount": 2
+  },
+  {
+    "fisId": 55913,
+    "fisName": "Diemerbrug",
+    "number": "FIS-55913",
+    "name": "Diemerbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 56000,
+    "fisName": "Nieuwe-Wercksbrug (Brug 63)",
+    "number": "BRU0063",
+    "name": "Nieuwe-Wercksbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 56106,
+    "fisName": "Annetje Fels-Kupferschmidtbrug (Brug 418)",
+    "number": "BRU0418",
+    "name": "Annetje Fels- Kupferschmidtbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 56252,
+    "fisName": "Hefbrug Broek in Waterland",
+    "number": "FIS-56252",
+    "name": "Hefbrug Broek in Waterland",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 56545,
+    "fisName": "Brug over binnenhoofd Raaisluis",
+    "number": "FIS-56545",
+    "name": "Brug over binnenhoofd Raaisluis",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 56925,
+    "fisName": "Schipholdraaibrug",
+    "number": "FIS-56925",
+    "name": "Schipholdraaibrug",
+    "status": "added",
+    "openingCount": 2
+  },
+  {
+    "fisId": 57339,
+    "fisName": "Dick Schmüllbrug (Brug 415)",
+    "number": "BRU0415",
+    "name": "Dick Smullbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 57520,
+    "fisName": "Halfwegbrug",
+    "number": "FIS-57520",
+    "name": "Halfwegbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 57664,
+    "fisName": "Ina Boekbinderbrug (Brug 416)",
+    "number": "BRU0416",
+    "name": "Ina Boekbinderbrug",
+    "status": "matched",
+    "openingCount": 2
+  },
+  {
+    "fisId": 57710,
+    "fisName": "Brug in de N247 Monnickendam",
+    "number": "FIS-57710",
+    "name": "Brug in de N247 Monnickendam",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 58071,
+    "fisName": "Hefbrug Rondweg",
+    "number": "FIS-58071",
+    "name": "Hefbrug Rondweg",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 58467,
+    "fisName": "Naarderpoortbrug",
+    "number": "FIS-58467",
+    "name": "Naarderpoortbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 58670,
+    "fisName": "Slotbrug",
+    "number": "FIS-58670",
+    "name": "Slotbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021200,
+    "fisName": "Vingboonsbrug (Brug 26)",
+    "number": "BRU0026",
+    "name": "Simon Wiesenthalbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021203,
+    "fisName": "Koningssluisbrug (Brug 29)",
+    "number": "BRU0029",
+    "name": "Koningssluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021206,
+    "fisName": "Hendrick Jacobsz Staetsbrug (Brug 35)",
+    "number": "BRU0035",
+    "name": "Hendrick Jacobsz. Staetsbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021209,
+    "fisName": "Johanna Borskibrug (Brug 41)",
+    "number": "BRU0041",
+    "name": "Johanna Borskibrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021212,
+    "fisName": "Heiligewegssluisbrug (Brug 2)",
+    "number": "BRU0002",
+    "name": "Heiligewegsluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021215,
+    "fisName": "Jan Vinckbrug (Brug 250)",
+    "number": "BRU0250",
+    "name": "Jan Vinckbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021218,
+    "fisName": "Oranjebrug (Brug 146)",
+    "number": "BRU0146",
+    "name": "Oranjebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021294,
+    "fisName": "Binnen Dommerstraatbrug (Brug 148)",
+    "number": "BRU0148",
+    "name": "Naam onbekend",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021553,
+    "fisName": "Kippebrug (Brug 270)",
+    "number": "BRU0270",
+    "name": "Kippebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021562,
+    "fisName": "Buysbrug (Brug 1972)",
+    "number": "BRU1972",
+    "name": "Buysbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021565,
+    "fisName": "Kamperbrug (Brug 285)",
+    "number": "BRU0285",
+    "name": "Kamperbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021728,
+    "fisName": "Muntsluisbrug (Brug 1)",
+    "number": "BRU0001",
+    "name": "Muntsluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021840,
+    "fisName": "Nijlpaardenbrug (Brug 1907)",
+    "number": "BRU1907",
+    "name": "Nijlpaardenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021843,
+    "fisName": "Ritsaert ten Catebrug (Brug 135)",
+    "number": "BRU0135",
+    "name": "Ritsaert ten Catebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021849,
+    "fisName": "Brandweerbrug (Brug 79)",
+    "number": "BRU0079",
+    "name": "Brandweerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021852,
+    "fisName": "Brug in de De Clercqstraat over de Da Costagracht (Brug 108)",
+    "number": "BRU0108",
+    "name": "Da Costagracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021861,
+    "fisName": "Hoofdbrug (Brug 299)",
+    "number": "BRU0299",
+    "name": "Hoofdbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021864,
+    "fisName": "Raemsluisbrug (Brug 226)",
+    "number": "BRU0226",
+    "name": "Groenburgwal",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021867,
+    "fisName": "Staalmeestersbrug (Brug 227)",
+    "number": "BRU0227",
+    "name": "Staalmeestersbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021870,
+    "fisName": "Kaasmarktsluisbrug (Brug 32)",
+    "number": "BRU0032",
+    "name": "Kaasmarktsluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021873,
+    "fisName": "Brug Utrechtsestraat over de Herengracht (Brug 34)",
+    "number": "BRU0034",
+    "name": "Herengracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021879,
+    "fisName": "Erfgooiersbrug",
+    "number": "FIS-1021879",
+    "name": "Erfgooiersbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1021882,
+    "fisName": "Aluminiumbrug (Brug 222)",
+    "number": "BRU0222",
+    "name": "Aluminiumbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1022218,
+    "fisName": "Mirakelbrug (Brug 152)",
+    "number": "BRU0152",
+    "name": "Mirakelbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1022462,
+    "fisName": "Oosterbeerbrug (Brug 354)",
+    "number": "BRU0354",
+    "name": "Oosterbeerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 1022465,
+    "fisName": "Haarlemmervaartbrug (Brug 193)",
+    "number": "BRU0193",
+    "name": "Westergasbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3311165,
+    "fisName": "Tante Saarbrug (Brug 31)",
+    "number": "BRU0031",
+    "name": "Tante Saarbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3311173,
+    "fisName": "Sint Nicolaasbrug (Brug 306)",
+    "number": "BRU0306",
+    "name": "Sint Nicolaasbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3311191,
+    "fisName": "Halverstadbrug (Brug 260)",
+    "number": "BRU0260",
+    "name": "Halverstadbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3311212,
+    "fisName": "Lau Mazirelbrug (Brug 259)",
+    "number": "BRU0259",
+    "name": "Lau Mazirelbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3375858,
+    "fisName": "Ben Polakbrug (Brug 258)",
+    "number": "BRU0258",
+    "name": "Ben Polakbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3375861,
+    "fisName": "Westertoegangsbrug (Brug 147)",
+    "number": "BRU0147",
+    "name": "Westertoegang",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3375864,
+    "fisName": "Cor Thesingbrug (Brug 349)",
+    "number": "BRU0349",
+    "name": "Cor Thesingbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3376033,
+    "fisName": "Sleutelbrug (Brug 201)",
+    "number": "BRU0201",
+    "name": "Sleutelbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3386198,
+    "fisName": "Torensluisbrug (Brug 9)",
+    "number": "BRU0009",
+    "name": "Torensluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3392995,
+    "fisName": "Weesperpoortbrug Amsterdam (Brug 263)",
+    "number": "BRU0263",
+    "name": "Weesperpoort",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3393346,
+    "fisName": "Brug Utrechtsestraat over de Keizersgracht (Brug 37)",
+    "number": "BRU0037",
+    "name": "Keizersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3394253,
+    "fisName": "Leeuwenputbrug (Brug 371)",
+    "number": "BRU0371",
+    "name": "Leeuwenputbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 3394338,
+    "fisName": "Peperbrug (Brug 281)",
+    "number": "BRU0281",
+    "name": "Peperbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5565903,
+    "fisName": "Lommertbrug (Brug 203)",
+    "number": "BRU0203",
+    "name": "Lommertbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5979384,
+    "fisName": "Kortenhoefbrug",
+    "number": "FIS-5979384",
+    "name": "Kortenhoefbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5979471,
+    "fisName": "Fiets-/voetgangersbrug Zwanenburg",
+    "number": "FIS-5979471",
+    "name": "Fiets-/voetgangersbrug Zwanenburg",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5979520,
+    "fisName": "Muiderfietsbrug",
+    "number": "FIS-5979520",
+    "name": "Muiderfietsbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5979879,
+    "fisName": "Bietenbrug Halfweg",
+    "number": "FIS-5979879",
+    "name": "Bietenbrug Halfweg",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5979973,
+    "fisName": "Brug in de A5",
+    "number": "FIS-5979973",
+    "name": "Brug in de A5",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5979991,
+    "fisName": "Kadoelenbrug (Brug 1787)",
+    "number": "BRU1787",
+    "name": "Kadoelenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5980092,
+    "fisName": "Tweede Kanaalbrug Kortenhoef",
+    "number": "FIS-5980092",
+    "name": "Tweede Kanaalbrug Kortenhoef",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 5980200,
+    "fisName": "Eerste Kanaalbrug",
+    "number": "FIS-5980200",
+    "name": "Eerste Kanaalbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 6195828,
+    "fisName": "Makelaarsbruggetje (Brug 105)",
+    "number": "BRU0105",
+    "name": "Makelaarsbruggetje",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 6922238,
+    "fisName": "Volewijckbrug (Brug 2475)",
+    "number": "BRU2475",
+    "name": "Volewijckbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 7069648,
+    "fisName": "Spoordijkbrug",
+    "number": "FIS-7069648",
+    "name": "Spoordijkbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 7070211,
+    "fisName": "De Derde Brug",
+    "number": "FIS-7070211",
+    "name": "De Derde Brug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 7441515,
+    "fisName": "Brug A1 Diemen",
+    "number": "FIS-7441515",
+    "name": "Brug A1 Diemen",
+    "status": "added",
+    "openingCount": 0
+  },
+  {
+    "fisId": 7617528,
+    "fisName": "Uyllanderbrug (Brug 2007)",
+    "number": "BRU2007",
+    "name": "Uyllanderbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 7912135,
+    "fisName": "Westergasbrug (Brug 193)",
+    "number": "FIS-7912135",
+    "name": "Westergasbrug (Brug 193)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 8266291,
+    "fisName": "Vluchthavenbrug (Brug 1927)",
+    "number": "BRU1927",
+    "name": "Vluchthavenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 9125019,
+    "fisName": "William Pontbrug",
+    "number": "FIS-9125019",
+    "name": "William Pontbrug",
+    "status": "added",
+    "openingCount": 3
+  },
+  {
+    "fisId": 11012357,
+    "fisName": "Lastagebrug (Brug 288)",
+    "number": "BRU0288",
+    "name": "Oudeschans",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 11012362,
+    "fisName": "Geurt Brinkgrevebrug (Brug 296)",
+    "number": "BRU0296",
+    "name": "Geurt Brinkgrevebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 11885202,
+    "fisName": "Ceintuurbrug (Brug 116)",
+    "number": "BRU0116",
+    "name": "Ceintuurbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 11954802,
+    "fisName": "Nieuwe Brug (Brug 303)",
+    "number": "BRU0303",
+    "name": "Nieuwebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 14134749,
+    "fisName": "Leidsebrug (Brug 174)",
+    "number": "BRU0174",
+    "name": "Leidsebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 14440654,
+    "fisName": "Spieringbrug (Brug 9001)",
+    "number": "FIS-14440654",
+    "name": "Spieringbrug (Brug 9001)",
+    "status": "added",
+    "openingCount": 5
+  },
+  {
+    "fisId": 15868447,
+    "fisName": "Schollenbrug (Brug 340)",
+    "number": "BRU0340",
+    "name": "Schollenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 15885519,
+    "fisName": "Snoekjesbrug (Brug 289)",
+    "number": "BRU0289",
+    "name": "Snoekjesbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 15885532,
+    "fisName": "Gelderschebrug (Brug 297)",
+    "number": "BRU0297",
+    "name": "Recht Boomssloot",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 17065487,
+    "fisName": "Theo Fransmanbrug (Brug 1788)",
+    "number": "BRU1788",
+    "name": "Theo Fransmanbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 18222597,
+    "fisName": "Sluishuisbrug (Brug 2023)",
+    "number": "BRU2023",
+    "name": "Naam onbekend",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 18732202,
+    "fisName": "Betlembrug",
+    "number": "FIS-18732202",
+    "name": "Betlembrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 20044649,
+    "fisName": "Jip Golsteijnbrug (Brug 968)",
+    "number": "BRU0968",
+    "name": "Jip Golsteijnbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 20139095,
+    "fisName": "Zeddebrug",
+    "number": "FIS-20139095",
+    "name": "Zeddebrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 20161766,
+    "fisName": "Commandantsbrug (Brug 2361)",
+    "number": "BRU2361",
+    "name": "Commandantsbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 20191349,
+    "fisName": "Brug in de A2 Oost Loenersloot",
+    "number": "FIS-20191349",
+    "name": "Brug in de A2 Oost Loenersloot",
+    "status": "added",
+    "openingCount": 0
+  },
+  {
+    "fisId": 20192418,
+    "fisName": "Verbindingsweg A1-A6",
+    "number": "FIS-20192418",
+    "name": "Verbindingsweg A1-A6",
+    "status": "added",
+    "openingCount": 0
+  },
+  {
+    "fisId": 20192446,
+    "fisName": "Fietsbrug Hilversumse Bovenmeent",
+    "number": "FIS-20192446",
+    "name": "Fietsbrug Hilversumse Bovenmeent",
+    "status": "added",
+    "openingCount": 0
+  },
+  {
+    "fisId": 20210553,
+    "fisName": "Fiets-/Voetgangers Dr. J.M. den Uylbrug Zaandam",
+    "number": "FIS-20210553",
+    "name": "Fiets-/Voetgangers Dr. J.M. den Uylbrug Zaandam",
+    "status": "added",
+    "openingCount": 3
+  },
+  {
+    "fisId": 21023440,
+    "fisName": "Bullebakbrug (Brug 149)",
+    "number": "BRU0149",
+    "name": "Bullebak",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 21910978,
+    "fisName": "IJszeebrug (Brug 345)",
+    "number": "BRU0345",
+    "name": "Naam onbekend",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 21972629,
+    "fisName": "Figeebrug (Brug 2A)",
+    "number": "FIS-21972629",
+    "name": "Figeebrug (Brug 2A)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 22095232,
+    "fisName": "Steigereilandbrug (Brug 2038)",
+    "number": "BRU2038",
+    "name": "Steigereilandbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 22103569,
+    "fisName": "Bongerdbrug (Brug 1797)",
+    "number": "BRU1797",
+    "name": "Bongerdbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 23014790,
+    "fisName": "Liniebrug",
+    "number": "FIS-23014790",
+    "name": "Liniebrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 23537413,
+    "fisName": "Gemeenlandsvaartbrug",
+    "number": "FIS-23537413",
+    "name": "Gemeenlandsvaartbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 26000368,
+    "fisName": "Boezembrug Halfweg",
+    "number": "FIS-26000368",
+    "name": "Boezembrug Halfweg",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 26448993,
+    "fisName": "Isa van Eeghenbrug (Brug 30)",
+    "number": "BRU0030",
+    "name": "Isa van Eeghenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 26757230,
+    "fisName": "Brug Lijnbaansgracht-Reguliersgracht (Brug 81)",
+    "number": "BRU0081",
+    "name": "Reguliersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 27953303,
+    "fisName": "Drieharingenbrug (Brug 320)",
+    "number": "BRU0320",
+    "name": "Drieharingenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 28467007,
+    "fisName": "Raampoortbrug (Brug 165)",
+    "number": "BRU0165",
+    "name": "Raampoort",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 28473848,
+    "fisName": "Zaagpoortbrug (Brug 161)",
+    "number": "BRU0161",
+    "name": "Zaagpoort",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 28964310,
+    "fisName": "Osdorperbrug (Brug 178)",
+    "number": "BRU0178",
+    "name": "Osdorperbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 29094563,
+    "fisName": "Ezelsbrug (Brug 1904)",
+    "number": "BRU1904",
+    "name": "Ezelsbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 29646739,
+    "fisName": "Elsje Christiaensbrug (Brug 2474)",
+    "number": "BRU2474",
+    "name": "Elsje Christiaensbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 29646780,
+    "fisName": "Van der Pekbrug (Brug 995)",
+    "number": "BRU0995",
+    "name": "Van der Pekbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 30105395,
+    "fisName": "Jan Brouwerbrug (Brug 765)",
+    "number": "BRU0765",
+    "name": "Jan Brouwerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 30170187,
+    "fisName": "Oude Fransenbrug (Brug 142)",
+    "number": "BRU0142",
+    "name": "Naam onbekend",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 31184762,
+    "fisName": "Bullebaksluisbrug (Brug 160)",
+    "number": "BRU0160",
+    "name": "Bullebakssluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 31413282,
+    "fisName": "Eva Schalkbrug (Brug 997)",
+    "number": "BRU0997",
+    "name": "Eva Schalkbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 31866204,
+    "fisName": "Donkerbrug",
+    "number": "FIS-31866204",
+    "name": "Donkerbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 31933549,
+    "fisName": "Brediusbrug",
+    "number": "FIS-31933549",
+    "name": "Brediusbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 32155957,
+    "fisName": "Warmoesbrug (Brug 22)",
+    "number": "BRU0022",
+    "name": "Warmoesbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 32225290,
+    "fisName": "Huiszittenbrug (Brug 8)",
+    "number": "BRU0008",
+    "name": "Singel",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 32466392,
+    "fisName": "Montelbaansbrug (Brug 280)",
+    "number": "BRU0280",
+    "name": "Waalseilandsgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 32466396,
+    "fisName": "Waalseilandbrug (Brug 283)",
+    "number": "BRU0283",
+    "name": "Waalseilandbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 32730732,
+    "fisName": "Niek Engelschmanbrug (Brug 106)",
+    "number": "BRU0106",
+    "name": "Niek Engelschmanbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 34328696,
+    "fisName": "Wasknijperbrug (Brug 177)",
+    "number": "BRU0177",
+    "name": "Wasknijper",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 35573439,
+    "fisName": "Brug Hanenpadsluis",
+    "number": "FIS-35573439",
+    "name": "Brug Hanenpadsluis",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 35611973,
+    "fisName": "Mallegatsluisbrug Koog aan de Zaan",
+    "number": "FIS-35611973",
+    "name": "Mallegatsluisbrug Koog aan de Zaan",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 37054027,
+    "fisName": "Voetgangersbrug Vrouwenverdrietsluis",
+    "number": "FIS-37054027",
+    "name": "Voetgangersbrug Vrouwenverdrietsluis",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 37054081,
+    "fisName": "Weelsluisbrug (Westzanersluisbrug)",
+    "number": "FIS-37054081",
+    "name": "Weelsluisbrug (Westzanersluisbrug)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 37620052,
+    "fisName": "Kamelenbrug",
+    "number": "FIS-37620052",
+    "name": "Kamelenbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 37620114,
+    "fisName": "Luijendijksluisbrug",
+    "number": "FIS-37620114",
+    "name": "Luijendijksluisbrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 40428811,
+    "fisName": "Zuwebrug",
+    "number": "FIS-40428811",
+    "name": "Zuwebrug",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 40952531,
+    "fisName": "Doctor Meijer de Hondbrug (Brug 257)",
+    "number": "BRU0257",
+    "name": "Dr. Meijer de Hondbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 41033743,
+    "fisName": "De Hollandse Iepbrug (Brug 2470)",
+    "number": "BRU2470",
+    "name": "De Hollandse Iepbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 41377488,
+    "fisName": "Solitudobrug (Brug 2190)",
+    "number": "FIS-41377488",
+    "name": "Solitudobrug (Brug 2190)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42434252,
+    "fisName": "Joes Kloppenburgbrug (Brug 5)",
+    "number": "BRU0005",
+    "name": "Joes Kloppenburgbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42434322,
+    "fisName": "Corsgenbrug (Brug 12)",
+    "number": "BRU0012",
+    "name": "Corsgenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42434620,
+    "fisName": "Melkmeisjesbrug (Brug 16)",
+    "number": "BRU0016",
+    "name": "Melkmeisjesbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42434673,
+    "fisName": "Van Mierlobrug (Brug 18)",
+    "number": "BRU0018",
+    "name": "Van Mierlobrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42434729,
+    "fisName": "Anton Jolingbrug (Brug 20)",
+    "number": "BRU0020",
+    "name": "Anton Jolingbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42434935,
+    "fisName": "Vier Heemskinderenbrug (Brug 28)",
+    "number": "BRU0028",
+    "name": "Vier Heemskinderensluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42434961,
+    "fisName": "Lucas Jansz Sinckbrug (Brug 36)",
+    "number": "BRU0036",
+    "name": "Lucas Jansz. Sinckbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42434976,
+    "fisName": "Steenhouwerijbrug (Brug 45)",
+    "number": "BRU0045",
+    "name": "Steenhouwerijbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42434989,
+    "fisName": "Marten Toonderbrug (Brug 48)",
+    "number": "BRU0048",
+    "name": "Marten Toonderbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42435104,
+    "fisName": "Kees Fensbrug (Brug 49)",
+    "number": "BRU0049",
+    "name": "Kees Fensbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42435237,
+    "fisName": "Noordsche Compagniebrug (Brug 54)",
+    "number": "BRU0054",
+    "name": "Noordsche Compagniebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42435278,
+    "fisName": "Pastoorsbrug (Brug 55)",
+    "number": "BRU0055",
+    "name": "Pastoorsbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42435291,
+    "fisName": "Papiermolensluisbrug (Brug 57)",
+    "number": "BRU0057",
+    "name": "Papiermolensluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42435301,
+    "fisName": "Haringpakkersbrug (Brug 58)",
+    "number": "BRU0058",
+    "name": "Haringpakkersbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42436040,
+    "fisName": "Beulingsluisbrug (Brug 27)",
+    "number": "BRU0027",
+    "name": "Beulingsluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42436087,
+    "fisName": "Angenietje Swarthofbrug (Brug 67)",
+    "number": "BRU0067",
+    "name": "Angenietje Swarthofbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42436117,
+    "fisName": "Aalmoezeniersbrug (Brug 68)",
+    "number": "BRU0068",
+    "name": "Aalmoezeniersbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42436562,
+    "fisName": "Museumbrug Amsterdam  (Brug 82)",
+    "number": "BRU0082",
+    "name": "Museumbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42436583,
+    "fisName": "Freddy Heinekenbrug (Brug 84)",
+    "number": "BRU0084",
+    "name": "Freddy Heinekenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42453344,
+    "fisName": "Krijtbergsluisbrug (Brug 3)",
+    "number": "BRU0003",
+    "name": "Krijtbergbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42453443,
+    "fisName": "Heibrug (Brug 4)",
+    "number": "BRU0004",
+    "name": "Heibrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42458964,
+    "fisName": "Haarlemmersluisbrug (Brug 14)",
+    "number": "BRU0014",
+    "name": "Haarlemmersluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42458985,
+    "fisName": "West-Indische huisbrug (Brug 17)",
+    "number": "BRU0017",
+    "name": "West-Indische huisbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42476376,
+    "fisName": "Rachel Ruyschbrug (Brug 25)",
+    "number": "BRU0025",
+    "name": "Rachel Ruyschbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42476485,
+    "fisName": "Abel Weetnietbrug (Brug 44)",
+    "number": "BRU0044",
+    "name": "Abel Weetnietbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42477107,
+    "fisName": "Weteringpoortbrug (Brug 90)",
+    "number": "BRU0090",
+    "name": "Weteringpoort",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42477120,
+    "fisName": "Paerlduikerbrug (Brug 91)",
+    "number": "BRU0091",
+    "name": "Paerlduiker",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42477154,
+    "fisName": "Pieter Goemansbrug (Brug 93)",
+    "number": "BRU0093",
+    "name": "Pieter Goemansbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42484209,
+    "fisName": "Looierssluisbrug (Brug 103)",
+    "number": "BRU0103",
+    "name": "Looierssluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42484441,
+    "fisName": "Baanbrug (Brug 107)",
+    "number": "BRU0107",
+    "name": "Baanbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42484484,
+    "fisName": "Batavus Droogstoppelbrug (Brug 111)",
+    "number": "BRU0111",
+    "name": "Batavus Droogstoppelbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42484509,
+    "fisName": "Caetsbaanbrug (Brug 112)",
+    "number": "BRU0112",
+    "name": "Caetsbaanbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42484641,
+    "fisName": "Rosa Overbeekbrug (Brug 121)",
+    "number": "BRU0121",
+    "name": "Rosa Overbeekbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42484703,
+    "fisName": "Beudekerbrug (Brug 122)",
+    "number": "BRU0122",
+    "name": "Beudekerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42484784,
+    "fisName": "Kees de Jongenbrug (Brug 123)",
+    "number": "BRU0123",
+    "name": "Kees de Jongenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42484831,
+    "fisName": "Pansemertbrug (Brug 124)",
+    "number": "BRU0124",
+    "name": "Pansemertbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42484841,
+    "fisName": "Hilletjesbrug (Brug 125)",
+    "number": "BRU0125",
+    "name": "Hilletjesbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42502274,
+    "fisName": "Berta de Vriesbrug (Brug 128)",
+    "number": "BRU0128",
+    "name": "Berta de Vriesbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42502287,
+    "fisName": "Groentepraambrug (Brug 129)",
+    "number": "BRU0129",
+    "name": "Groentepraambrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42502371,
+    "fisName": "Wim Sonneveldbrug (Brug 175)",
+    "number": "BRU0175",
+    "name": "Wim Sonneveldbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42502509,
+    "fisName": "Tetje de Jongbrug (Brug 100)",
+    "number": "BRU0100",
+    "name": "Tetje de Jongbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42502696,
+    "fisName": "Jacobus Craandijkbrug (Brug 138)",
+    "number": "BRU0138",
+    "name": "Jacobus Craandijkbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42502747,
+    "fisName": "Brug in de Eerste Looiersdwarsstraat over de Looiersgracht (Brug 102)",
+    "number": "BRU0102",
+    "name": "Looiersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42502905,
+    "fisName": "Rotterdammerbrug (Brug 150)",
+    "number": "BRU0150",
+    "name": "Rotterdammerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42502929,
+    "fisName": "Saïdja en Adindabrug (Brug 162)",
+    "number": "BRU0162",
+    "name": "Saïdja en Adindabrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42503064,
+    "fisName": "Rijckerbrug (Brug 167)",
+    "number": "BRU0167",
+    "name": "Rijckerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42518271,
+    "fisName": "Jordaanbrug (Brug 117)",
+    "number": "BRU0117",
+    "name": "Lijnbaansgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42518606,
+    "fisName": "Oude Kinkerbrug (Brug 169)",
+    "number": "BRU0169",
+    "name": "Oude Kinkerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42523709,
+    "fisName": "Koekjesbrug (Brug 170)",
+    "number": "BRU0170",
+    "name": "Koekjesbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42527787,
+    "fisName": "Judith Leysterbrug (Brug 176)",
+    "number": "BRU0176",
+    "name": "Judith Leysterbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42527901,
+    "fisName": "Hennetjesbrug (Brug 179)",
+    "number": "BRU0179",
+    "name": "Hennetjesbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42527921,
+    "fisName": "Abdellah Zakibrug (Brug 180)",
+    "number": "BRU0180",
+    "name": "Abdellah Zakibrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42527934,
+    "fisName": "Pesthuysbrug (Brug 181)",
+    "number": "BRU0181",
+    "name": "Pesthuysbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42528026,
+    "fisName": "Belle van Zuylenbrug (Brug 184)",
+    "number": "BRU0184",
+    "name": "Belle van Zuylenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42528072,
+    "fisName": "Dr. Samuel de Ranitzbrug (Spinozabrug) (Brug 187)",
+    "number": "BRU0187",
+    "name": "Dr. Samuel de Ranitzbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42528098,
+    "fisName": "Oetewalerbrug (Brug 189)",
+    "number": "BRU0189",
+    "name": "Oetewalerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42528114,
+    "fisName": "Trapjesbrug (Brug 130)",
+    "number": "BRU0130",
+    "name": "Lijnbaansgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42528128,
+    "fisName": "Dorelies Kraakmanbrug (Oude Koekjesburg) (Brug 131)",
+    "number": "BRU0131",
+    "name": "Dorelies Kraakmanbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42528439,
+    "fisName": "Hartmanbrug (Brug 190)",
+    "number": "BRU0190",
+    "name": "Hartmanbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42528488,
+    "fisName": "Henrietta Leavittbrug (Brug 195)",
+    "number": "BRU0195",
+    "name": "Henrietta Leavittbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42537357,
+    "fisName": "Brug in de Bloemgracht over de Lijnbaansgracht (Brug 118)",
+    "number": "BRU0118",
+    "name": "Lijnbaansgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42537370,
+    "fisName": "Brug in de Lijnbaansgracht over de Bloemgracht (Brug 119)",
+    "number": "BRU0119",
+    "name": "Bloemgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42537400,
+    "fisName": "Brug in de Tweede Leliedwarsstraat over de Egelantiersgracht (Brug 126)",
+    "number": "BRU0126",
+    "name": "Egelantiersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42537462,
+    "fisName": "Brug in de Lijnbaansgracht over de Egelantiersgracht (Brug 127)",
+    "number": "BRU0127",
+    "name": "Egelantiersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42537688,
+    "fisName": "Grimnessesluisbrug (Brug 202)",
+    "number": "BRU0202",
+    "name": "Grimnessesluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42537783,
+    "fisName": "Varkenssluisbrug (Brug 204)",
+    "number": "BRU0204",
+    "name": "Varkenssluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42537866,
+    "fisName": "Sint Jansbrug (Brug 205)",
+    "number": "BRU0205",
+    "name": "St. Jansbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42537910,
+    "fisName": "Oudekerksbrug (Brug 206)",
+    "number": "BRU0206",
+    "name": "Oudekerksbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42537984,
+    "fisName": "Liesdelsluisbrug (Brug 207)",
+    "number": "BRU0207",
+    "name": "Liesdelsluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42538019,
+    "fisName": "Armbrug (Brug 208)",
+    "number": "BRU0208",
+    "name": "Armbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42538081,
+    "fisName": "Vredenburgerbrug (Brug 209)",
+    "number": "BRU0209",
+    "name": "Vredenburgerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42538109,
+    "fisName": "Bet van Beerenbrug (Brug 210)",
+    "number": "BRU0210",
+    "name": "Bet van Beerenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42538179,
+    "fisName": "Majoor Bosshardtbrug (Brug 211)",
+    "number": "BRU0211",
+    "name": "Majoor Bosshardtbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42569491,
+    "fisName": "Lijnbaansbrug (Brug 10)",
+    "number": "BRU0010",
+    "name": "Lijnbaansbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42620466,
+    "fisName": "Gasthuismolenbrug (Brug 6)",
+    "number": "BRU0006",
+    "name": "Singel",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42620479,
+    "fisName": "Stoofbrug (Brug 214)",
+    "number": "BRU0214",
+    "name": "Stoofbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42620519,
+    "fisName": "Paulusbroedersluisbrug (Brug 215)",
+    "number": "BRU0215",
+    "name": "Paulusbroederssluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42621506,
+    "fisName": "Melkmarktsbrug (Brug 13)",
+    "number": "BRU0013",
+    "name": "Open Havenfront",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42621522,
+    "fisName": "Brug Gasthuismolensteeg-Hartenstraat (Brug 24)",
+    "number": "BRU0024",
+    "name": "Herengracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42622216,
+    "fisName": "Oetgenssluisbrug (Brug 38)",
+    "number": "BRU0038",
+    "name": "Keizersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42622324,
+    "fisName": "Brug noordkade Keizersgracht over Reguliersgracht (Brug 39)",
+    "number": "BRU0039",
+    "name": "Keizersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42622351,
+    "fisName": "Quellijnbrug (Brug 46)",
+    "number": "BRU0046",
+    "name": "Keizersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42622700,
+    "fisName": "Brug zuidkade Keizersgracht over Reguliersgracht (Brug 40)",
+    "number": "BRU0040",
+    "name": "Keizersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42651296,
+    "fisName": "Veebrug (Brug 261)",
+    "number": "BRU0261",
+    "name": "Veebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42656671,
+    "fisName": "Jules Schelvisbrug (Artisbrug) (Brug 264)",
+    "number": "BRU0264",
+    "name": "Jules Schelvisbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42656687,
+    "fisName": "Henriëtte Pimentelbrug (Brug 265)",
+    "number": "BRU0265",
+    "name": "Henriette Pimentelbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42658192,
+    "fisName": "Wielrijdersbrug (Brug 42)",
+    "number": "BRU0042",
+    "name": "Keizersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42658221,
+    "fisName": "Brug Leidsestraat overspant Keizersgracht (Brug 43)",
+    "number": "BRU0043",
+    "name": "Keizersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42658272,
+    "fisName": "Brug Keizersgracht-Brouwersstraat (Brug 56)",
+    "number": "BRU0056",
+    "name": "Brouwersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42658297,
+    "fisName": "Grote Brouwerssluisbrug (Brug 62)",
+    "number": "BRU0062",
+    "name": "Leliegracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42658377,
+    "fisName": "Brug Runstraat over Prinsengracht (Brug 66)",
+    "number": "BRU0066",
+    "name": "Prinsengracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42664036,
+    "fisName": "Bakkerijbrug (Brug 86)",
+    "number": "BRU0086",
+    "name": "Nieuwe Vijzelstraat",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42667110,
+    "fisName": "Brug Bilderdijkstraat-Frederik Hendrikstraat (Brug 7)",
+    "number": "BRU0007",
+    "name": "Bilderdijkstraat",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42668138,
+    "fisName": "Brug Herengracht overspant Blauwburgwal (Brug 19)",
+    "number": "BRU0019",
+    "name": "Herengracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42668235,
+    "fisName": "Halvemaansbrug (Brug 221)",
+    "number": "BRU0221",
+    "name": "Halvemaansbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42668319,
+    "fisName": "Doelensluisbrug (Brug 220)",
+    "number": "BRU0220",
+    "name": "Doelensluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42668341,
+    "fisName": "Oost-Indische Huisbrug (Brug 223)",
+    "number": "BRU0223",
+    "name": "Oost-Indische Huisbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42668354,
+    "fisName": "Bushuissluisbrug (Brug 224)",
+    "number": "BRU0224",
+    "name": "Bushuissluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42680232,
+    "fisName": "Odebrug (Brug 2358)",
+    "number": "BRU2358",
+    "name": "ODEbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42680592,
+    "fisName": "Janny en Lien Brilleslijperbrug (Brug 253)",
+    "number": "BRU0253",
+    "name": "Janny en Lien Brilleslijperbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42680616,
+    "fisName": "Doctor Dünnerbrug (Brug 251)",
+    "number": "BRU0251",
+    "name": "Dr. Dünnerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42680651,
+    "fisName": "Diamantbewerkersbrug (Brug 252)",
+    "number": "BRU0252",
+    "name": "Diamantbewerkersbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42680664,
+    "fisName": "Paleis voor Volksvlijtbrug (Brug 248)",
+    "number": "BRU0248",
+    "name": "Paleis voor Volksvlijtbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42680754,
+    "fisName": "Auke Bijlsmabrug (Brug 249)",
+    "number": "BRU0249",
+    "name": "Auke Bijlsmabrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42680877,
+    "fisName": "Dirk van Nimwegenbrug (Brug 241)",
+    "number": "BRU0241",
+    "name": "Dirk van Nimwegenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42680903,
+    "fisName": "L.H. Sarlouisbrug (Brug 240)",
+    "number": "BRU0240",
+    "name": "L.H. Sarlouisbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42680923,
+    "fisName": "Van Gendtbrug (Brug 247)",
+    "number": "BRU0247",
+    "name": "Van Gendtbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42681125,
+    "fisName": "Arend Westermanbrug (Brug 186)",
+    "number": "BRU0186",
+    "name": "Arend Westermanbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42692375,
+    "fisName": "Brug tussen Dijkstraat-Korte Dijkstraat (Brug 290)",
+    "number": "BRU0290",
+    "name": "Krom Boomssloot",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42692393,
+    "fisName": "Steenvoetsluisbrug (Brug 291)",
+    "number": "BRU0291",
+    "name": "Steenvoetsluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42692498,
+    "fisName": "Armeensebrug (Brug 293)",
+    "number": "BRU0293",
+    "name": "Armeensebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42692516,
+    "fisName": "Karl Popperbrug (Brug 305)",
+    "number": "BRU0305",
+    "name": "Karl Popperbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42692540,
+    "fisName": "Bantammerbrug (Brug 298)",
+    "number": "BRU0298",
+    "name": "Bantammerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42692557,
+    "fisName": "Kraansluisbrug (Brug 300)",
+    "number": "BRU0300",
+    "name": "Kraansluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42692572,
+    "fisName": "Kolkswaterkeringbrug (Brug 301)",
+    "number": "BRU0301",
+    "name": "Kolkswaterkering",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42764550,
+    "fisName": "Brug Prinsengracht voert over Passeerdersgracht (Brug 96)",
+    "number": "BRU0096",
+    "name": "Passeerdersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42765987,
+    "fisName": "Brug in de Spiegelgracht over de Lijnbaansgracht (Brug 97)",
+    "number": "BRU0097",
+    "name": "Lijnbaansgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42766011,
+    "fisName": "Brug Lijnbaansgracht voert over Passeerdersgracht (Brug 98)",
+    "number": "BRU0098",
+    "name": "Passeerdersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42766084,
+    "fisName": "Brug in de Passeerdersstraat over de Lijnbaansgracht (Brug 99)",
+    "number": "BRU0099",
+    "name": "Lijnbaansgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42786356,
+    "fisName": "Brug westkade Singel overspant Blauwburgwal (Brug 11)",
+    "number": "BRU0011",
+    "name": "Singel",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42786371,
+    "fisName": "Brug in het Singel over de Brouwersgracht (Brug 15)",
+    "number": "BRU0015",
+    "name": "Brouwersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42787044,
+    "fisName": "Brug westkade Herengracht overspant Leliegracht (Brug 21)",
+    "number": "BRU0021",
+    "name": "Herengracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42911282,
+    "fisName": "Brug Huidenstraat-Runstraat (Brug 47)",
+    "number": "BRU0047",
+    "name": "Keizersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42911375,
+    "fisName": "Brug noordkade Leliegracht overspant Keizersgracht (Brug 51)",
+    "number": "BRU0051",
+    "name": "Keizersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42911392,
+    "fisName": "Brug westkade Keizersgracht overspant Leliegracht (Brug 52)",
+    "number": "BRU0052",
+    "name": "Leliegracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42911544,
+    "fisName": "Brug oostkade Keizersgracht overspant Leliegracht (Brug 53)",
+    "number": "BRU0053",
+    "name": "Leliegracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42931435,
+    "fisName": "Brug zuidzijde Prinsengracht voert over Reguliersgracht (Brug 72)",
+    "number": "BRU0072",
+    "name": "Prinsengracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42931506,
+    "fisName": "Brug noordzijde Prinsengracht en voert over de Reguliersgracht (Brug 73)",
+    "number": "BRU0073",
+    "name": "Reguliersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42931520,
+    "fisName": "Kerksluisbrug (Brug 74)",
+    "number": "BRU0074",
+    "name": "Reguliersgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42931650,
+    "fisName": "Spiegelbrug (Brug 87)",
+    "number": "BRU0087",
+    "name": "Prinsengracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42931681,
+    "fisName": "Brug noordkade Lijnbaansgracht overspant Spiegelgracht (Brug 88)",
+    "number": "BRU0088",
+    "name": "Spiegelgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42931695,
+    "fisName": "Brug Weteringstraat overspant Lijnbaansgracht (Brug 89)",
+    "number": "BRU0089",
+    "name": "Lijnbaansgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42937662,
+    "fisName": "Brug in de Lijnbaansgracht over de Leidsegracht (Brug 94)",
+    "number": "BRU0094",
+    "name": "Leidsegracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42967117,
+    "fisName": "Brug in de Lijnbaansgracht over de Lauriergracht (Brug 110)",
+    "number": "BRU0110",
+    "name": "Lijnbaansgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42972892,
+    "fisName": "Brug in de Celebesstraat over de Ringvaart Watergraafsmeer (Brug 115)",
+    "number": "BRU0115",
+    "name": "Caroline Herschelbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42972951,
+    "fisName": "Oesjesduikerbrug (Oostenburgerbrug) (Brug 114)",
+    "number": "BRU0114",
+    "name": "Oesjesduiker",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42972974,
+    "fisName": "Atlas Maiorbrug (Brug 120)",
+    "number": "BRU0120",
+    "name": "Atlas Maiorbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42973078,
+    "fisName": "Brug Kinkerstraat overspant Bilderdijkgracht (Brug 23)",
+    "number": "BRU0023",
+    "name": "Kinkerstraat",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42974679,
+    "fisName": "John Rädeckerbrug (Brug 1916)",
+    "number": "BRU1916",
+    "name": "Lozingskanaal",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42980471,
+    "fisName": "Diamantbrug (Brug 137)",
+    "number": "BRU0137",
+    "name": "Diamantbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42980533,
+    "fisName": "Jean Dulieubrug (Brug 140)",
+    "number": "BRU0140",
+    "name": "Jean Dulieubrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42980714,
+    "fisName": "Korrelbrug (Brug 143)",
+    "number": "BRU0143",
+    "name": "Korrelbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42980760,
+    "fisName": "Cornelis Ritterbrug (Brug 145)",
+    "number": "BRU0145",
+    "name": "Cornelis Ritterbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 42980854,
+    "fisName": "Groentemarktbrug (Brug 156)",
+    "number": "BRU0156",
+    "name": "Groentemarktbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43001183,
+    "fisName": "Smederij Meisterbrug (Brug 164)",
+    "number": "BRU0164",
+    "name": "Smederij Meisterbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43001297,
+    "fisName": "Brug in de Nassaukade over de Hugo de Grootgracht (Brug 166)",
+    "number": "BRU0166",
+    "name": "Nassaukade",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43001387,
+    "fisName": "Brug over sluis Haarlemmervaart (Brug 182)",
+    "number": "BRU0182",
+    "name": "Haarlemmertrekvaartschutsluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43001435,
+    "fisName": "Brug in de Kinkerstraat over de Da Costagracht (Brug 183)",
+    "number": "BRU0183",
+    "name": "Kinkerstraat",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43007453,
+    "fisName": "Gasthuisbrug (Heerenlogementsbrug) (Brug 218)",
+    "number": "BRU0218",
+    "name": "Oudezijds Achterburgwal",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43008840,
+    "fisName": "Theo Boschbrug (Brug 230)",
+    "number": "BRU0230",
+    "name": "Theo Boschbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43008866,
+    "fisName": "Postjesbrug (Brug 231)",
+    "number": "BRU0231",
+    "name": "Hoofdweg",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43009297,
+    "fisName": "Tulpbrug (Brug 255)",
+    "number": "BRU0255",
+    "name": "Tulpbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43009315,
+    "fisName": "Kaap de Goede Hoopbrug (Brug 256)",
+    "number": "BRU0256",
+    "name": "Kaap de Goede Hoopbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43025571,
+    "fisName": "Brug Korte Koningsstraat overspant Krom Boomssloot (Brug 292)",
+    "number": "BRU0292",
+    "name": "Krom Boomssloot",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43025596,
+    "fisName": "Brug zuidkade Recht Boomssloot over Krom Boomssloot (Brug 295)",
+    "number": "BRU0295",
+    "name": "Recht Boomssloot",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43025766,
+    "fisName": "Galgenbrug (Brug 315)",
+    "number": "BRU0315",
+    "name": "Galgenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43025995,
+    "fisName": "Camera Obscurabrug (Brug 322)",
+    "number": "BRU0322",
+    "name": "Camera Obscurabrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43026079,
+    "fisName": "Brug tussen Zeeburgerpad en Zeeburgerdijk (Brug 328)",
+    "number": "BRU0328",
+    "name": "Lozingskanaal",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43026223,
+    "fisName": "Brug in de Cruquiuskade over de Nieuwevaart (Brug 332)",
+    "number": "BRU0332",
+    "name": "Cruquiusspoorbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43045961,
+    "fisName": "Jaap Hannesbrug (Cruquiusbrug) (Brug 352)",
+    "number": "BRU0352",
+    "name": "Nieuwe Entrepotdokschutsluis",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43046019,
+    "fisName": "Evert van der Wallbrug (Brug 355)",
+    "number": "BRU0355",
+    "name": "Evert van der Wallbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43046044,
+    "fisName": "Machineslootbrug (Brug 358)",
+    "number": "BRU0358",
+    "name": "Machineslootbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43047432,
+    "fisName": "Molenslootbrug (Brug 359)",
+    "number": "BRU0359",
+    "name": "Molenslootbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43060199,
+    "fisName": "Duivekaterbrug (Brug 368)",
+    "number": "BRU0368",
+    "name": "Duivekaterbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43060506,
+    "fisName": "Vierwindstrekenbrug (Brug 381)",
+    "number": "BRU0381",
+    "name": "Vier Windstrekenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43060793,
+    "fisName": "Ahmed Zianibrug (Brug 386)",
+    "number": "BRU0386",
+    "name": "Ahmed Zianibrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43060812,
+    "fisName": "Zebrabrug (Brug 389)",
+    "number": "BRU0389",
+    "name": "Zebrabrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43060834,
+    "fisName": "Brug Westlandgracht-Westlandpad (Brug 392)",
+    "number": "BRU0392",
+    "name": "Westlandgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43080255,
+    "fisName": "Barbiersbrug (Brug 404)",
+    "number": "BRU0404",
+    "name": "Barbiersbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43080355,
+    "fisName": "Hanny Michaelisbrug (Brug 405)",
+    "number": "BRU0405",
+    "name": "Hanny Michaelisbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43080382,
+    "fisName": "Boerenweteringbrug (Brug 406)",
+    "number": "BRU0406",
+    "name": "Boerenweteringbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43080426,
+    "fisName": "Timo Smeehuijzenbrug (Brug 407)",
+    "number": "BRU0407",
+    "name": "Timo Smeehuijzenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43080439,
+    "fisName": "Isaac Israëlsbrug (Brug 408)",
+    "number": "BRU0408",
+    "name": "Isaac Israëlsbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43080467,
+    "fisName": "Etty Hillesumbrug (Brug 409)",
+    "number": "BRU0409",
+    "name": "Etty Hillesumbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43080493,
+    "fisName": "Lyceumbrug (Brug 410)",
+    "number": "BRU0410",
+    "name": "Lyceumbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43080740,
+    "fisName": "Herman van den Eerenbeemtbrug (Brug 411)",
+    "number": "BRU0411",
+    "name": "Herman van den Eerenbeemtbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43099173,
+    "fisName": "Zorgvliedbrug (Brug 424)",
+    "number": "BRU0424",
+    "name": "Zorgvliedbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43099186,
+    "fisName": "Brug Wibautstraat overspant Ringvaart Watergraafsmeer (Brug 427)",
+    "number": "BRU0427",
+    "name": "Ringvaart",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43136788,
+    "fisName": "Brug tussen de Panamalaan en de Entrepotdokkade (Brug 445)",
+    "number": "BRU0445",
+    "name": "Entrepotkade",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43163058,
+    "fisName": "Ina Boudier-Bakkerbrug (Brug 609)",
+    "number": "BRU0609",
+    "name": "Ina Boudier- Bakkerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43163177,
+    "fisName": "Truus Menger-Oversteegenbrug (Brug 604)",
+    "number": "BRU0604",
+    "name": "Truus Menger-Oversteegenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43163259,
+    "fisName": "Brug Jan Evertsenstraat overspant Burgemeester Cramergracht (Brug 606)",
+    "number": "BRU0606",
+    "name": "Burgemeester Cramergracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43163272,
+    "fisName": "Conny van Rietschotenbrug (Brug 607)",
+    "number": "BRU0607",
+    "name": "Conny van Rietschotenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43163421,
+    "fisName": "Tineke Guilonardbrug (Brug 611)",
+    "number": "BRU0611",
+    "name": "Tineke Guilonardbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43285910,
+    "fisName": "Duizendste Brug (Brug 684)",
+    "number": "BRU0684",
+    "name": "Duizendste Brug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43303622,
+    "fisName": "Brug tussen Postjeskade en het Rembrandtpark (Brug 682)",
+    "number": "BRU0682",
+    "name": "Postjeswetering",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43305022,
+    "fisName": "Brug tussen Corantijnstraat en het Rembrandtpark (Brug 683)",
+    "number": "BRU0683",
+    "name": "Postjeswetering",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43352235,
+    "fisName": "vaste brug Bloeddonorbrug",
+    "number": "BRU0701",
+    "name": "Bloeddonorbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43352287,
+    "fisName": "Frans van Goolbrug (Brug 709)",
+    "number": "BRU0709",
+    "name": "Frans van Goolbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43352583,
+    "fisName": "Piet Römerbrug (Brug 711)",
+    "number": "BRU0711",
+    "name": "Piet Römerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43564528,
+    "fisName": "Prinses Amaliabrug (Brug 774)",
+    "number": "BRU0774",
+    "name": "Prinses Amaliabrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43564659,
+    "fisName": "Willem Hovybrug (Brug 761)",
+    "number": "BRU0761",
+    "name": "Willem Hovybrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43564735,
+    "fisName": "Piet Peelenbrug (Brug 786)",
+    "number": "BRU0786",
+    "name": "Piet Peelenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43577410,
+    "fisName": "Rode Brug Amsterdam (Brug 836)",
+    "number": "BRU0836",
+    "name": "Rode brug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 43577660,
+    "fisName": "Ben Ali Libibrug (Brug 838)",
+    "number": "BRU0838",
+    "name": "Ben Ali Libibrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46017824,
+    "fisName": "Hein Donnerbrug (Brug 1922)",
+    "number": "BRU1922",
+    "name": "Hein Donnerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46020883,
+    "fisName": "Ketelhuisbrug (Brug 1923)",
+    "number": "BRU1923",
+    "name": "Ketelhuisbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46025396,
+    "fisName": "Robiënnabrug (Brug 1910)",
+    "number": "BRU1910",
+    "name": "Robiënnabrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46027379,
+    "fisName": "Witte Katbrug (Brug 1914)",
+    "number": "BRU1914",
+    "name": "Witte Katbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46035377,
+    "fisName": "Katterugbrug (Brug 1935)",
+    "number": "BRU1935",
+    "name": "Katterug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46038162,
+    "fisName": "Margaret Staal-Krophollerbrug (Brug 1940)",
+    "number": "BRU1940",
+    "name": "Magaret Staal-Krophollerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46049582,
+    "fisName": "Oliphantsbrug (Brug 1957)",
+    "number": "BRU1957",
+    "name": "Oliphantsbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46087530,
+    "fisName": "De Arendbrug (Brug 1973)",
+    "number": "BRU1973",
+    "name": "De Arendbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46091263,
+    "fisName": "Serangbrug (Brug 1983)",
+    "number": "BRU1983",
+    "name": "Serang",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46120785,
+    "fisName": "Consciencebrug (Brug 1984)",
+    "number": "BRU1984",
+    "name": "Conscience",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46123083,
+    "fisName": "Ideebrug (Brug 1985)",
+    "number": "BRU1985",
+    "name": "Idee",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46125035,
+    "fisName": "Majangbrug (Brug 1986)",
+    "number": "BRU1986",
+    "name": "Majang",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46127327,
+    "fisName": "Kunstbrug (Brug 1987)",
+    "number": "BRU1987",
+    "name": "Kunst",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46128887,
+    "fisName": "Lightbrug (brug 1988)",
+    "number": "BRU1988",
+    "name": "Licht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46130418,
+    "fisName": "Imagebrug (Brug 1989)",
+    "number": "BRU1989",
+    "name": "Image",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46132867,
+    "fisName": "Lamongbrug (Brug 1990)",
+    "number": "BRU1990",
+    "name": "Lamong",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46134718,
+    "fisName": "Societybrug (Brug 1991)",
+    "number": "BRU1991",
+    "name": "Society",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46136212,
+    "fisName": "Wordbrug (Brug 1992",
+    "number": "BRU1992",
+    "name": "Word",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46137788,
+    "fisName": "Brantasbrug (Brug 1993)",
+    "number": "BRU1993",
+    "name": "Brantas",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46139297,
+    "fisName": "Enseignementbrug (Brug 1994)",
+    "number": "BRU1994",
+    "name": "Enseignement",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46141855,
+    "fisName": "Wetenschapbrug (Brug 1995)",
+    "number": "BRU1995",
+    "name": "Wetenschap",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46144371,
+    "fisName": "Lage brug (Brug 1997)",
+    "number": "BRU1997",
+    "name": "Lage brug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46150543,
+    "fisName": "Enneüs Heermabrug (Brug 2001)",
+    "number": "BRU2001",
+    "name": "Enneüs Heermabrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46157569,
+    "fisName": "Kors van Bennekombrug (Brug 2009)",
+    "number": "BRU2009",
+    "name": "Kors van Bennekombrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46796778,
+    "fisName": "Piet de Boerbrug (Brug 2359)",
+    "number": "BRU2359",
+    "name": "Pier de Boerbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46798735,
+    "fisName": "Harry van Kruiningenbrug (Brug 2360)",
+    "number": "BRU2360",
+    "name": "Harry van Kruiningenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 46801777,
+    "fisName": "Maria Skłodowska-Curiebrug (Brug 2362)",
+    "number": "BRU2362",
+    "name": "Maria Sklodowska-Curiebrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 49486333,
+    "fisName": "Galgenveldbrug (Brug 2476)",
+    "number": "BRU2476",
+    "name": "Galgenveldbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 50321769,
+    "fisName": "Brug tussen de Henk Curièrekade en de Martin Vlaarkade (Brug 1909)",
+    "number": "BRU1909",
+    "name": "Van Noordtgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 52573725,
+    "fisName": "Brug in het Singel over de Blauwburgwal (Brug 11)",
+    "number": "BRU0011",
+    "name": "Singel",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 52613490,
+    "fisName": "Cor Blekemolenbrug (Brug 2121)",
+    "number": "BRU2121",
+    "name": "Cor Blekemolenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 52872777,
+    "fisName": "Hein de Haanbrug (Brug 2037)",
+    "number": "BRU2037",
+    "name": "Jan Olphert Vaillantlaan",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54046736,
+    "fisName": "Melkfabriekbrug (Brug 1900)",
+    "number": "BRU1900",
+    "name": "Melkfabriekbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54140851,
+    "fisName": "Amstelstroombrug (Brug 2189)",
+    "number": "BRU2189",
+    "name": "Amstelstroombrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54149714,
+    "fisName": "Brug in de De Ruijterkade over de Westertoegang (Brug 2275)",
+    "number": "BRU2275",
+    "name": "De Ruijterkade",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54149822,
+    "fisName": "Brug in de Prins Hendrikkade over het Open Havenfront (Brug 387)",
+    "number": "BRU0387",
+    "name": "Open Havenfront",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54150377,
+    "fisName": "Brug in De Borcht bij het Amstelpark (Brug 821)",
+    "number": "BRU0821",
+    "name": "De Borcht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54160146,
+    "fisName": "Jan Wilsbrug (Brug 2247)",
+    "number": "BRU2247",
+    "name": "Jan Wilsbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54160698,
+    "fisName": "Fiep Westendorpbrug (Brug 385)",
+    "number": "FIS-54160698",
+    "name": "Fiep Westendorpbrug (Brug 385)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54160782,
+    "fisName": "Heemstedebrug (Brug 178P)",
+    "number": "FIS-54160782",
+    "name": "Heemstedebrug (Brug 178P)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54166780,
+    "fisName": "Heemstedemetrobrug (Brug 1653)",
+    "number": "FIS-54166780",
+    "name": "Heemstedemetrobrug (Brug 1653)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54166851,
+    "fisName": "Brug bij Station Heemstedestraat over de Slotervaart (Brug 1893)",
+    "number": "BRU1893",
+    "name": "Slotervaart",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54190226,
+    "fisName": "Brug in Meer en Vaart over de Osdorpergracht (Brug 753)",
+    "number": "BRU0753",
+    "name": "Meer en Vaart",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54190325,
+    "fisName": "Brug in Hoekenes over de Osdorpergracht (Brug 755)",
+    "number": "BRU0755",
+    "name": "Osdorpergracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54190356,
+    "fisName": "Brug in de Pieter Calandlaan over de Hoekenesgracht (Brug 754)",
+    "number": "BRU0754",
+    "name": "Hoekenesgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54190402,
+    "fisName": "Brug in Tussen Meer over de Hoekenesgracht (Brug 756)",
+    "number": "BRU0756",
+    "name": "Hoekenesgracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54190838,
+    "fisName": "Jetta Goudalbrug (Brug 771)",
+    "number": "BRU0771",
+    "name": "Jetta Goudalbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54190866,
+    "fisName": "Brug in Jan van Zutphenplantsoen over de Slotervaart (Brug 772)",
+    "number": "BRU0772",
+    "name": "H. Gerhardstraat",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54191039,
+    "fisName": "Brug in de Akersluis (Brug 2397)",
+    "number": "BRU2397",
+    "name": "Naam onbekend",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54246025,
+    "fisName": "Wim Ibobrug (Brug 1774)",
+    "number": "BRU1774",
+    "name": "Tolhuiskanaal",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54246111,
+    "fisName": "Erasmusgrachtbrug (Brug 142P)",
+    "number": "FIS-54246111",
+    "name": "Erasmusgrachtbrug (Brug 142P)",
+    "status": "added",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54725254,
+    "fisName": "Brug in het Groenpad over de Osdorpergracht (Brug 764)",
+    "number": "BRU0764",
+    "name": "Osdorpergracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54725352,
+    "fisName": "Brug in de Kanaalweg over het Zijkanaal F in Halfweg (Brug 783)",
+    "number": "BRU0783",
+    "name": "Naam onbekend",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54725429,
+    "fisName": "Brug in de Maassluisstraat over de Slotervaart (Brug 787)",
+    "number": "BRU0787",
+    "name": "Slotervaart",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 54733263,
+    "fisName": "Derkje Hazewinkel-Suringabrug (Brug 2522)",
+    "number": "BRU2522",
+    "name": "Derkje Hazenwinkel-Suringabrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 56559478,
+    "fisName": "Wil de Graaffbrug (Brug 393)",
+    "number": "BRU0393",
+    "name": "Wil de Graaffbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 59152788,
+    "fisName": "Brug tussen Jacob Catskade en De Wittenkade (Brug 132)",
+    "number": "BRU0132",
+    "name": "Kostverlorenvaart",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 59152793,
+    "fisName": "Brug over Kostverlorenvaart - De Wittenkade (Brug 347)",
+    "number": "BRU0347",
+    "name": "Haarlemmerweg",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 59154226,
+    "fisName": "Staatsliedenbrug (Brug 139)",
+    "number": "BRU0139",
+    "name": "Staatsliedenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 59154312,
+    "fisName": "Brug Van der Duijn- en Eerste Nassaustraat (Brug 1902)",
+    "number": "BRU1902",
+    "name": "Kostverlorenvaart",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 59539539,
+    "fisName": "Druivenbrug (Brug 1796)",
+    "number": "BRU1796",
+    "name": "Druivenbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 61060456,
+    "fisName": "Willemsbrug Amsterdam (Brug 151)",
+    "number": "BRU0151",
+    "name": "Willemsbrug",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 62530205,
+    "fisName": "Brug Achteruitgang Artis - Sarphatistraat (Brug 1938)",
+    "number": "BRU1938",
+    "name": "Plantage Muidergracht",
+    "status": "matched",
+    "openingCount": 1
+  },
+  {
+    "fisId": 63060061,
+    "fisName": "Hollandse Brug 2",
+    "number": "FIS-63060061",
+    "name": "Hollandse Brug 2",
+    "status": "added",
+    "openingCount": 5
+  }
+]
