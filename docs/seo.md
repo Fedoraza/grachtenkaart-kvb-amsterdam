@@ -33,6 +33,35 @@ Kaart-URL’s met queryparameters verwijzen met hun canonical naar `/` en krijge
 `X-Robots-Tag: noindex, follow` om varianten met gedeelde routes of bootselecties
 uit de zoekresultaten te houden.
 
+## Engelse pagina’s
+
+Voor Engelstalige bezoekers, zoals toeristen die een boot huren, staan 20
+volledig vertaalde pagina’s onder `/en/` (`server/public-pages-en.mjs`). De
+sitemap telt nu 73 URL’s: 53 Nederlandse en 20 Engelse.
+
+| Nederlands | Engels |
+| --- | --- |
+| `/amsterdam-routeplanner` | `/en/amsterdam-boat-route-planner` |
+| `/bruggen-amsterdam` (+ 8 bruggen) | `/en/amsterdam-bridges` (+ 8 bruggen, zelfde slug) |
+| `/grachten-amsterdam` (+ 6 grachten) | `/en/amsterdam-canals` (+ 6 grachten, zelfde slug) |
+| `/doorvaarthoogte-amsterdam` | `/en/bridge-clearance-amsterdam` |
+| `/vaarprofielen-amsterdam` | `/en/amsterdam-waterway-profiles` |
+| `/over-boottracker` | `/en/about-boottracker` |
+
+- Beide versies verwijzen met `hreflang="nl"`, `hreflang="en"` en
+  `hreflang="x-default"` (Nederlands) naar elkaar, in de `<head>` en in de
+  sitemap (`xhtml:link`). Elke versie heeft een eigen canonical.
+- Engelse pagina’s hebben `lang="en"`, `og:locale` `en_GB`, Engelse navigatie,
+  kruimelpad en structured data (`inLanguage: en-GB`). Een taallink in de
+  navigatie wisselt tussen beide versies.
+- `/en` verwijst met een 301 naar `/en/amsterdam-boat-route-planner`.
+- Alleen volledig vertaalde pagina’s krijgen een Engelse versie. Kennisbank,
+  rederijen, voorbeeldroutes, vlootoverzicht en statistieken zijn nog
+  Nederlandstalig en hebben geen `hreflang`. Een half vertaalde pagina is
+  slechter dan geen vertaling.
+- Bronrecordnamen van Rijkswaterstaat (bijv. “Doorvaartopening (beweegbaar)
+  Magere Brug”) blijven letterlijk staan, zodat ze in de bron terug te vinden zijn.
+
 ## Na publicatie
 
 1. Controleer dat `https://boottracker.nl/amsterdam-routeplanner` en

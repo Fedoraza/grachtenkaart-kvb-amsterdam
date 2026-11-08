@@ -154,3 +154,50 @@ test('operator pages cover all requested companies without inventing a live flee
   assert.ok(populated.includes('&lt;script&gt;'))
   assert.ok(populated.includes('door beheerder gekoppeld'))
 })
+
+test('English editions declare reciprocal hreflang alternates with a Dutch x-default', async () => {
+  const { ENGLISH_PAGES } = await import('./public-pages-en.mjs')
+  assert.ok(Object.keys(ENGLISH_PAGES).length >= 20)
+  for (const [path, page] of Object.entries(ENGLISH_PAGES)) {
+    assert.ok(PUBLIC_PAGES[page.nlPath], `${path} points at a real Dutch page`)
+    for (const head of [pageHead(path), pageHead(page.nlPath)]) {
+      assert.ok(head.includes(`hreflang="en" href="${SITE_ORIGIN}${path}"`))
+      assert.ok(head.includes(`hreflang="nl" href="${SITE_ORIGIN}${page.nlPath}"`))
+      assert.ok(head.includes(`hreflang="x-default" href="${SITE_ORIGIN}${page.nlPath}"`))
+    }
+    assert.ok(pageHead(path).includes('content="en_GB"'))
+  }
+  // Dutch-only pages must not claim an English edition.
+  assert.ok(!pageHead('/kennisbank').includes('hreflang'))
+})
+
+test('English pages render in English without Dutch chrome and link back to Dutch', () => {
+  const html = renderPublicPage('/en/amsterdam-boat-route-planner', { now })
+  assert.ok(html.includes('<html lang="en">'))
+  assert.ok(html.includes('Your route through the Amsterdam canals.'))
+  assert.ok(html.includes('href="/amsterdam-routeplanner" hreflang="nl"'))
+  assert.equal((html.match(/<h1>/g) || []).length, 1)
+  for (const dutch of ['Naar de inhoud', 'Hoofdnavigatie', 'Kruimelpad', 'Open kaart']) assert.ok(!html.includes(dutch), dutch)
+  const data = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1])
+  assert.equal(data.inLanguage, 'en-GB')
+  const dutch = renderPublicPage('/amsterdam-routeplanner', { now })
+  assert.ok(dutch.includes('href="/en/amsterdam-boat-route-planner" hreflang="en"'))
+})
+
+test('English bridge pages translate source labels and never estimate missing data', () => {
+  const bridgeCollection = { fetchedAt: now, features: [{ properties: { number: 'BRU0487', bridgeType: 'Beweegbare brug', clearanceNap: 1.2, winterWaterLevelNap: -0.4, passageWidth: 6 } }] }
+  const html = renderPublicPage('/en/amsterdam-bridges/kortjewantsbrug', { now, bridgeCollection })
+  assert.ok(html.includes('Movable bridge'))
+  assert.ok(html.includes('Calculated at the municipal winter water level'))
+  assert.ok(html.includes('1.6 m'))
+  assert.ok(html.includes('href="/?bridge=BRU0487"'))
+  assert.ok(html.includes('<a href="/en/amsterdam-bridges">Amsterdam bridges</a>'))
+  const missing = renderPublicPage('/en/amsterdam-bridges/kortjewantsbrug', { now, bridgeCollection: { features: [] } })
+  assert.ok(missing.includes('No dimensions are estimated.'))
+})
+
+test('sitemap lists both editions with xhtml alternates', () => {
+  const sitemap = sitemapXml()
+  assert.ok(sitemap.includes('xmlns:xhtml="http://www.w3.org/1999/xhtml"'))
+  assert.ok(sitemap.includes('<loc>https://boottracker.nl/en/amsterdam-canals/prinsengracht</loc><xhtml:link rel="alternate" hreflang="nl" href="https://boottracker.nl/grachten-amsterdam/prinsengracht"/>'))
+})

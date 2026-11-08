@@ -501,6 +501,10 @@ const server = createServer(async (req, res) => {
       res.writeHead(301, { Location: cleanPath + requestUrl.search });
       return res.end();
     }
+    if (cleanPath === "/en") {
+      res.writeHead(301, { Location: "/en/amsterdam-boat-route-planner" });
+      return res.end();
+    }
     if (cleanPath === "/robots.txt" || cleanPath === "/sitemap.xml") {
       res.setHeader("Content-Type", cleanPath.endsWith(".xml") ? "application/xml; charset=utf-8" : "text/plain; charset=utf-8");
       res.setHeader("Cache-Control", "public, max-age=3600");
@@ -513,7 +517,7 @@ const server = createServer(async (req, res) => {
         scriptUrl = `/${manifest["src/publicPages.js"].file}`;
       }
       let bridgeCollection;
-      if (cleanPath.startsWith("/bruggen-amsterdam/")) {
+      if (cleanPath.startsWith("/bruggen-amsterdam/") || cleanPath.startsWith("/en/amsterdam-bridges/")) {
         try { bridgeCollection = applyMapObjectOverrides("bridges", await loadAmsterdamBridgeCollection()); }
         catch (error) {
           console.warn(`Public bridge page unavailable: ${error.message}`);

@@ -3,6 +3,7 @@ import { AGENT_PAGES, agentRoutingContent } from './agent-routing-docs.mjs'
 import { OPERATOR_PAGES, operatorPageContent } from './public-operators.mjs'
 import { EXAMPLE_PAGES, exampleRouteContent } from './public-example-routes.mjs'
 import { NAVIGATION_PAGES, navigationContent } from './public-navigation.mjs'
+import { ENGLISH_PAGES, ENGLISH_PARENTS, ENGLISH_NAV_LINKS, ENGLISH_HOME, englishPageContent } from './public-pages-en.mjs'
 export const SITE_ORIGIN = 'https://boottracker.nl'
 export const PUBLIC_PAGES = {
   ...KNOWLEDGE_PAGES,
@@ -14,7 +15,16 @@ export const PUBLIC_PAGES = {
   '/amsterdam-routeplanner': { title: 'Amsterdam routeplanner voor boot en grachten | Boottracker', description: 'Een vaarroute plannen in Amsterdam? Ontdek de routeplanner van Boottracker met bruggen, bootafmetingen, vaartijd en AIS op de Amsterdamse grachten.' },
   '/flagship-vloot': { title: 'Flagship-vloot Amsterdam volgen met AIS | Boottracker', description: 'Bekijk de in Boottracker opgenomen Flagship-vloot in Amsterdam. Zoek boten op naam, bekijk de beschikbare AIS-status en open de vaarkaart.' },
   '/vlootstatistieken': { title: 'Vlootstatistieken Amsterdam: rederijen en AIS-activiteit | Boottracker', description: 'Vergelijk actieve boten, kilometers, vaaruren, vaarwegen en AIS-ontvangst van Amsterdamse rederijen in het statistiekdashboard.' },
+  ...ENGLISH_PAGES,
   '/km-leaderboard': { title: 'Amsterdamse vloot: kilometerklassement met AIS | Boottracker', description: 'Bekijk het dagelijkse kilometerklassement van de Amsterdamse bedrijfsvloot in Boottracker, berekend met ontvangen AIS-posities.' },
+}
+// Dutch path -> English path for every page that has a full English edition.
+const ENGLISH_BY_DUTCH = Object.fromEntries(Object.entries(ENGLISH_PAGES).map(([path, page]) => [page.nlPath, path]))
+export const isEnglishPage = path => Object.hasOwn(ENGLISH_PAGES, path)
+// Both editions of a translated page, or null when the page is Dutch-only.
+export function pageAlternates(path) {
+  if (isEnglishPage(path)) return { nl: ENGLISH_PAGES[path].nlPath, en: path }
+  return ENGLISH_BY_DUTCH[path] ? { nl: path, en: ENGLISH_BY_DUTCH[path] } : null
 }
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char])
 const json = value => JSON.stringify(value).replace(/</g, '\\u003c')
@@ -23,24 +33,35 @@ export function pageHead(path) {
   const page = PUBLIC_PAGES[path]
   if (!page) throw new Error('Unknown public page')
   const url = `${SITE_ORIGIN}${path}`
+  const english = isEnglishPage(path)
+  const alternates = pageAlternates(path)
+  // x-default points at the Dutch edition, the site's primary language.
+  const hreflang = alternates ? `<link rel="alternate" hreflang="nl" href="${SITE_ORIGIN}${alternates.nl}">
+<link rel="alternate" hreflang="en" href="${SITE_ORIGIN}${alternates.en}">
+<link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${alternates.nl}">
+` : ''
   return `<title>${escape(page.title)}</title>
 <meta name="description" content="${escape(page.description)}">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="canonical" href="${url}">
-<link rel="service-desc" type="application/json" href="/openapi.json">
+${hreflang}<link rel="service-desc" type="application/json" href="/openapi.json">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Boottracker">
-<meta property="og:locale" content="nl_NL"><meta property="og:title" content="${escape(page.title)}">
+<meta property="og:locale" content="${english ? 'en_GB' : 'nl_NL'}">${alternates ? `<meta property="og:locale:alternate" content="${english ? 'nl_NL' : 'en_GB'}">` : ''}<meta property="og:title" content="${escape(page.title)}">
 <meta property="og:description" content="${escape(page.description)}"><meta property="og:url" content="${url}">
 <meta name="twitter:card" content="summary"><meta name="twitter:title" content="${escape(page.title)}">
 <meta name="twitter:description" content="${escape(page.description)}">`
 }
 
 export function isPublicInformationPage(path) {
-  return Object.hasOwn(KNOWLEDGE_PAGES, path) || Object.hasOwn(AGENT_PAGES, path) || Object.hasOwn(OPERATOR_PAGES, path) || Object.hasOwn(EXAMPLE_PAGES, path) || Object.hasOwn(NAVIGATION_PAGES, path) || ['/amsterdam-routeplanner', '/flagship-vloot'].includes(path)
+  return isEnglishPage(path) || Object.hasOwn(KNOWLEDGE_PAGES, path) || Object.hasOwn(AGENT_PAGES, path) || Object.hasOwn(OPERATOR_PAGES, path) || Object.hasOwn(EXAMPLE_PAGES, path) || Object.hasOwn(NAVIGATION_PAGES, path) || ['/amsterdam-routeplanner', '/flagship-vloot'].includes(path)
 }
 
 export function sitemapXml() {
-  return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${Object.keys(PUBLIC_PAGES).map(path => `<url><loc>${SITE_ORIGIN}${path}</loc></url>`).join('')}</urlset>`
+  const alternateLinks = path => {
+    const alternates = pageAlternates(path)
+    return alternates ? ['nl', 'en'].map(lang => `<xhtml:link rel="alternate" hreflang="${lang}" href="${SITE_ORIGIN}${alternates[lang]}"/>`).join('') + `<xhtml:link rel="alternate" hreflang="x-default" href="${SITE_ORIGIN}${alternates.nl}"/>` : ''
+  }
+  return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${Object.keys(PUBLIC_PAGES).map(path => `<url><loc>${SITE_ORIGIN}${path}</loc>${alternateLinks(path)}</url>`).join('')}</urlset>`
 }
 export function robotsTxt() {
   return `User-agent: *\nAllow: /\nDisallow: /api/\nAllow: /api/routeplanner/route\nAllow: /api/shared-routes/\nDisallow: /healthz\n\nSitemap: ${SITE_ORIGIN}/sitemap.xml\n`
@@ -91,6 +112,7 @@ function fleetContent(boats, now) {
 
 export function renderPublicPage(path, { boats = [], scriptUrl = '/src/publicPages.js', now = Date.now(), bridgeCollection, operatorGroups, searchParams } = {}) {
   if (!isPublicInformationPage(path)) throw new Error('Unknown public page')
+  if (isEnglishPage(path)) return renderEnglishPage(path, { scriptUrl, bridgeCollection })
   const fleet = path === '/flagship-vloot'
   const navigation = Object.hasOwn(NAVIGATION_PAGES, path)
   const knowledge = Object.hasOwn(KNOWLEDGE_PAGES, path)
@@ -107,5 +129,28 @@ export function renderPublicPage(path, { boats = [], scriptUrl = '/src/publicPag
     ...(knowledge ? knowledgeStructuredData(path) : {}),
     ...(fleet && boats.length ? { mainEntity: { '@type': 'ItemList', itemListElement: boats.map((boat, index) => ({ '@type': 'ListItem', position: index + 1, item: { '@type': 'Thing', name: boat.name } })) } } : {}),
   }
-  return `<!doctype html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">${pageHead(path)}<meta name="theme-color" content="#091422"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/public-pages.css"><script type="application/ld+json">${json(structuredData)}</script><script type="module" src="${escape(scriptUrl)}"></script></head><body data-usage-page="${knowledge ? 'knowledge' : fleet ? 'fleet' : 'routeplanner'}"><a class="skip-link" href="#content">Naar de inhoud</a><header class="site-header"><a class="brand" href="/" aria-label="Boottracker vaarkaart"><span class="brand-mark" aria-hidden="true">↗</span>Boottracker<span class="brand-city">Amsterdam</span></a><nav aria-label="Hoofdnavigatie">${links}<a class="nav-map" href="/">Open kaart ↗</a></nav></header><main id="content">${breadcrumbHtml}${content}</main><footer><a class="brand" href="/">Boottracker</a><p>Een beter overzicht van de Amsterdamse waterwegen.</p><nav aria-label="Voetnavigatie">${links}</nav><span class="caption">Kaartgegevens en ontvangen AIS-signalen kunnen onvolledig of vertraagd zijn.</span></footer></body></html>`
+  return `<!doctype html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">${pageHead(path)}<meta name="theme-color" content="#091422"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/public-pages.css"><script type="application/ld+json">${json(structuredData)}</script><script type="module" src="${escape(scriptUrl)}"></script></head><body data-usage-page="${knowledge ? 'knowledge' : fleet ? 'fleet' : 'routeplanner'}"><a class="skip-link" href="#content">Naar de inhoud</a><header class="site-header"><a class="brand" href="/" aria-label="Boottracker vaarkaart"><span class="brand-mark" aria-hidden="true">↗</span>Boottracker<span class="brand-city">Amsterdam</span></a><nav aria-label="Hoofdnavigatie">${links}${languageLink(path)}<a class="nav-map" href="/">Open kaart ↗</a></nav></header><main id="content">${breadcrumbHtml}${content}</main><footer><a class="brand" href="/">Boottracker</a><p>Een beter overzicht van de Amsterdamse waterwegen.</p><nav aria-label="Voetnavigatie">${links}</nav><span class="caption">Kaartgegevens en ontvangen AIS-signalen kunnen onvolledig of vertraagd zijn.</span></footer></body></html>`
+}
+
+function languageLink(path) {
+  const alternates = pageAlternates(path)
+  if (!alternates) return ''
+  return isEnglishPage(path)
+    ? `<a href="${alternates.nl}" hreflang="nl" lang="nl">Nederlands</a>`
+    : `<a href="${alternates.en}" hreflang="en" lang="en">English</a>`
+}
+
+function renderEnglishPage(path, { scriptUrl, bridgeCollection }) {
+  const page = PUBLIC_PAGES[path]
+  const content = englishPageContent(path, { bridgeCollection })
+  const parent = ENGLISH_PARENTS.find(([prefix]) => path.startsWith(prefix))
+  const crumbs = [{ path: ENGLISH_HOME, name: 'Boottracker' }, ...(parent ? [{ path: parent[1], name: parent[2] }] : []), ...(path === ENGLISH_HOME ? [] : [{ path, name: page.title.split(' | ')[0] }])]
+  const breadcrumbHtml = `<nav class="breadcrumbs" aria-label="Breadcrumb">${crumbs.map((item, index) => index === crumbs.length - 1 ? `<span aria-current="page">${escape(item.name)}</span>` : `<a href="${item.path}">${escape(item.name)}</a>`).join(' <span aria-hidden="true">/</span> ')}</nav>`
+  const structuredData = {
+    '@context': 'https://schema.org', '@type': 'WebPage',
+    name: page.title, description: page.description, url: `${SITE_ORIGIN}${path}`, inLanguage: 'en-GB',
+    breadcrumb: { '@type': 'BreadcrumbList', itemListElement: crumbs.map((item, index) => ({ '@type': 'ListItem', position: index + 1, name: item.name, item: `${SITE_ORIGIN}${item.path}` })) },
+    isPartOf: { '@type': 'WebSite', name: 'Boottracker', url: `${SITE_ORIGIN}/` },
+  }
+  return `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">${pageHead(path)}<meta name="theme-color" content="#091422"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/public-pages.css"><script type="application/ld+json">${json(structuredData)}</script><script type="module" src="${escape(scriptUrl)}"></script></head><body data-usage-page="routeplanner"><a class="skip-link" href="#content">Skip to content</a><header class="site-header"><a class="brand" href="${ENGLISH_HOME}" aria-label="Boottracker Amsterdam"><span class="brand-mark" aria-hidden="true">↗</span>Boottracker<span class="brand-city">Amsterdam</span></a><nav aria-label="Main navigation">${ENGLISH_NAV_LINKS}${languageLink(path)}<a class="nav-map" href="/">Open map ↗</a></nav></header><main id="content">${breadcrumbHtml}${content}</main><footer><a class="brand" href="${ENGLISH_HOME}">Boottracker</a><p>A clearer view of Amsterdam's waterways.</p><nav aria-label="Footer navigation">${ENGLISH_NAV_LINKS}${languageLink(path)}</nav><span class="caption">Map data and received AIS signals can be incomplete or delayed.</span></footer></body></html>`
 }
